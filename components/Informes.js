@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { createClient } from '@/lib/supabase/client'
 import { ocultar } from '@/lib/cifras'
+import { cargarCuentas, personaDeMedioPago, soloActivas, CUENTAS_RESPALDO } from '@/lib/cuentas'
 
 const COLORES = [
   '#ef4444','#f97316','#eab308','#84cc16','#22c55e',
@@ -12,17 +13,6 @@ const COLORES = [
   '#d946ef','#64748b',
 ]
 
-const MEDIOS_EMOJI = {
-  'Tarjeta Cris': '💳',
-  'Tarjeta Adri': '💳',
-  'Efectivo Cris': '💵',
-  'Efectivo Adri': '💵',
-  'Bizum': '📱',
-  'Transferencia': '🏦',
-  'Tarjeta roja': '💳',
-  'Banco': '🏦',
-}
-
 const EMOJI_PERSONA = {
   'Cris': '👤',
   'Adri': '👤',
@@ -30,14 +20,6 @@ const EMOJI_PERSONA = {
   'Sin asignar': '❔',
 }
 
-// Quién puso el dinero, deducido del medio de pago: el efectivo y la tarjeta
-// de cada uno son suyos; banco, bizum, transferencia y tarjeta roja son comunes.
-function quienPaga(medioPago) {
-  if (!medioPago) return 'Sin asignar'
-  if (/\bCris$/.test(medioPago)) return 'Cris'
-  if (/\bAdri$/.test(medioPago)) return 'Adri'
-  return 'Común'
-}
 
 function TarjetaComparativa({ label, actual, anterior, colorActual, colorBg, etiquetaAnterior, mostrarCifras }) {
   const diff = anterior > 0 ? ((actual - anterior) / anterior) * 100 : null
@@ -90,6 +72,11 @@ function exportarCSV(transacciones, nombreArchivo) {
 }
 
 export default function Informes({ transacciones, mostrarCifras }) {
+  // Se cargan antes que nada: de ellas salen los emojis, los saldos y
+  // el reparto de "quién puso el dinero".
+  const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
+  useEffect(() => { cargarCuentas().then(setCuentas) }, [])
+
   const meses = useMemo(() => {
     const set = new Set(transacciones.map(t => t.fecha.slice(0, 7)))
     return Array.from(set).sort().reverse()
@@ -136,7 +123,7 @@ export default function Informes({ transacciones, mostrarCifras }) {
     // Por persona: cuánto ha puesto de su bolsillo cada uno este mes
     const porPersona = {}
     transaccionesMes.forEach(t => {
-      const quien = quienPaga(t.medio_pago)
+      const quien = personaDeMedioPago(t.medio_pago, cuentas)
       if (!porPersona[quien]) porPersona[quien] = { gasto: 0, ingreso: 0 }
       porPersona[quien][t.tipo] += Number(t.importe)
     })
@@ -145,7 +132,7 @@ export default function Informes({ transacciones, mostrarCifras }) {
       .sort((a, b) => b.gasto - a.gasto)
 
     return { totalGastos, totalIngresos, balance: totalIngresos - totalGastos, categorias, medios, personas }
-  }, [transaccionesMes])
+  }, [transaccionesMes, cuentas])
 
   const datosTorta = useMemo(() => {
     const campo = tabActiva === 'gasto' ? 'gasto' : 'ingreso'
@@ -183,14 +170,10 @@ export default function Informes({ transacciones, mostrarCifras }) {
     })
     return { totalGastos, totalIngresos, balance: totalIngresos - totalGastos, porCategoria }
   }, [transaccionesComp, mesComparacion])
-  const [cuentas, setCuentas] = useState([])
   const [eventos, setEventos] = useState([])
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('cuentas').select('*').order('nombre').then(({ data }) => {
-      if (data) setCuentas(data)
-    })
     supabase.from('eventos').select('id, nombre, presupuesto').then(({ data }) => {
       if (data) setEventos(data)
     })
@@ -198,7 +181,7 @@ export default function Informes({ transacciones, mostrarCifras }) {
 
   // Saldo actual de cada cuenta = saldo_inicial + ingresos - gastos de TODAS las transacciones
   const saldosCuentas = useMemo(() => {
-    return cuentas.map(cuenta => {
+    return soloActivas(cuentas).map(cuenta => {
       const movimientos = transacciones.filter(t => t.medio_pago === cuenta.nombre)
       const ingresos = movimientos.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + Number(t.importe), 0)
       const gastos = movimientos.filter(t => t.tipo === 'gasto').reduce((s, t) => s + Number(t.importe), 0)
@@ -530,7 +513,7 @@ export default function Informes({ transacciones, mostrarCifras }) {
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Por medio de pago</p>
           <div className="space-y-1.5">
             {datosMes.medios.map((m) => {
-              const emoji = MEDIOS_EMOJI[m.nombre] || '💳'
+              const emoji = cuentas.find(c => c.nombre === m.nombre)?.emoji || '💳'
               const totalMedio = datosMes.totalGastos > 0 ? Math.round((m.gasto / datosMes.totalGastos) * 100) : 0
               const abierto = medioAbierto === m.nombre
               const apuntesMedio = transaccionesMes
@@ -607,7 +590,7 @@ export default function Informes({ transacciones, mostrarCifras }) {
               const pctPersona = datosMes.totalGastos > 0 ? Math.round((p.gasto / datosMes.totalGastos) * 100) : 0
               const abierto = personaAbierta === p.nombre
               const apuntesPersona = transaccionesMes
-                .filter(t => quienPaga(t.medio_pago) === p.nombre && t.tipo === tabActiva)
+                .filter(t => personaDeMedioPago(t.medio_pago, cuentas) === p.nombre && t.tipo === tabActiva)
                 .sort((a, b) => b.fecha.localeCompare(a.fecha))
               return (
                 <div key={p.nombre} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
