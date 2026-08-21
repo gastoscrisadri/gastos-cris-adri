@@ -77,6 +77,8 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   const fechaRef = useRef()
   const establecimientoRef = useRef()
   const notasRef = useRef()
+  const subcategoriaRef = useRef()
+  const medioPagoRef = useRef()
   const supabase = createClient()
 
   // La app abre directamente aquí con la cámara intentando dispararse sola.
@@ -407,7 +409,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       <div className="relative">
         <input
           ref={importeRef}
-          type="text" inputMode="decimal" autoFocus value={form.importe}
+          type="text" inputMode="decimal" enterKeyHint="next" autoFocus value={form.importe}
           onChange={e => set('importe', e.target.value)}
           onKeyDown={e => e.key === 'Enter' && categoriaRef.current?.focus()}
           placeholder="0,00"
@@ -421,7 +423,14 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       <div>
         <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Categoría *</label>
         <select ref={categoriaRef} value={form.categoria}
-          onChange={e => { set('categoria', e.target.value); set('subcategoria', '') }}
+          onChange={e => {
+            set('categoria', e.target.value)
+            set('subcategoria', '')
+            // Al elegir categoría saltamos al campo siguiente: la subcategoría
+            // si esa categoría tiene, y si no directamente la fecha.
+            const tieneSubs = subcategoriasDeCategoria(categorias, principales.find(c => c.nombre === e.target.value)?.id).length > 0
+            setTimeout(() => (tieneSubs ? subcategoriaRef : fechaRef).current?.focus(), 0)
+          }}
           onKeyDown={e => e.key === 'Enter' && fechaRef.current?.focus()}
           className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white">
           <option value="">Selecciona categoría...</option>
@@ -432,7 +441,9 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       {subcategorias.length > 0 && (
         <div>
           <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Subcategoría</label>
-          <select value={form.subcategoria} onChange={e => set('subcategoria', e.target.value)}
+          <select ref={subcategoriaRef} value={form.subcategoria}
+            onChange={e => { set('subcategoria', e.target.value); setTimeout(() => fechaRef.current?.focus(), 0) }}
+            onKeyDown={e => e.key === 'Enter' && fechaRef.current?.focus()}
             className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white">
             <option value="">Sin subcategoría</option>
             {subcategorias.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
@@ -451,7 +462,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       {/* Establecimiento */}
       <div className="relative">
         <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Establecimiento / Pagador *</label>
-        <input ref={establecimientoRef} type="text" value={form.establecimiento} autoComplete="off"
+        <input ref={establecimientoRef} type="text" enterKeyHint="next" value={form.establecimiento} autoComplete="off"
           onChange={e => { set('establecimiento', e.target.value); filtrarSugerencias(e.target.value, historialEstablecimientos, setSugerenciasEstablecimiento) }}
           onBlur={() => setTimeout(() => setSugerenciasEstablecimiento([]), 150)}
           onKeyDown={e => e.key === 'Enter' && notasRef.current?.focus()}
@@ -474,10 +485,10 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       {/* Notas */}
       <div className="relative">
         <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Notas (opcional)</label>
-        <input ref={notasRef} type="text" value={form.descripcion} autoComplete="off"
+        <input ref={notasRef} type="text" enterKeyHint="done" value={form.descripcion} autoComplete="off"
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); medioPagoRef.current?.focus() } }}
           onChange={e => { set('descripcion', e.target.value); filtrarSugerencias(e.target.value, historialNotas, setSugerenciasNotas) }}
           onBlur={() => setTimeout(() => setSugerenciasNotas([]), 150)}
-          onKeyDown={e => e.key === 'Enter' && e.target.blur()}
           placeholder="Descripción breve..."
           className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
         {sugerenciasNotas.length > 0 && (
@@ -498,8 +509,8 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       <div>
         <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Medio de pago</label>
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5 scrollbar-hide">
-          {mediosPago.map(m => (
-            <button key={m.nombre} type="button"
+          {mediosPago.map((m, i) => (
+            <button key={m.nombre} type="button" ref={i === 0 ? medioPagoRef : undefined}
               onClick={() => set('medio_pago', m.nombre)}
               className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-colors ${form.medio_pago === m.nombre ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200'}`}>
               <span>{m.emoji}</span>
