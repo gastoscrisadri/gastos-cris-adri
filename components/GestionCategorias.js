@@ -67,6 +67,51 @@ export default function GestionCategorias() {
     recargar()
   }
 
+  // Quitar una categoría o subcategoría sin poder estropear el historial:
+  // si nunca se ha usado se borra de verdad; si tiene apuntes solo se oculta,
+  // para que esos apuntes conserven el nombre que tenían.
+  async function quitar(cat) {
+    const esPrincipal = !cat.padre_id
+    const hijas = esPrincipal ? subcategoriasDe(cat.id) : []
+
+    const nombres = [cat.nombre, ...hijas.map(h => h.nombre)]
+    const contar = campo => supabase
+      .from('transacciones')
+      .select('id', { count: 'exact', head: true })
+      .in(campo, nombres)
+
+    const [comoCategoria, comoSubcategoria] = await Promise.all([
+      contar('categoria'),
+      contar('subcategoria'),
+    ])
+
+    // Si la consulta falla, damos por hecho que sí se ha usado: así nunca
+    // se borra por error algo que tenía apuntes detrás.
+    if (comoCategoria.error || comoSubcategoria.error) {
+      window.alert('No he podido comprobar si esta categoría está en uso. Inténtalo de nuevo en un momento.')
+      return
+    }
+
+    const usados = (comoCategoria.count || 0) + (comoSubcategoria.count || 0)
+    const aviso = usados > 0
+      ? `"${cat.nombre}" se ha usado en ${usados} apunte${usados === 1 ? '' : 's'}.\n\n` +
+        'Se quitará de las listas al crear apuntes nuevos, pero los apuntes ya guardados no cambian. ¿Seguimos?'
+      : hijas.length > 0
+        ? `Se borrará "${cat.nombre}" y sus ${hijas.length} subcategorías. No se ha usado en ningún apunte. ¿Seguimos?`
+        : `Se borrará "${cat.nombre}". No se ha usado en ningún apunte. ¿Seguimos?`
+
+    if (!window.confirm(aviso)) return
+
+    if (usados > 0) {
+      const ids = [cat.id, ...hijas.map(h => h.id)]
+      await supabase.from('categorias').update({ activa: false }).in('id', ids)
+    } else {
+      // El borrado en cascada de la base de datos se lleva también las hijas
+      await supabase.from('categorias').delete().eq('id', cat.id)
+    }
+    recargar()
+  }
+
   return (
     <div className="pb-24 space-y-4">
       {/* Filtro tipo */}
@@ -106,6 +151,8 @@ export default function GestionCategorias() {
                     <span className="flex-1 font-semibold text-gray-800 text-sm">{cat.nombre}</span>
                     <button onClick={() => { setEditando(cat.id); setNombreEdicion(cat.nombre) }}
                       className="text-xs text-gray-300 hover:text-blue-500 px-1.5 py-1">✏️</button>
+                    <button onClick={() => quitar(cat)} aria-label={`Quitar ${cat.nombre}`}
+                      className="text-xs text-gray-300 hover:text-red-500 px-1.5 py-1">🗑️</button>
                     {subs.length > 0 && (
                       <button onClick={() => toggleAbierto(cat.id)}
                         className="text-xs text-gray-400 font-semibold px-2 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 flex items-center gap-1">
@@ -135,6 +182,8 @@ export default function GestionCategorias() {
                           <span className="flex-1 text-sm text-gray-600">{sub.nombre}</span>
                           <button onClick={() => { setEditando(sub.id); setNombreEdicion(sub.nombre) }}
                             className="text-xs text-gray-300 hover:text-blue-500">✏️</button>
+                          <button onClick={() => quitar(sub)} aria-label={`Quitar ${sub.nombre}`}
+                            className="text-xs text-gray-300 hover:text-red-500 px-1">🗑️</button>
                         </>
                       )}
                     </div>
