@@ -4,17 +4,7 @@ import { useState, useEffect } from 'react'
 import { ocultar } from '@/lib/cifras'
 import { createClient } from '@/lib/supabase/client'
 import { cargarCategorias, principalesPorTipo, subcategoriasDeCategoria } from '@/lib/categorias'
-
-const MEDIOS_PAGO = [
-  { valor: 'Efectivo Adri', emoji: '💵' },
-  { valor: 'Efectivo Cris', emoji: '💵' },
-  { valor: 'Tarjeta Cris', emoji: '💳' },
-  { valor: 'Banco', emoji: '🏦' },
-  { valor: 'Tarjeta Adri', emoji: '💳' },
-  { valor: 'Bizum', emoji: '📱' },
-  { valor: 'Transferencia', emoji: '🏦' },
-  { valor: 'Tarjeta roja', emoji: '💳' },
-]
+import { cargarCuentas, soloActivas, CUENTAS_RESPALDO } from '@/lib/cuentas'
 
 const FORM_VACIO = {
   nombre: '',
@@ -157,12 +147,14 @@ function FormRecurrente({ inicial, onGuardado, onCancelar }) {
     dia_mes: inicial.dia_mes || 1,
   })
   const [categorias, setCategorias] = useState([])
+  const [mediosPago, setMediosPago] = useState(CUENTAS_RESPALDO)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
   const [confirmando, setConfirmando] = useState(false)
   const supabase = createClient()
 
   useEffect(() => { cargarCategorias().then(setCategorias) }, [])
+  useEffect(() => { cargarCuentas().then(cs => setMediosPago(soloActivas(cs))) }, [])
 
   const esEdicion = !!inicial.id
   const principales = principalesPorTipo(categorias, form.tipo)
@@ -294,12 +286,12 @@ function FormRecurrente({ inicial, onGuardado, onCancelar }) {
       <div>
         <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Medio de pago (opcional)</label>
         <div className="grid grid-cols-2 gap-1.5">
-          {MEDIOS_PAGO.map(m => (
-            <button key={m.valor} type="button"
-              onClick={() => set('medio_pago', form.medio_pago === m.valor ? '' : m.valor)}
-              className={`py-2 px-2 rounded-xl text-xs font-semibold border transition-colors flex items-center gap-1.5 ${form.medio_pago === m.valor ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-400 border-gray-200'}`}>
+          {mediosPago.map(m => (
+            <button key={m.nombre} type="button"
+              onClick={() => set('medio_pago', form.medio_pago === m.nombre ? '' : m.nombre)}
+              className={`py-2 px-2 rounded-xl text-xs font-semibold border transition-colors flex items-center gap-1.5 ${form.medio_pago === m.nombre ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-400 border-gray-200'}`}>
               <span>{m.emoji}</span>
-              <span className="truncate">{m.valor}</span>
+              <span className="truncate">{m.nombre}</span>
             </button>
           ))}
         </div>

@@ -3,32 +3,8 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { cargarCategorias, principalesPorTipo, subcategoriasDeCategoria } from '@/lib/categorias'
+import { cargarCuentas, ordenarPara, CUENTAS_RESPALDO } from '@/lib/cuentas'
 
-const EMOJI_MEDIO_PAGO = {
-  'Efectivo Adri': '💵',
-  'Efectivo Cris': '💵',
-  'Tarjeta Cris': '💳',
-  'Tarjeta Adri': '💳',
-  'Banco': '🏦',
-  'Bizum': '📱',
-  'Transferencia': '🏦',
-  'Tarjeta roja': '💳',
-}
-
-// Orden si no sabemos quién registra (móvil sin configurar): el de siempre
-const MEDIOS_PAGO_SIN_DUENO = Object.keys(EMOJI_MEDIO_PAGO).map(valor => ({ valor, emoji: EMOJI_MEDIO_PAGO[valor] }))
-
-// El efectivo y la tarjeta de quien registra van primero, luego lo común,
-// y al final el efectivo y la tarjeta del otro
-function mediosPagoPara(quien) {
-  if (quien !== 'Cris' && quien !== 'Adri') return MEDIOS_PAGO_SIN_DUENO
-  const otro = quien === 'Cris' ? 'Adri' : 'Cris'
-  const orden = [
-    `Efectivo ${quien}`, `Tarjeta ${quien}`, 'Bizum', 'Banco', 'Transferencia', 'Tarjeta roja',
-    `Efectivo ${otro}`, `Tarjeta ${otro}`,
-  ]
-  return orden.map(valor => ({ valor, emoji: EMOJI_MEDIO_PAGO[valor] }))
-}
 
 const FORM_VACIO = {
   fecha: new Date().toISOString().split('T')[0],
@@ -72,6 +48,9 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   })
 
   const [categorias, setCategorias] = useState([])
+  // Arranca con los de siempre para que el formulario nunca se quede sin
+  // medios de pago mientras llega la consulta.
+  const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
   const [foto, setFoto] = useState(null)
   const [fotoFile, setFotoFile] = useState(null)
   const [estadoOCR, setEstadoOCR] = useState(null)
@@ -120,6 +99,19 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
   useEffect(() => {
     cargarCategorias().then(setCategorias)
+    cargarCuentas().then(lista => {
+      setCuentas(lista)
+      // El premarcado supone que existe una cuenta "Efectivo <dueño>". Si la
+      // han renombrado o quitado, se marca la primera cuenta de esa persona
+      // en vez de dejar señalado un medio de pago que ya no existe.
+      if (transaccionEditar) return
+      setForm(f => {
+        if (!f.quien || !f.medio_pago) return f
+        if (lista.some(c => c.nombre === f.medio_pago)) return f
+        const suya = lista.find(c => c.persona === f.quien)
+        return { ...f, medio_pago: suya ? suya.nombre : '' }
+      })
+    })
     supabase.from('transacciones').select('establecimiento, descripcion, categoria, subcategoria').then(({ data }) => {
       if (!data) return
       setHistorialEstablecimientos([...new Set(data.map(t => t.establecimiento).filter(Boolean))].sort())
@@ -163,7 +155,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
   // Sigue a quien registra el apunte, no al dueño del móvil: si se edita un
   // apunte antiguo del otro, sus medios de pago pasan a ir primero.
-  const mediosPago = useMemo(() => mediosPagoPara(form.quien), [form.quien])
+  const mediosPago = useMemo(() => ordenarPara(form.quien, cuentas), [form.quien, cuentas])
 
   // Las más usadas primero; a igualdad de uso se mantiene el orden original
   const principales = useMemo(() => {
@@ -507,11 +499,11 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Medio de pago (opcional)</label>
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5 scrollbar-hide">
           {mediosPago.map(m => (
-            <button key={m.valor} type="button"
-              onClick={() => set('medio_pago', form.medio_pago === m.valor ? '' : m.valor)}
-              className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-colors ${form.medio_pago === m.valor ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200'}`}>
+            <button key={m.nombre} type="button"
+              onClick={() => set('medio_pago', form.medio_pago === m.nombre ? '' : m.nombre)}
+              className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-colors ${form.medio_pago === m.nombre ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200'}`}>
               <span>{m.emoji}</span>
-              <span>{m.valor}</span>
+              <span>{m.nombre}</span>
             </button>
           ))}
         </div>
