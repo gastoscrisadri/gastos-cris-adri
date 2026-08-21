@@ -26,7 +26,17 @@ const MEDIOS_EMOJI = {
 const EMOJI_PERSONA = {
   'Cris': '👤',
   'Adri': '👤',
+  'Común': '🤝',
   'Sin asignar': '❔',
+}
+
+// Quién puso el dinero, deducido del medio de pago: el efectivo y la tarjeta
+// de cada uno son suyos; banco, bizum, transferencia y tarjeta roja son comunes.
+function quienPaga(medioPago) {
+  if (!medioPago) return 'Sin asignar'
+  if (/\bCris$/.test(medioPago)) return 'Cris'
+  if (/\bAdri$/.test(medioPago)) return 'Adri'
+  return 'Común'
 }
 
 function TarjetaComparativa({ label, actual, anterior, colorActual, colorBg, etiquetaAnterior, mostrarCifras }) {
@@ -123,10 +133,10 @@ export default function Informes({ transacciones, mostrarCifras }) {
       .map(([nombre, vals]) => ({ nombre, gasto: vals.gasto || 0, ingreso: vals.ingreso || 0 }))
       .sort((a, b) => b.gasto - a.gasto)
 
-    // Por persona: cuánto ha registrado cada uno este mes
+    // Por persona: cuánto ha puesto de su bolsillo cada uno este mes
     const porPersona = {}
     transaccionesMes.forEach(t => {
-      const quien = t.quien || 'Sin asignar'
+      const quien = quienPaga(t.medio_pago)
       if (!porPersona[quien]) porPersona[quien] = { gasto: 0, ingreso: 0 }
       porPersona[quien][t.tipo] += Number(t.importe)
     })
@@ -590,14 +600,14 @@ export default function Informes({ transacciones, mostrarCifras }) {
       {/* Resumen por persona — expandible */}
       {datosMes.personas.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Por persona</p>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Quién puso el dinero</p>
           <div className="space-y-1.5">
             {datosMes.personas.map((p) => {
               const emoji = EMOJI_PERSONA[p.nombre] || '👤'
               const pctPersona = datosMes.totalGastos > 0 ? Math.round((p.gasto / datosMes.totalGastos) * 100) : 0
               const abierto = personaAbierta === p.nombre
               const apuntesPersona = transaccionesMes
-                .filter(t => (t.quien || 'Sin asignar') === p.nombre && t.tipo === tabActiva)
+                .filter(t => quienPaga(t.medio_pago) === p.nombre && t.tipo === tabActiva)
                 .sort((a, b) => b.fecha.localeCompare(a.fecha))
               return (
                 <div key={p.nombre} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
