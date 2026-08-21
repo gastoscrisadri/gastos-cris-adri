@@ -31,7 +31,10 @@ export async function POST(request) {
 
   if (!GEMINI_API_KEY) {
     console.error('GEMINI_API_KEY no configurada')
-    return NextResponse.json({ error: 'OCR no configurado' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'OCR no configurado', diagnostico: 'falta-clave-gemini' },
+      { status: 500 }
+    )
   }
 
   try {
@@ -68,14 +71,21 @@ export async function POST(request) {
     // son visibles para los colaboradores del proyecto. Solo el hecho del fallo.
     if (!geminiResponse.ok) {
       console.error('Error de Gemini — status:', geminiResponse.status)
-      return NextResponse.json({ error: 'Error procesando imagen' }, { status: 422 })
+      return NextResponse.json(
+        { error: 'Error procesando imagen', diagnostico: `gemini-${geminiResponse.status}` },
+        { status: 422 }
+      )
     }
 
     const geminiData = await geminiResponse.json()
     const content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
 
     if (!content) {
-      return NextResponse.json({ error: 'Sin respuesta del modelo' }, { status: 422 })
+      const motivo = geminiData.candidates?.[0]?.finishReason || 'sin-candidatos'
+      return NextResponse.json(
+        { error: 'Sin respuesta del modelo', diagnostico: `vacio-${motivo}` },
+        { status: 422 }
+      )
     }
 
     const jsonStr = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
@@ -85,13 +95,19 @@ export async function POST(request) {
       resultado = JSON.parse(jsonStr)
     } catch {
       console.error('El modelo devolvió un JSON inválido')
-      return NextResponse.json({ error: 'No se pudo parsear la respuesta' }, { status: 422 })
+      return NextResponse.json(
+        { error: 'No se pudo parsear la respuesta', diagnostico: 'json-invalido' },
+        { status: 422 }
+      )
     }
 
     return NextResponse.json(resultado)
 
   } catch (e) {
     console.error('Error OCR:', e.message)
-    return NextResponse.json({ error: 'No se pudo procesar la imagen' }, { status: 422 })
+    return NextResponse.json(
+      { error: 'No se pudo procesar la imagen', diagnostico: `excepcion-${e.name || 'desconocida'}` },
+      { status: 422 }
+    )
   }
 }

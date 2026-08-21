@@ -75,6 +75,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   const [foto, setFoto] = useState(null)
   const [fotoFile, setFotoFile] = useState(null)
   const [estadoOCR, setEstadoOCR] = useState(null)
+  const [diagnosticoOCR, setDiagnosticoOCR] = useState(null)
   const [camposFaltantes, setCamposFaltantes] = useState([])
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
@@ -190,6 +191,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
     setFotoFile(file)
     setEstadoOCR('procesando')
     setError('')
+    setDiagnosticoOCR(null)
 
     try {
       const fd = new FormData()
@@ -243,10 +245,12 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         setCamposFaltantes(faltantes)
         setEstadoOCR(faltantes.length === 0 ? 'exito' : 'duda')
       } else {
+        setDiagnosticoOCR(data.diagnostico || `http-${res.status}`)
         setCamposFaltantes(['importe', 'fecha', 'categoría', 'establecimiento'])
         setEstadoOCR('duda')
       }
-    } catch {
+    } catch (e) {
+      setDiagnosticoOCR(e.name === 'AbortError' ? 'tiempo-agotado' : `red-${e.name || 'desconocido'}`)
       setCamposFaltantes(['importe', 'fecha', 'categoría', 'establecimiento'])
       setEstadoOCR('duda')
     }
@@ -359,6 +363,9 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
               <span key={c} className="bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full capitalize">{c}</span>
             ))}
           </div>
+          {diagnosticoOCR && (
+            <p className="text-[10px] text-amber-500 mt-1">código: {diagnosticoOCR}</p>
+          )}
         </div>
         {foto && <img src={foto} alt="documento" className="w-full rounded-2xl border border-gray-100 shadow object-contain max-h-32" />}
         <button onClick={() => setEstadoOCR(null)}
