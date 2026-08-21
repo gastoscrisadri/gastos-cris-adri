@@ -372,7 +372,11 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
   // ── Formulario único ──────────────────────────────────────────────────
   return (
-    <div className="space-y-3 pb-28">
+    // Es un <form> de verdad, no un <div>, por dos motivos: en el móvil hace
+    // que aparezcan las flechas de "campo anterior / siguiente" sobre el
+    // teclado, y en el ordenador permite pasar de campo con Intro. No se
+    // envía nunca: guardar es siempre cosa del botón de abajo.
+    <form className="space-y-3 pb-28" onSubmit={e => e.preventDefault()}>
 
       {/* Botón foto OCR — es el campo más usado. Mismo verde que ya usa la app
           para lo positivo (Ingreso, saldos a favor, "Documento reconocido").
@@ -597,7 +601,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           </div>
         )
       )}
-    </div>
+    </form>
   )
 }
 
