@@ -37,12 +37,12 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       }
     }
     // Cada móvil recuerda a quién pertenece, así no hay que marcarlo cada vez.
-    // Y como habitualmente se paga en efectivo, viene ya marcado "Efectivo <dueño>".
+    // El medio de pago lo premarca el efecto de más abajo con la primera
+    // cuenta de esa persona (su tarjeta), en cuanto llegan las cuentas.
     const recordado = typeof window !== 'undefined' ? localStorage.getItem('quienRegistra') : null
     return {
       ...FORM_VACIO,
       quien: recordado || '',
-      medio_pago: recordado ? `Efectivo ${recordado}` : '',
       evento_id: eventoActivo?.id || null,
     }
   })
@@ -101,15 +101,15 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
     cargarCategorias().then(setCategorias)
     cargarCuentas().then(lista => {
       setCuentas(lista)
-      // El premarcado supone que existe una cuenta "Efectivo <dueño>". Si la
-      // han renombrado o quitado, se marca la primera cuenta de esa persona
-      // en vez de dejar señalado un medio de pago que ya no existe.
+      // Premarcamos la primera cuenta de quien registra: con el orden por
+      // defecto es su tarjeta. Se hace por posición y no por nombre, así
+      // sigue funcionando aunque renombren las cuentas.
       if (transaccionEditar) return
       setForm(f => {
-        if (!f.quien || !f.medio_pago) return f
-        if (lista.some(c => c.nombre === f.medio_pago)) return f
-        const suya = lista.find(c => c.persona === f.quien)
-        return { ...f, medio_pago: suya ? suya.nombre : '' }
+        if (!f.quien) return f
+        if (f.medio_pago && lista.some(c => c.nombre === f.medio_pago)) return f
+        const suyas = ordenarPara(f.quien, lista).filter(c => c.persona === f.quien)
+        return { ...f, medio_pago: suyas[0]?.nombre || '' }
       })
     })
     supabase.from('transacciones').select('establecimiento, descripcion, categoria, subcategoria').then(({ data }) => {
@@ -250,7 +250,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
   // ── Guardar ───────────────────────────────────────────────────────────
   async function guardar() {
-    const requeridos = { importe: 'Importe', categoria: 'Categoría', fecha: 'Fecha', establecimiento: 'Establecimiento', quien: '¿Quién?' }
+    const requeridos = { importe: 'Importe', categoria: 'Categoría', fecha: 'Fecha', establecimiento: 'Establecimiento', quien: '¿Quién?', medio_pago: 'Medio de pago' }
     for (const [campo, etiqueta] of Object.entries(requeridos)) {
       if (!form[campo] || String(form[campo]).trim() === '') {
         setError(`El campo "${etiqueta}" es obligatorio.`)
@@ -496,11 +496,11 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
       {/* Medio de pago — scroll horizontal */}
       <div>
-        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Medio de pago (opcional)</label>
+        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Medio de pago</label>
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5 scrollbar-hide">
           {mediosPago.map(m => (
             <button key={m.nombre} type="button"
-              onClick={() => set('medio_pago', form.medio_pago === m.nombre ? '' : m.nombre)}
+              onClick={() => set('medio_pago', m.nombre)}
               className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-colors ${form.medio_pago === m.nombre ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200'}`}>
               <span>{m.emoji}</span>
               <span>{m.nombre}</span>
