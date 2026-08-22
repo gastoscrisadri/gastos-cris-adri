@@ -269,9 +269,13 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
     let imagen_url = transaccionEditar?.imagen_url || null
     if (fotoFile) {
-      const ext = fotoFile.name.split('.').pop()
+      // Se sube encogida: ocupa ~8 veces menos y sube mucho más rápido con
+      // mala cobertura. Si la compresión falla, devuelve la original.
+      // Al OCR sigue yendo la foto original, sin tocar.
+      const paraSubir = await comprimirImagen(fotoFile)
+      const ext = paraSubir.name.split('.').pop()
       const nombre = `${Date.now()}.${ext}`
-      const { error: errUpload } = await supabase.storage.from('documentos').upload(nombre, fotoFile, { upsert: false })
+      const { error: errUpload } = await supabase.storage.from('documentos').upload(nombre, paraSubir, { upsert: false })
       if (!errUpload) {
         const { data: urlData } = supabase.storage.from('documentos').getPublicUrl(nombre)
         imagen_url = urlData?.publicUrl || null
@@ -608,6 +612,46 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 // Convierte importes en formato español (1.089,46) o inglés (1089.46) a número válido
+// Encoge la foto en el propio móvil antes de subirla a Supabase.
+// 1600 px: el iPhone hace fotos de 4032 px de ancho pero su pantalla muestra
+// 1170 como mucho, así que la letra pequeña del ticket se lee igual y se pasa
+// de ~2,4 MB a ~300 KB.
+const LADO_MAX = 1600
+const CALIDAD_JPEG = 0.82
+
+async function comprimirImagen(file) {
+  try {
+    if (!file.type?.startsWith('image/')) return file
+
+    let bitmap
+    try {
+      // from-image respeta la orientación EXIF; sin esto las fotos hechas
+      // en vertical se guardarían giradas
+      bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
+    } catch {
+      bitmap = await createImageBitmap(file)
+    }
+
+    const escala = Math.min(1, LADO_MAX / Math.max(bitmap.width, bitmap.height))
+    const ancho = Math.round(bitmap.width * escala)
+    const alto = Math.round(bitmap.height * escala)
+
+    const lienzo = document.createElement('canvas')
+    lienzo.width = ancho
+    lienzo.height = alto
+    lienzo.getContext('2d').drawImage(bitmap, 0, 0, ancho, alto)
+    bitmap.close?.()
+
+    const blob = await new Promise(res => lienzo.toBlob(res, 'image/jpeg', CALIDAD_JPEG))
+    if (!blob || blob.size >= file.size) return file   // si no ahorra, la original
+
+    const nombre = file.name.replace(/\.[^.]+$/, '') + '.jpg'
+    return new File([blob], nombre, { type: 'image/jpeg' })
+  } catch {
+    return file   // ante cualquier fallo, la original: nunca bloquear el guardado
+  }
+}
+
 function normalizarImporte(valor) {
   const s = String(valor).trim()
   if (s.includes(',') && s.includes('.')) {
