@@ -10,10 +10,15 @@
 .env.local
 .env*.local
 
-# data files (never commit personal expense data)
+# datos personales — nunca subir a GitHub
+/Documentos/
+/historico/
 *.csv
 *.xlsx
-Documentos/
+*.jpg
+*.jpeg
+*.png
+!public/*.png
 
 # misc
 .DS_Store
