@@ -72,6 +72,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   const [porEstablecimiento, setPorEstablecimiento] = useState({})
 
   const inputFotoRef = useRef()
+  const inputGaleriaRef = useRef()
   const importeRef = useRef()
   const categoriaRef = useRef()
   const fechaRef = useRef()
@@ -387,18 +388,29 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           Cancelar va aquí arriba, junto a la foto: cuando la app abre
           directamente en este formulario (ver page.js) es lo primero que se
           ve, así que la salida rápida tiene que estar a la vista. */}
-      <div className="flex gap-2">
+      <div className="flex gap-1.5">
         <button type="button" onClick={() => inputFotoRef.current?.click()}
-          className="basis-[70%] py-4 rounded-xl bg-emerald-500 text-white text-base font-bold flex items-center justify-center gap-2 shadow-sm">
-          <span className="text-xl">📷</span>
-          {foto ? 'Cambiar foto' : 'Foto del documento'}
+          className="basis-[38%] py-3.5 rounded-xl bg-emerald-500 text-white text-xs font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm">
+          <span className="text-lg leading-none">📷</span>
+          {foto ? 'Cambiar' : 'Cámara'}
+        </button>
+        <button type="button" onClick={() => inputGaleriaRef.current?.click()}
+          className="basis-[34%] py-3.5 rounded-xl bg-emerald-700 text-white text-xs font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm">
+          <span className="text-lg leading-none">🖼️</span>
+          Mis fotos
         </button>
         <button type="button" onClick={onCancelar}
-          className="basis-[30%] py-4 rounded-xl border border-gray-200 text-gray-500 text-sm font-medium">
+          className="basis-[28%] py-3.5 rounded-xl bg-red-500 text-white text-xs font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm">
+          <span className="text-lg leading-none">✕</span>
           Cancelar
         </button>
       </div>
+      {/* Dos entradas con el MISMO manejador, para que el OCR se comporte
+          igual venga la foto de la cámara o del carrete. La de la cámara
+          conserva su ref: la apertura automática al arrancar y el listener
+          del evento "cancel" apuntan solo a ella, nunca a la galería. */}
       <input ref={inputFotoRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={procesarFoto} />
+      <input ref={inputGaleriaRef} type="file" accept="image/*" className="hidden" onChange={procesarFoto} />
       {foto && <img src={foto} alt="ticket" className="w-full rounded-xl object-contain max-h-28 border border-gray-100" />}
 
       {/* Tipo */}
