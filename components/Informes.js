@@ -21,6 +21,34 @@ const EMOJI_PERSONA = {
 }
 
 
+// Una línea de apunte dentro de un desplegable. Se usa en las cuatro listas
+// (categoría, subcategoría, medio de pago y quién puso el dinero); "extra" es
+// el dato que cambia según dónde se muestre: el medio de pago cuando ya
+// sabemos la categoría, y la categoría en los demás casos.
+function FilaApunte({ t, mostrarCifras, extra }) {
+  const importe = Number(t.importe)
+  const esGasto = t.tipo === 'gasto' && importe >= 0
+  const [, mesN, dia] = t.fecha.split('-')
+  const fechaCorta = `${parseInt(dia)}/${parseInt(mesN)}`
+  return (
+    <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50/50">
+      <span className="text-xs text-gray-400 w-10 shrink-0">{fechaCorta}</span>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-semibold text-gray-700 truncate">
+          {t.establecimiento || t.descripcion || t.subcategoria || t.categoria}
+        </p>
+        {t.descripcion && t.establecimiento && (
+          <p className="text-[10px] text-gray-400 truncate">{t.descripcion}</p>
+        )}
+      </div>
+      {extra}
+      <span className={`text-xs font-bold shrink-0 ${esGasto ? 'text-red-500' : 'text-emerald-500'}`}>
+        {ocultar(mostrarCifras, `${esGasto ? '−' : '+'}${Math.abs(importe).toFixed(2)} €`)}
+      </span>
+    </div>
+  )
+}
+
 function TarjetaComparativa({ label, actual, anterior, colorActual, colorBg, etiquetaAnterior, mostrarCifras }) {
   const diff = anterior > 0 ? ((actual - anterior) / anterior) * 100 : null
   const sube = diff > 0
@@ -149,6 +177,7 @@ export default function Informes({ transacciones, mostrarCifras }) {
 
   const totalTab = datosTorta.reduce((s, d) => s + d.valor, 0)
   const [categoriaAbierta, setCategoriaAbierta] = useState(null)
+  const [subcategoriaAbierta, setSubcategoriaAbierta] = useState(null)
   const [medioAbierto, setMedioAbierto] = useState(null)
   const [personaAbierta, setPersonaAbierta] = useState(null)
   const [mesComparacion, setMesComparacion] = useState(null)
@@ -191,7 +220,7 @@ export default function Informes({ transacciones, mostrarCifras }) {
   }, [cuentas, transacciones])
 
   // Reset al cambiar mes o tab
-  useMemo(() => { setCategoriaAbierta(null); setMedioAbierto(null) }, [mesSeleccionado, tabActiva])
+  useMemo(() => { setCategoriaAbierta(null); setSubcategoriaAbierta(null); setMedioAbierto(null) }, [mesSeleccionado, tabActiva])
 
   // Eventos con actividad en el mes seleccionado
   const eventosDelMes = useMemo(() => {
@@ -444,12 +473,26 @@ export default function Informes({ transacciones, mostrarCifras }) {
                 .filter(t => t.tipo === tabActiva && t.categoria === d.nombre)
                 .sort((a, b) => b.fecha.localeCompare(a.fecha))
               const color = COLORES[i % COLORES.length]
+
+              // Agrupar por subcategoría solo si hay más de una en uso este
+              // mes en esta categoría; si no, iría un toque de más para ver
+              // los mismos 1-2 apuntes de siempre.
+              const porSubcategoria = {}
+              apuntesCategoria.forEach(t => {
+                const clave = t.subcategoria || '__sin__'
+                if (!porSubcategoria[clave]) porSubcategoria[clave] = { nombre: t.subcategoria || 'Sin subcategoría', total: 0, apuntes: [] }
+                porSubcategoria[clave].total += Number(t.importe)
+                porSubcategoria[clave].apuntes.push(t)
+              })
+              const gruposSubcategoria = Object.values(porSubcategoria).sort((a, b) => b.total - a.total)
+              const agruparPorSub = gruposSubcategoria.length > 1
+
               return (
                 <div key={d.nombre} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                   {/* Cabecera de categoría */}
                   <button
                     type="button"
-                    onClick={() => setCategoriaAbierta(abierta ? null : d.nombre)}
+                    onClick={() => { setCategoriaAbierta(abierta ? null : d.nombre); setSubcategoriaAbierta(null) }}
                     className="w-full flex items-center gap-3 px-3 py-2.5 text-left active:bg-gray-50">
                     <span className="text-xs font-bold px-2 py-1 rounded-lg text-white min-w-[42px] text-center shrink-0"
                       style={{ backgroundColor: color }}>
@@ -460,31 +503,40 @@ export default function Informes({ transacciones, mostrarCifras }) {
                     <span className="text-gray-400 text-xs">{abierta ? '▲' : '▼'}</span>
                   </button>
 
-                  {/* Apuntes desplegados */}
-                  {abierta && (
+                  {/* Apuntes desplegados. Con una sola subcategoría en uso se
+                      va directo a la lista de siempre, sin un toque de más. */}
+                  {abierta && !agruparPorSub && (
                     <div className="border-t border-gray-50 divide-y divide-gray-50">
-                      {apuntesCategoria.map(t => {
-                        const importe = Number(t.importe)
-                        const esGasto = t.tipo === 'gasto' && importe >= 0
-                        const [, mesN, dia] = t.fecha.split('-')
-                        const fechaCorta = `${parseInt(dia)}/${parseInt(mesN)}`
+                      {apuntesCategoria.map(t => (
+                        <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras}
+                          extra={t.medio_pago && <span className="text-[10px] text-gray-400 shrink-0">{t.medio_pago.split(' ')[0]}</span>} />
+                      ))}
+                    </div>
+                  )}
+
+                  {abierta && agruparPorSub && (
+                    <div className="border-t border-gray-50 divide-y divide-gray-50">
+                      {gruposSubcategoria.map(g => {
+                        const claveSub = `${d.nombre}|${g.nombre}`
+                        const subAbierta = subcategoriaAbierta === claveSub
                         return (
-                          <div key={t.id} className="flex items-center gap-2 px-3 py-2.5 bg-gray-50/50">
-                            <span className="text-xs text-gray-400 w-10 shrink-0">{fechaCorta}</span>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold text-gray-700 truncate">
-                                {t.establecimiento || t.descripcion || t.subcategoria || t.categoria}
-                              </p>
-                              {t.descripcion && t.establecimiento && (
-                                <p className="text-[10px] text-gray-400 truncate">{t.descripcion}</p>
-                              )}
-                            </div>
-                            {t.medio_pago && (
-                              <span className="text-[10px] text-gray-400 shrink-0">{t.medio_pago.split(' ')[0]}</span>
+                          <div key={g.nombre}>
+                            <button
+                              type="button"
+                              onClick={() => setSubcategoriaAbierta(subAbierta ? null : claveSub)}
+                              className="w-full flex items-center gap-2 px-3 py-2.5 text-left active:bg-gray-50 bg-gray-50/40">
+                              <span className="flex-1 text-xs font-semibold text-gray-600">{g.nombre}</span>
+                              <span className="text-xs font-bold text-gray-700">{ocultar(mostrarCifras, `${g.total.toFixed(2)} €`)}</span>
+                              <span className="text-gray-400 text-[10px]">{subAbierta ? '▲' : '▼'}</span>
+                            </button>
+                            {subAbierta && (
+                              <div className="divide-y divide-gray-50">
+                                {g.apuntes.map(t => (
+                                  <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras}
+                                    extra={t.medio_pago && <span className="text-[10px] text-gray-400 shrink-0">{t.medio_pago.split(' ')[0]}</span>} />
+                                ))}
+                              </div>
                             )}
-                            <span className={`text-xs font-bold shrink-0 ${esGasto ? 'text-red-500' : 'text-emerald-500'}`}>
-                              {ocultar(mostrarCifras, `${esGasto ? '−' : '+'}${Math.abs(importe).toFixed(2)} €`)}
-                            </span>
                           </div>
                         )
                       })}
@@ -548,29 +600,10 @@ export default function Informes({ transacciones, mostrarCifras }) {
                     <div className="border-t border-gray-50 divide-y divide-gray-50">
                       {apuntesMedio.length === 0 ? (
                         <p className="text-xs text-gray-400 text-center py-3">Sin apuntes de {tabActiva === 'gasto' ? 'gastos' : 'ingresos'} con este medio</p>
-                      ) : apuntesMedio.map(t => {
-                        const importe = Number(t.importe)
-                        const esGasto = t.tipo === 'gasto' && importe >= 0
-                        const [, mesN, dia] = t.fecha.split('-')
-                        const fechaCorta = `${parseInt(dia)}/${parseInt(mesN)}`
-                        return (
-                          <div key={t.id} className="flex items-center gap-2 px-3 py-2.5 bg-gray-50/50">
-                            <span className="text-xs text-gray-400 w-10 shrink-0">{fechaCorta}</span>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold text-gray-700 truncate">
-                                {t.establecimiento || t.descripcion || t.subcategoria || t.categoria}
-                              </p>
-                              {t.descripcion && t.establecimiento && (
-                                <p className="text-[10px] text-gray-400 truncate">{t.descripcion}</p>
-                              )}
-                            </div>
-                            <span className="text-[10px] text-gray-400 shrink-0">{t.categoria}</span>
-                            <span className={`text-xs font-bold shrink-0 ${esGasto ? 'text-red-500' : 'text-emerald-500'}`}>
-                              {ocultar(mostrarCifras, `${esGasto ? '−' : '+'}${Math.abs(importe).toFixed(2)} €`)}
-                            </span>
-                          </div>
-                        )
-                      })}
+                      ) : apuntesMedio.map(t => (
+                        <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras}
+                          extra={<span className="text-[10px] text-gray-400 shrink-0">{t.categoria}</span>} />
+                      ))}
                     </div>
                   )}
                 </div>
@@ -621,29 +654,10 @@ export default function Informes({ transacciones, mostrarCifras }) {
                     <div className="border-t border-gray-50 divide-y divide-gray-50">
                       {apuntesPersona.length === 0 ? (
                         <p className="text-xs text-gray-400 text-center py-3">Sin apuntes de {tabActiva === 'gasto' ? 'gastos' : 'ingresos'} de esta persona</p>
-                      ) : apuntesPersona.map(t => {
-                        const importe = Number(t.importe)
-                        const esGasto = t.tipo === 'gasto' && importe >= 0
-                        const [, mesN, dia] = t.fecha.split('-')
-                        const fechaCorta = `${parseInt(dia)}/${parseInt(mesN)}`
-                        return (
-                          <div key={t.id} className="flex items-center gap-2 px-3 py-2.5 bg-gray-50/50">
-                            <span className="text-xs text-gray-400 w-10 shrink-0">{fechaCorta}</span>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold text-gray-700 truncate">
-                                {t.establecimiento || t.descripcion || t.subcategoria || t.categoria}
-                              </p>
-                              {t.descripcion && t.establecimiento && (
-                                <p className="text-[10px] text-gray-400 truncate">{t.descripcion}</p>
-                              )}
-                            </div>
-                            <span className="text-[10px] text-gray-400 shrink-0">{t.categoria}</span>
-                            <span className={`text-xs font-bold shrink-0 ${esGasto ? 'text-red-500' : 'text-emerald-500'}`}>
-                              {ocultar(mostrarCifras, `${esGasto ? '−' : '+'}${Math.abs(importe).toFixed(2)} €`)}
-                            </span>
-                          </div>
-                        )
-                      })}
+                      ) : apuntesPersona.map(t => (
+                        <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras}
+                          extra={<span className="text-[10px] text-gray-400 shrink-0">{t.categoria}</span>} />
+                      ))}
                     </div>
                   )}
                 </div>
