@@ -156,6 +156,21 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
     setForm(f => ({ ...f, [campo]: valor }))
   }
 
+  // Salto al campo siguiente cuando se pulsa la tecla de acción del teclado
+  // ("Siguiente", "Ir", ✓). En el iPhone esa tecla NO dispara un keydown que
+  // podamos escuchar: lo que hace Safari es enviar el formulario. Por eso el
+  // salto se decide aquí, mirando qué campo tiene el foco, y no solo en los
+  // onKeyDown de cada campo (que sí funcionan en el ordenador).
+  // preventDefault evita que el formulario se envíe de verdad.
+  function alConfirmarCampo(e) {
+    e.preventDefault()
+    const activo = document.activeElement
+    if (activo === importeRef.current) categoriaRef.current?.focus()
+    else if (activo === fechaRef.current) establecimientoRef.current?.focus()
+    else if (activo === establecimientoRef.current) notasRef.current?.focus()
+    else if (activo === notasRef.current) medioPagoRef.current?.focus()
+  }
+
   // Sigue a quien registra el apunte, no al dueño del móvil: si se edita un
   // apunte antiguo del otro, sus medios de pago pasan a ir primero.
   const mediosPago = useMemo(() => ordenarPara(form.quien, cuentas), [form.quien, cuentas])
@@ -381,7 +396,13 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
     // que aparezcan las flechas de "campo anterior / siguiente" sobre el
     // teclado, y en el ordenador permite pasar de campo con Intro. No se
     // envía nunca: guardar es siempre cosa del botón de abajo.
-    <form className="space-y-3 pb-28" onSubmit={e => e.preventDefault()}>
+    <form className="space-y-3 pb-28" onSubmit={alConfirmarCampo}>
+
+      {/* Botón de envío invisible. Safari NO dispara el envío del formulario
+          al pulsar la tecla de acción del teclado ("Siguiente", "Ir", ✓) si
+          el formulario no tiene ningún botón de type="submit" — y todos los
+          nuestros son type="button". Sin esto, esa tecla no hace nada. */}
+      <button type="submit" tabIndex={-1} aria-hidden="true" className="hidden" />
 
       {/* Botón foto OCR — es el campo más usado. Mismo verde que ya usa la app
           para lo positivo (Ingreso, saldos a favor, "Documento reconocido").
