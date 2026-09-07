@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { ocultar } from '@/lib/cifras'
 import { createClient } from '@/lib/supabase/client'
+import { urlFirmada } from '@/lib/fotos'
 import FormTransaccion from './FormTransaccion'
 
 export default function DetalleTransaccion({ transaccion: t, onCerrar, onEliminar, onGuardado, mostrarCifras }) {
@@ -14,7 +15,20 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
   const [guardandoEvento, setGuardandoEvento] = useState(false)
   const [eliminandoFoto, setEliminandoFoto] = useState(false)
   const [imagenUrl, setImagenUrl] = useState(t?.imagen_url || null)
+  // Dirección con la que se pinta la imagen: la firmada si se consigue, y si
+  // no la propia imagenUrl (ver lib/fotos.js). Nunca se queda en blanco.
+  // imagenUrl sigue siendo la guardada en la base de datos, que es la que usa
+  // el borrado para saber qué archivo quitar.
+  const [imagenVer, setImagenVer] = useState(t?.imagen_url || null)
   const supabase = createClient()
+
+  useEffect(() => {
+    let cancelado = false
+    if (!imagenUrl) { setImagenVer(null); return }
+    setImagenVer(imagenUrl)
+    urlFirmada(supabase, imagenUrl).then(u => { if (!cancelado) setImagenVer(u) })
+    return () => { cancelado = true }
+  }, [imagenUrl])
 
   useEffect(() => {
     supabase.from('eventos').select('id, nombre').eq('archivado', false).order('activo', { ascending: false }).then(({ data }) => {
@@ -198,9 +212,9 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
                 {eliminandoFoto ? 'Eliminando…' : 'Eliminar foto'}
               </button>
             </div>
-            <a href={imagenUrl} target="_blank" rel="noopener noreferrer">
+            <a href={imagenVer} target="_blank" rel="noopener noreferrer">
               <img
-                src={imagenUrl}
+                src={imagenVer}
                 alt="Documento"
                 className="w-full rounded-2xl border border-gray-100 shadow-sm object-contain max-h-96"
               />
