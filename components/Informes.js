@@ -14,6 +14,11 @@ const COLORES = [
   '#d946ef','#64748b',
 ]
 
+// Un pago de uno al otro para saldar cuentas. No es un gasto: ese dinero no
+// se gasta, cambia de bolsillo. Ajusta quién ha puesto cuánto, pero nunca
+// entra en "lo que hemos gastado este mes".
+const esLiquidacion = t => !!t.liquidacion_a
+
 const EMOJI_PERSONA = {
   'Cris': '👤',
   'Adri': '👤',
@@ -100,7 +105,7 @@ function exportarCSV(transacciones, nombreArchivo) {
   URL.revokeObjectURL(url)
 }
 
-export default function Informes({ transacciones, mostrarCifras }) {
+export default function Informes({ transacciones, mostrarCifras, onCambio }) {
   // Se cargan antes que nada: de ellas salen los emojis, los saldos y
   // el reparto de "quién puso el dinero".
   const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
@@ -123,13 +128,15 @@ export default function Informes({ transacciones, mostrarCifras }) {
   , [transacciones, mesSeleccionado])
 
   const datosMes = useMemo(() => {
-    const gastos = transaccionesMes.filter(t => t.tipo === 'gasto')
-    const ingresos = transaccionesMes.filter(t => t.tipo === 'ingreso')
+    // Las liquidaciones quedan fuera de todos los totales: no son gasto.
+    const delMes = transaccionesMes.filter(t => !esLiquidacion(t))
+    const gastos = delMes.filter(t => t.tipo === 'gasto')
+    const ingresos = delMes.filter(t => t.tipo === 'ingreso')
     const totalGastos = gastos.reduce((s, t) => s + Number(t.importe), 0)
     const totalIngresos = ingresos.reduce((s, t) => s + Number(t.importe), 0)
 
     const porCategoria = {}
-    transaccionesMes.forEach(t => {
+    delMes.forEach(t => {
       if (!porCategoria[t.categoria]) porCategoria[t.categoria] = { gasto: 0, ingreso: 0 }
       porCategoria[t.categoria][t.tipo] += Number(t.importe)
     })
@@ -140,7 +147,7 @@ export default function Informes({ transacciones, mostrarCifras }) {
 
     // Por medio de pago
     const porMedio = {}
-    transaccionesMes.forEach(t => {
+    delMes.forEach(t => {
       if (!t.medio_pago) return
       if (!porMedio[t.medio_pago]) porMedio[t.medio_pago] = { gasto: 0, ingreso: 0 }
       porMedio[t.medio_pago][t.tipo] += Number(t.importe)
@@ -151,7 +158,7 @@ export default function Informes({ transacciones, mostrarCifras }) {
 
     // Por persona: cuánto ha puesto de su bolsillo cada uno este mes
     const porPersona = {}
-    transaccionesMes.forEach(t => {
+    delMes.forEach(t => {
       const quien = personaDeMedioPago(t.medio_pago, cuentas)
       if (!porPersona[quien]) porPersona[quien] = { gasto: 0, ingreso: 0 }
       porPersona[quien][t.tipo] += Number(t.importe)
@@ -168,7 +175,7 @@ export default function Informes({ transacciones, mostrarCifras }) {
   // principio, como se acordó. Por eso se calcula sobre todas las
   // transacciones y no sobre las del mes seleccionado.
   const deuda = useMemo(() => {
-    const comunes = transacciones.filter(t => t.tipo === 'gasto' && t.comun !== false)
+    const comunes = transacciones.filter(t => t.tipo === 'gasto' && t.comun !== false && !esLiquidacion(t))
     const totalComun = comunes.reduce((s, t) => s + Number(t.importe), 0)
     const puesto = {}
     for (const n of NOMBRES) puesto[n] = 0
@@ -182,6 +189,18 @@ export default function Informes({ transacciones, mostrarCifras }) {
     // no genera deuda: se descuenta del total a repartir.
     const aRepartir = totalComun - comunSinAsignar
     const tocaCadaUno = aRepartir / 2
+
+    // Las liquidaciones ajustan quién ha puesto cuánto: al que paga se le
+    // suma, al que cobra se le resta, porque lo ha recuperado. Una sola
+    // anotación mueve los dos lados.
+    transacciones.filter(esLiquidacion).forEach(t => {
+      const importe = Number(t.importe)
+      const paga = t.quien
+      const cobra = t.liquidacion_a
+      if (puesto[paga] !== undefined) puesto[paga] += importe
+      if (puesto[cobra] !== undefined) puesto[cobra] -= importe
+    })
+
     const [uno, otro] = NOMBRES
     const saldo = puesto[uno] - puesto[otro]
     return {
@@ -192,6 +211,35 @@ export default function Informes({ transacciones, mostrarCifras }) {
       importe: Math.abs(saldo) / 2,
     }
   }, [transacciones, cuentas])
+
+  async function anotarPago() {
+    const importe = parseFloat(String(importeSaldo).replace(',', '.'))
+    if (!importe || importe <= 0) { setErrorSaldo('Pon un importe.'); return }
+    if (!medioSaldo) { setErrorSaldo('Elige con qué lo has pagado.'); return }
+
+    setGuardandoSaldo(true)
+    setErrorSaldo('')
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const { error } = await supabase.from('transacciones').insert([{
+      fecha: new Date().toISOString().split('T')[0],
+      importe,
+      tipo: 'gasto',
+      categoria: 'Ajuste de cuentas',
+      establecimiento: `Pago a ${deuda.acreedor}`,
+      medio_pago: medioSaldo,
+      quien: deuda.deudor,
+      liquidacion_a: deuda.acreedor,
+      comun: true,          // la ven los dos: es cosa de los dos
+      user_id: user?.id || null,
+    }])
+    setGuardandoSaldo(false)
+    if (error) { setErrorSaldo('No se ha podido guardar. Inténtalo otra vez.'); return }
+    setSaldando(false)
+    setImporteSaldo('')
+    setMedioSaldo('')
+    onCambio?.()
+  }
 
   const datosTorta = useMemo(() => {
     const campo = tabActiva === 'gasto' ? 'gasto' : 'ingreso'
@@ -211,6 +259,11 @@ export default function Informes({ transacciones, mostrarCifras }) {
   const [subcategoriaAbierta, setSubcategoriaAbierta] = useState(null)
   const [medioAbierto, setMedioAbierto] = useState(null)
   const [personaAbierta, setPersonaAbierta] = useState(null)
+  const [saldando, setSaldando] = useState(false)
+  const [importeSaldo, setImporteSaldo] = useState('')
+  const [medioSaldo, setMedioSaldo] = useState('')
+  const [guardandoSaldo, setGuardandoSaldo] = useState(false)
+  const [errorSaldo, setErrorSaldo] = useState('')
   const [mesComparacion, setMesComparacion] = useState(null)
 
   const transaccionesComp = useMemo(() =>
@@ -679,6 +732,57 @@ export default function Informes({ transacciones, mostrarCifras }) {
             <p className="text-xs text-gray-400">
               No cuentan {ocultar(mostrarCifras, `${deuda.comunSinAsignar.toFixed(2)} €`)} pagados con dinero común: no los ha puesto ninguno de los dos.
             </p>
+          )}
+          {/* Saldar: anota que uno le ha pagado al otro. No es un gasto —
+              ese dinero cambia de bolsillo, no se gasta— así que no entra
+              en los totales del mes, solo ajusta quién ha puesto cuánto. */}
+          {deuda.importe >= 0.01 && (
+            saldando ? (
+              <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
+                <p className="text-sm font-semibold text-gray-800">
+                  {deuda.deudor} paga a {deuda.acreedor}
+                </p>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Cuánto</label>
+                  <input type="text" inputMode="decimal" value={importeSaldo}
+                    onChange={e => { setImporteSaldo(e.target.value); setErrorSaldo('') }}
+                    placeholder={deuda.importe.toFixed(2)}
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                  <button type="button" onClick={() => setImporteSaldo(deuda.importe.toFixed(2))}
+                    className="text-xs text-blue-500 mt-1.5">
+                    Poner los {deuda.importe.toFixed(2)} € enteros
+                  </button>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Con qué</label>
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                    {soloActivas(cuentas).map(c => (
+                      <button key={c.nombre} type="button"
+                        onClick={() => { setMedioSaldo(c.nombre); setErrorSaldo('') }}
+                        className={`shrink-0 px-3 py-2 rounded-xl text-xs font-semibold border ${medioSaldo === c.nombre ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200'}`}>
+                        {c.emoji} {c.nombre}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {errorSaldo && <p className="text-xs text-red-500">{errorSaldo}</p>}
+                <div className="flex gap-2">
+                  <button type="button" onClick={anotarPago} disabled={guardandoSaldo}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[#0d1b2a] text-white disabled:opacity-50">
+                    {guardandoSaldo ? 'Guardando…' : 'Anotar el pago'}
+                  </button>
+                  <button type="button" onClick={() => { setSaldando(false); setErrorSaldo('') }}
+                    className="px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-500">
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button type="button" onClick={() => { setSaldando(true); setImporteSaldo('') }}
+                className="w-full py-3 rounded-2xl text-sm font-bold bg-teal-600 text-white">
+                Ya le he pagado
+              </button>
+            )
           )}
           <p className="text-xs text-gray-400">Cuenta acumulada de todos los meses, no solo del que estás viendo. Solo entra lo marcado «de los dos»: los gastos personales no cuentan.</p>
         </div>
