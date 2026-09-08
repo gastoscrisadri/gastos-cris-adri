@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { ocultar } from '@/lib/cifras'
 import { cargarCuentas, personaDeMedioPago, soloActivas, CUENTAS_RESPALDO } from '@/lib/cuentas'
 import { NOMBRES } from '@/lib/identidad'
+import { cargarCategorias } from '@/lib/categorias'
 
 const COLORES = [
   '#ef4444','#f97316','#eab308','#84cc16','#22c55e',
@@ -110,6 +111,9 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
   // el reparto de "quién puso el dinero".
   const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
   useEffect(() => { cargarCuentas().then(setCuentas) }, [])
+  // Para saber si alguna categoría no va a medias (p. ej. el alquiler)
+  const [categoriasReparto, setCategoriasReparto] = useState([])
+  useEffect(() => { cargarCategorias().then(setCategoriasReparto) }, [])
 
   const meses = useMemo(() => {
     const set = new Set(transacciones.map(t => t.fecha.slice(0, 7)))
@@ -187,8 +191,25 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
     })
     // Lo pagado con dinero común no lo ha puesto ninguno de los dos, así que
     // no genera deuda: se descuenta del total a repartir.
+    // Lo que le toca a cada uno. Por defecto a medias, salvo las categorías
+    // que tengan un reparto propio puesto en Ajustes (el alquiler, por ejemplo).
+    const repartoDe = {}
+    for (const c of categoriasReparto) {
+      if (!c.padre_id && c.porcentaje_primero != null) repartoDe[c.nombre] = c.porcentaje_primero
+    }
+    const [uno, otro] = NOMBRES
+    const toca = { [uno]: 0, [otro]: 0 }
+    comunes.forEach(t => {
+      if (personaDeMedioPago(t.medio_pago, cuentas) === 'Común') return  // no lo puso nadie
+      const importe = Number(t.importe)
+      const pct = repartoDe[t.categoria]
+      const parteUno = pct == null ? importe / 2 : importe * pct / 100
+      toca[uno] += parteUno
+      toca[otro] += importe - parteUno
+    })
     const aRepartir = totalComun - comunSinAsignar
     const tocaCadaUno = aRepartir / 2
+    const hayRepartoPropio = Object.keys(repartoDe).length > 0
 
     // Las liquidaciones ajustan quién ha puesto cuánto: al que paga se le
     // suma, al que cobra se le resta, porque lo ha recuperado. Una sola
@@ -201,16 +222,16 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
       if (puesto[cobra] !== undefined) puesto[cobra] -= importe
     })
 
-    const [uno, otro] = NOMBRES
-    const saldo = puesto[uno] - puesto[otro]
+    // Cuánto ha puesto cada uno de más (o de menos) respecto a lo que le tocaba
+    const saldo = (puesto[uno] - toca[uno]) - (puesto[otro] - toca[otro])
     return {
-      totalComun, comunSinAsignar, aRepartir, tocaCadaUno, puesto,
+      totalComun, comunSinAsignar, aRepartir, tocaCadaUno, puesto, toca, hayRepartoPropio,
       acreedor: saldo > 0 ? uno : otro,
       deudor: saldo > 0 ? otro : uno,
       // La deuda es la mitad de la diferencia entre lo que ha puesto cada uno.
       importe: Math.abs(saldo) / 2,
     }
-  }, [transacciones, cuentas])
+  }, [transacciones, cuentas, categoriasReparto])
 
   async function anotarPago() {
     const importe = parseFloat(String(importeSaldo).replace(',', '.'))
