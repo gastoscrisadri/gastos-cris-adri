@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { NOMBRES, nombreDe, nombreEsDeLaCuenta, guardarNombre } from '@/lib/identidad'
 import GestionRecurrentes from './GestionRecurrentes'
 import GestionCategorias from './GestionCategorias'
 import GestionCuentas from './GestionCuentas'
@@ -14,18 +15,23 @@ const SECCIONES = [
   { id: 'eventos', emoji: '🎯', label: 'Eventos' },
 ]
 
-export default function Ajustes({ transacciones, onVerDetalleEvento, mostrarCifras }) {
+export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mostrarCifras }) {
   const [seccion, setSeccion] = useState('recurrentes')
   const [duenoMovil, setDuenoMovil] = useState('')
 
-  // Se guarda en este móvil, no en la base de datos: cada teléfono es de uno
+  // El nombre vive en tu cuenta, no en el móvil (ver lib/identidad.js).
+  // Mientras llega el usuario se usa lo que hubiera guardado el móvil, para
+  // que la pantalla nunca aparezca en blanco.
+  const [avisoNombre, setAvisoNombre] = useState('')
   useEffect(() => {
-    setDuenoMovil(localStorage.getItem('quienRegistra') || '')
-  }, [])
+    setDuenoMovil(nombreDe(usuario))
+  }, [usuario])
 
-  function elegirDueno(nombre) {
-    localStorage.setItem('quienRegistra', nombre)
+  async function elegirDueno(nombre) {
     setDuenoMovil(nombre)
+    setAvisoNombre('')
+    const guardado = await guardarNombre(nombre)
+    if (!guardado) setAvisoNombre('Guardado solo en este móvil: no se ha podido conectar. Vuelve a intentarlo cuando tengas cobertura.')
   }
 
   // ── Cambiar la propia contraseña ──────────────────────────────────────
@@ -56,10 +62,12 @@ export default function Ajustes({ transacciones, onVerDetalleEvento, mostrarCifr
     <div className="pb-24">
       {/* De quién es este móvil */}
       <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Este móvil es de</p>
-        <p className="text-xs text-gray-400 mb-2.5">Los apuntes que hagas se guardarán a este nombre</p>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Yo soy</p>
+        <p className="text-xs text-gray-400 mb-2.5">
+          Va unido a tu cuenta, no a este móvil: entres desde donde entres, eres tú.
+        </p>
         <div className="flex gap-2">
-          {['Cris', 'Adri'].map(nombre => (
+          {NOMBRES.map(nombre => (
             <button key={nombre} type="button" onClick={() => elegirDueno(nombre)}
               className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${duenoMovil === nombre ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
               {nombre}
@@ -68,6 +76,10 @@ export default function Ajustes({ transacciones, onVerDetalleEvento, mostrarCifr
         </div>
         {!duenoMovil && (
           <p className="text-xs text-amber-600 mt-2">Sin elegir: al crear un apunte se preguntará cada vez.</p>
+        )}
+        {avisoNombre && <p className="text-xs text-amber-600 mt-2">{avisoNombre}</p>}
+        {duenoMovil && !nombreEsDeLaCuenta(usuario) && (
+          <p className="text-xs text-gray-400 mt-2">Toca tu nombre para dejarlo guardado en tu cuenta.</p>
         )}
       </div>
 

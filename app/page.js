@@ -442,7 +442,7 @@ export default function Home() {
           <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} />
         )}
         {vista === 'ajustes' && !mostrarFormulario && (
-          <Ajustes transacciones={transacciones} onVerDetalleEvento={ev => setEventoDetalle(ev)} mostrarCifras={mostrarCifras} />
+          <Ajustes usuario={usuario} transacciones={transacciones} onVerDetalleEvento={ev => setEventoDetalle(ev)} mostrarCifras={mostrarCifras} />
         )}
       </main>
 
