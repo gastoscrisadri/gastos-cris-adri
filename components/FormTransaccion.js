@@ -156,6 +156,17 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
     setForm(f => ({ ...f, [campo]: valor }))
   }
 
+  // Mover el foco al campo siguiente después de pintar, no dentro del propio
+  // onChange: si se hace a la vez que React redibuja, el foco se pierde.
+  const [enfocarSiguiente, setEnfocarSiguiente] = useState(null)
+  useEffect(() => {
+    if (!enfocarSiguiente) return
+    const refs = { categoria: categoriaRef, subcategoria: subcategoriaRef,
+                   fecha: fechaRef, establecimiento: establecimientoRef, notas: notasRef }
+    refs[enfocarSiguiente]?.current?.focus()
+    setEnfocarSiguiente(null)
+  }, [enfocarSiguiente])
+
   // Salto al campo siguiente cuando se pulsa la tecla de acción del teclado
   // ("Siguiente", "Ir", ✓). En el iPhone esa tecla NO dispara un keydown que
   // podamos escuchar: lo que hace Safari es enviar el formulario. Por eso el
@@ -166,7 +177,6 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
     e.preventDefault()
     const activo = document.activeElement
     if (activo === importeRef.current) categoriaRef.current?.focus()
-    else if (activo === fechaRef.current) establecimientoRef.current?.focus()
     else if (activo === establecimientoRef.current) notasRef.current?.focus()
     else if (activo === notasRef.current) medioPagoRef.current?.focus()
   }
@@ -401,8 +411,18 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       {/* Botón de envío invisible. Safari NO dispara el envío del formulario
           al pulsar la tecla de acción del teclado ("Siguiente", "Ir", ✓) si
           el formulario no tiene ningún botón de type="submit" — y todos los
-          nuestros son type="button". Sin esto, esa tecla no hace nada. */}
-      <button type="submit" tabIndex={-1} aria-hidden="true" className="hidden" />
+          nuestros son type="button". Sin esto, esa tecla no hace nada.
+
+          Va oculto fuera de la pantalla, NO con display:none: un botón que no
+          se renderiza no cuenta como botón de envío para el navegador, así que
+          con "hidden" seguiría sin funcionar. Por eso se saca de la vista con
+          posición en vez de esconderlo. */}
+      <button
+        type="submit"
+        tabIndex={-1}
+        aria-hidden="true"
+        style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+      />
 
       {/* Botón foto OCR — es el campo más usado. Mismo verde que ya usa la app
           para lo positivo (Ingreso, saldos a favor, "Documento reconocido").
@@ -468,11 +488,14 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
             set('categoria', e.target.value)
             set('subcategoria', '')
             // Al elegir categoría saltamos al campo siguiente: la subcategoría
-            // si esa categoría tiene, y si no directamente la fecha.
+            // si esa categoría tiene, y si no directamente el establecimiento.
+            // La fecha se salta a propósito: ya viene con la de hoy y casi
+            // nunca se cambia, así que pasar por ella solo abre un calendario
+            // que hay que cerrar. Sigue ahí para tocarla cuando haga falta.
             const tieneSubs = subcategoriasDeCategoria(categorias, principales.find(c => c.nombre === e.target.value)?.id).length > 0
-            setTimeout(() => (tieneSubs ? subcategoriaRef : fechaRef).current?.focus(), 0)
+            setEnfocarSiguiente(tieneSubs ? 'subcategoria' : 'establecimiento')
           }}
-          onKeyDown={e => e.key === 'Enter' && fechaRef.current?.focus()}
+          onKeyDown={e => e.key === 'Enter' && establecimientoRef.current?.focus()}
           className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white">
           <option value="">Selecciona categoría...</option>
           {principales.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
@@ -483,8 +506,8 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         <div>
           <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Subcategoría</label>
           <select ref={subcategoriaRef} value={form.subcategoria}
-            onChange={e => { set('subcategoria', e.target.value); setTimeout(() => fechaRef.current?.focus(), 0) }}
-            onKeyDown={e => e.key === 'Enter' && fechaRef.current?.focus()}
+            onChange={e => { set('subcategoria', e.target.value); setEnfocarSiguiente('establecimiento') }}
+            onKeyDown={e => e.key === 'Enter' && establecimientoRef.current?.focus()}
             className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white">
             <option value="">Sin subcategoría</option>
             {subcategorias.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
