@@ -193,23 +193,33 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
     // no genera deuda: se descuenta del total a repartir.
     // Lo que le toca a cada uno. Por defecto a medias, salvo las categorías
     // que tengan un reparto propio puesto en Ajustes (el alquiler, por ejemplo).
-    const repartoDe = {}
+    // El reparto puede estar puesto en la categoría o en una subcategoría
+    // concreta. La subcategoría manda sobre su categoría: así "Vivienda" puede
+    // ir al 60/40 y dentro "Alquiler" al 70/30.
+    const repartoCat = {}
+    const repartoSub = {}
     for (const c of categoriasReparto) {
-      if (!c.padre_id && c.porcentaje_primero != null) repartoDe[c.nombre] = c.porcentaje_primero
+      if (c.porcentaje_primero == null) continue
+      if (c.padre_id) repartoSub[c.nombre] = c.porcentaje_primero
+      else repartoCat[c.nombre] = c.porcentaje_primero
+    }
+    const repartoDeApunte = t => {
+      if (t.subcategoria && repartoSub[t.subcategoria] != null) return repartoSub[t.subcategoria]
+      return repartoCat[t.categoria]
     }
     const [uno, otro] = NOMBRES
     const toca = { [uno]: 0, [otro]: 0 }
     comunes.forEach(t => {
       if (personaDeMedioPago(t.medio_pago, cuentas) === 'Común') return  // no lo puso nadie
       const importe = Number(t.importe)
-      const pct = repartoDe[t.categoria]
+      const pct = repartoDeApunte(t)
       const parteUno = pct == null ? importe / 2 : importe * pct / 100
       toca[uno] += parteUno
       toca[otro] += importe - parteUno
     })
     const aRepartir = totalComun - comunSinAsignar
     const tocaCadaUno = aRepartir / 2
-    const hayRepartoPropio = Object.keys(repartoDe).length > 0
+    const hayRepartoPropio = Object.keys(repartoCat).length + Object.keys(repartoSub).length > 0
 
     // Las liquidaciones ajustan quién ha puesto cuánto: al que paga se le
     // suma, al que cobra se le resta, porque lo ha recuperado. Una sola

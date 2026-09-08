@@ -166,12 +166,12 @@ export default function GestionCategorias() {
                       className={`text-[10px] px-1.5 py-1 rounded-lg font-semibold ${cat.porcentaje_primero != null ? 'text-teal-600 bg-teal-50' : 'text-gray-300 hover:text-teal-600'}`}>
                       {cat.porcentaje_primero != null ? `${cat.porcentaje_primero}/${100 - cat.porcentaje_primero}` : '50/50'}
                     </button>
-                    {subs.length > 0 && (
-                      <button onClick={() => toggleAbierto(cat.id)}
-                        className="text-xs text-gray-400 font-semibold px-2 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 flex items-center gap-1">
-                        {subs.length} {estaAbierto ? '▲' : '▼'}
-                      </button>
-                    )}
+                    {/* Siempre visible, aunque no haya subcategorías: si no,
+                        una categoría nueva nunca podría recibir la primera. */}
+                    <button onClick={() => toggleAbierto(cat.id)}
+                      className="text-xs text-gray-400 font-semibold px-2 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 flex items-center gap-1">
+                      {subs.length > 0 ? subs.length : '+'} {estaAbierto ? '▲' : '▼'}
+                    </button>
                   </>
                 )}
               </div>
@@ -200,7 +200,7 @@ export default function GestionCategorias() {
               {estaAbierto && (
                 <>
                   {subs.map(sub => (
-                    <div key={sub.id} className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-t border-gray-100">
+                    <div key={sub.id} className="flex items-center flex-wrap gap-2 px-4 py-2 bg-gray-50 border-t border-gray-100">
                       <span className="text-gray-300 text-xs">↳</span>
                       {editando === sub.id ? (
                         <>
@@ -217,7 +217,26 @@ export default function GestionCategorias() {
                             className="text-xs text-gray-300 hover:text-blue-500">✏️</button>
                           <button onClick={() => quitar(sub)} aria-label={`Quitar ${sub.nombre}`}
                             className="text-xs text-gray-300 hover:text-red-500 px-1">🗑️</button>
+                          <button onClick={() => setRepartoAbierto(repartoAbierto === sub.id ? null : sub.id)}
+                            title="Cómo se reparte entre los dos"
+                            className={`text-[10px] px-1.5 py-0.5 rounded-lg font-semibold ${sub.porcentaje_primero != null ? 'text-teal-600 bg-teal-50' : 'text-gray-300 hover:text-teal-600'}`}>
+                            {sub.porcentaje_primero != null ? `${sub.porcentaje_primero}/${100 - sub.porcentaje_primero}` : '—'}
+                          </button>
                         </>
+                      )}
+                      {repartoAbierto === sub.id && (
+                        <div className="w-full mt-2 pt-2 border-t border-gray-100 flex items-center gap-2 flex-wrap">
+                          <span className="text-xs text-gray-500">{NOMBRES[0]} paga el</span>
+                          <input type="number" min="0" max="100"
+                            value={sub.porcentaje_primero ?? 50}
+                            onChange={e => cambiarReparto(sub, Math.max(0, Math.min(100, parseInt(e.target.value) || 0)))}
+                            className="w-14 px-2 py-1 border border-gray-200 rounded-lg text-xs text-center" />
+                          <span className="text-xs text-gray-500">% de «{sub.nombre}»</span>
+                          {sub.porcentaje_primero != null && (
+                            <button onClick={() => cambiarReparto(sub, null)}
+                              className="text-xs text-gray-400 underline">como la categoría</button>
+                          )}
+                        </div>
                       )}
                     </div>
                   ))}
