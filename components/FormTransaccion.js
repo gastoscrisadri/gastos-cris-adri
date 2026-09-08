@@ -401,8 +401,18 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       {/* Botón de envío invisible. Safari NO dispara el envío del formulario
           al pulsar la tecla de acción del teclado ("Siguiente", "Ir", ✓) si
           el formulario no tiene ningún botón de type="submit" — y todos los
-          nuestros son type="button". Sin esto, esa tecla no hace nada. */}
-      <button type="submit" tabIndex={-1} aria-hidden="true" className="hidden" />
+          nuestros son type="button". Sin esto, esa tecla no hace nada.
+
+          Va oculto fuera de la pantalla, NO con display:none: un botón que no
+          se renderiza no cuenta como botón de envío para el navegador, así que
+          con "hidden" seguiría sin funcionar. Por eso se saca de la vista con
+          posición en vez de esconderlo. */}
+      <button
+        type="submit"
+        tabIndex={-1}
+        aria-hidden="true"
+        style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+      />
 
       {/* Botón foto OCR — es el campo más usado. Mismo verde que ya usa la app
           para lo positivo (Ingreso, saldos a favor, "Documento reconocido").
