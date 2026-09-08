@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { cargarCategorias, principalesPorTipo, subcategoriasDeCategoria } from '@/lib/categorias'
 import { cargarCuentas, ordenarPara, CUENTAS_RESPALDO } from '@/lib/cuentas'
+import { NOMBRES, nombreDe, guardarNombre } from '@/lib/identidad'
 
 
 const FORM_VACIO = {
@@ -16,6 +17,7 @@ const FORM_VACIO = {
   descripcion: '',
   medio_pago: '',
   quien: '',
+  comun: true,
 }
 
 export default function FormTransaccion({ usuario, onGuardado, onCancelar, transaccionEditar, onEliminar, eventoActivo, autoAbrirCamara }) {
@@ -33,13 +35,14 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         descripcion: transaccionEditar.descripcion || '',
         medio_pago: transaccionEditar.medio_pago || '',
         quien: transaccionEditar.quien || '',
+        comun: transaccionEditar.comun !== false,
         evento_id: transaccionEditar.evento_id || null,
       }
     }
     // Cada móvil recuerda a quién pertenece, así no hay que marcarlo cada vez.
     // El medio de pago lo premarca el efecto de más abajo con la primera
     // cuenta de esa persona (su tarjeta), en cuanto llegan las cuentas.
-    const recordado = typeof window !== 'undefined' ? localStorage.getItem('quienRegistra') : null
+    const recordado = nombreDe(usuario)
     return {
       ...FORM_VACIO,
       quien: recordado || '',
@@ -64,9 +67,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   const [sugerenciasNotas, setSugerenciasNotas] = useState([])
   const [confirmando, setConfirmando] = useState(false)
   // Si el móvil ya tiene dueño, "quién" se muestra como texto en vez de botones
-  const [movilConfigurado, setMovilConfigurado] = useState(
-    () => typeof window !== 'undefined' && !!localStorage.getItem('quienRegistra')
-  )
+  const [movilConfigurado, setMovilConfigurado] = useState(() => !!nombreDe(usuario))
   const [usoCategorias, setUsoCategorias] = useState({})
   const [usoSubcategorias, setUsoSubcategorias] = useState({})
   const [porEstablecimiento, setPorEstablecimiento] = useState({})
@@ -318,6 +319,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       descripcion: form.descripcion || null,
       medio_pago: form.medio_pago || null,
       quien: form.quien || null,
+      comun: form.comun !== false,
       imagen_url,
       evento_id: form.evento_id || null,
     }
@@ -486,6 +488,25 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       </div>
       <p className="text-xs text-gray-400 text-center -mt-1">Importe negativo = devolución · usa punto o coma de decimales</p>
 
+      {/* De los dos o solo mío. Viene marcado "Común", que es lo más
+          frecuente viviendo juntos. Lo personal solo lo ve su dueño. */}
+      <div>
+        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">¿De quién es este gasto?</label>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => set('comun', true)}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun !== false ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-400 border-gray-200'}`}>
+            De los dos
+          </button>
+          <button type="button" onClick={() => set('comun', false)}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun === false ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
+            Solo mío
+          </button>
+        </div>
+        {form.comun === false && (
+          <p className="text-xs text-gray-400 mt-1.5">Este gasto solo lo verás tú, y no entra en la cuenta de los dos.</p>
+        )}
+      </div>
+
       {/* Categoría */}
       <div>
         <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Categoría *</label>
@@ -590,8 +611,8 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         </div>
       </div>
 
-      {/* Quién — si el móvil ya sabe de quién es, solo se muestra;
-          si no, salen los botones para que nunca se quede sin rellenar */}
+      {/* Quién — si tu cuenta ya lleva tu nombre, solo se muestra; si no,
+          salen los botones para que nunca se quede sin rellenar */}
       {movilConfigurado && form.quien ? (
         <p className="text-xs text-gray-400 text-center">
           Registra: <span className="font-semibold text-gray-500">{form.quien}</span>
@@ -603,15 +624,15 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         <div>
           <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">¿Quién lo registra? *</label>
           <div className="flex gap-2">
-            {['Cris', 'Adri'].map(nombre => (
+            {NOMBRES.map(nombre => (
               <button key={nombre} type="button"
-                onClick={() => { set('quien', nombre); localStorage.setItem('quienRegistra', nombre) }}
+                onClick={() => { set('quien', nombre); guardarNombre(nombre) }}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.quien === nombre ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
                 {nombre}
               </button>
             ))}
           </div>
-          <p className="text-xs text-gray-400 mt-1.5">Se recordará en este móvil. Se cambia en Ajustes.</p>
+          <p className="text-xs text-gray-400 mt-1.5">Queda guardado en tu cuenta. Se cambia en Ajustes.</p>
         </div>
       )}
 
