@@ -160,10 +160,15 @@ export default function Informes({ transacciones, mostrarCifras }) {
       .map(([nombre, vals]) => ({ nombre, gasto: vals.gasto || 0, ingreso: vals.ingreso || 0 }))
       .sort((a, b) => b.gasto - a.gasto)
 
-    // Quién le debe cuánto a quién. Solo cuentan los gastos COMUNES: los
-    // personales son de cada uno y no entran. De momento a medias; el reparto
-    // por categoría llegará más adelante.
-    const comunes = gastos.filter(t => t.comun !== false)
+
+    return { totalGastos, totalIngresos, balance: totalIngresos - totalGastos, categorias, medios, personas }
+  }, [transaccionesMes, cuentas])
+
+  // La cuenta de los dos NO es del mes: es un saldo acumulado desde el
+  // principio, como se acordó. Por eso se calcula sobre todas las
+  // transacciones y no sobre las del mes seleccionado.
+  const deuda = useMemo(() => {
+    const comunes = transacciones.filter(t => t.tipo === 'gasto' && t.comun !== false)
     const totalComun = comunes.reduce((s, t) => s + Number(t.importe), 0)
     const puesto = {}
     for (const n of NOMBRES) puesto[n] = 0
@@ -173,24 +178,20 @@ export default function Informes({ transacciones, mostrarCifras }) {
       if (puesto[quien] === undefined) { comunSinAsignar += Number(t.importe); return }
       puesto[quien] += Number(t.importe)
     })
-    // Lo pagado con dinero común (banco compartido, bizum sin dueño...) no lo
-    // ha puesto ninguno de los dos, así que no genera deuda: se descuenta del
-    // total a repartir en vez de achacárselo a alguien.
+    // Lo pagado con dinero común no lo ha puesto ninguno de los dos, así que
+    // no genera deuda: se descuenta del total a repartir.
     const aRepartir = totalComun - comunSinAsignar
     const tocaCadaUno = aRepartir / 2
     const [uno, otro] = NOMBRES
     const saldo = puesto[uno] - puesto[otro]
-    const deuda = {
+    return {
       totalComun, comunSinAsignar, aRepartir, tocaCadaUno, puesto,
       acreedor: saldo > 0 ? uno : otro,
       deudor: saldo > 0 ? otro : uno,
-      // saldo es la diferencia entre lo que ha puesto uno y el otro; la deuda
-      // real es la mitad de esa diferencia.
+      // La deuda es la mitad de la diferencia entre lo que ha puesto cada uno.
       importe: Math.abs(saldo) / 2,
     }
-
-    return { totalGastos, totalIngresos, balance: totalIngresos - totalGastos, categorias, medios, personas, deuda }
-  }, [transaccionesMes, cuentas])
+  }, [transacciones, cuentas])
 
   const datosTorta = useMemo(() => {
     const campo = tabActiva === 'gasto' ? 'gasto' : 'ingreso'
@@ -644,20 +645,20 @@ export default function Informes({ transacciones, mostrarCifras }) {
       )}
 
       {/* La cuenta de los dos — solo con los gastos comunes */}
-      {datosMes.deuda.aRepartir > 0 && (
+      {deuda.aRepartir > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">La cuenta de los dos</p>
           <div className="bg-[#0d1b2a] rounded-2xl px-5 py-5 text-center">
-            {datosMes.deuda.importe < 0.01 ? (
+            {deuda.importe < 0.01 ? (
               <>
                 <p className="text-base font-bold text-white">Estáis en paz</p>
-                <p className="text-xs text-[#8fa6c9] mt-1">Este mes habéis puesto lo mismo los dos</p>
+                <p className="text-xs text-[#8fa6c9] mt-1">Habéis puesto lo mismo los dos</p>
               </>
             ) : (
               <>
-                <p className="text-[10px] uppercase tracking-widest text-[#8fa6c9] mb-1.5">Este mes</p>
+                <p className="text-[10px] uppercase tracking-widest text-[#8fa6c9] mb-1.5">En total, desde el principio</p>
                 <p className="text-lg font-bold text-white leading-snug">
-                  {datosMes.deuda.deudor} le debe {ocultar(mostrarCifras, `${datosMes.deuda.importe.toFixed(2)} €`)} a {datosMes.deuda.acreedor}
+                  {deuda.deudor} le debe {ocultar(mostrarCifras, `${deuda.importe.toFixed(2)} €`)} a {deuda.acreedor}
                 </p>
               </>
             )}
@@ -665,21 +666,21 @@ export default function Informes({ transacciones, mostrarCifras }) {
               {NOMBRES.map(n => (
                 <div key={n} className="text-center">
                   <p className="text-[10px] uppercase tracking-wide text-[#8fa6c9]">{n} puso</p>
-                  <p className="text-sm font-bold text-white">{ocultar(mostrarCifras, `${(datosMes.deuda.puesto[n] || 0).toFixed(2)} €`)}</p>
+                  <p className="text-sm font-bold text-white">{ocultar(mostrarCifras, `${(deuda.puesto[n] || 0).toFixed(2)} €`)}</p>
                 </div>
               ))}
               <div className="text-center">
                 <p className="text-[10px] uppercase tracking-wide text-[#8fa6c9]">A cada uno</p>
-                <p className="text-sm font-bold text-white">{ocultar(mostrarCifras, `${datosMes.deuda.tocaCadaUno.toFixed(2)} €`)}</p>
+                <p className="text-sm font-bold text-white">{ocultar(mostrarCifras, `${deuda.tocaCadaUno.toFixed(2)} €`)}</p>
               </div>
             </div>
           </div>
-          {datosMes.deuda.comunSinAsignar > 0 && (
+          {deuda.comunSinAsignar > 0 && (
             <p className="text-xs text-gray-400">
-              No cuentan {ocultar(mostrarCifras, `${datosMes.deuda.comunSinAsignar.toFixed(2)} €`)} pagados con dinero común: no los ha puesto ninguno de los dos.
+              No cuentan {ocultar(mostrarCifras, `${deuda.comunSinAsignar.toFixed(2)} €`)} pagados con dinero común: no los ha puesto ninguno de los dos.
             </p>
           )}
-          <p className="text-xs text-gray-400">Solo cuenta lo marcado «de los dos». Los gastos personales no entran.</p>
+          <p className="text-xs text-gray-400">Cuenta acumulada de todos los meses, no solo del que estás viendo. Solo entra lo marcado «de los dos»: los gastos personales no cuentan.</p>
         </div>
       )}
 
