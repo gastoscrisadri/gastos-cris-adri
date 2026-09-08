@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { cargarCategorias } from '@/lib/categorias'
+import { NOMBRES } from '@/lib/identidad'
 
 export default function GestionCategorias() {
   const [categorias, setCategorias] = useState([])
   const [vistaFiltro, setVistaFiltro] = useState('gasto')
   const [nuevaCategoria, setNuevaCategoria] = useState('')
   const [nuevaSubcategoria, setNuevaSubcategoria] = useState({ nombre: '', padreId: null })
+  const [repartoAbierto, setRepartoAbierto] = useState(null)
   const [editando, setEditando] = useState(null)
   const [nombreEdicion, setNombreEdicion] = useState('')
   const [abiertos, setAbiertos] = useState(new Set())
@@ -58,6 +60,12 @@ export default function GestionCategorias() {
     })
     if (!error) { setNuevaSubcategoria({ nombre: '', padreId: null }); recargar() }
     else setError('Error al crear subcategoría')
+  }
+
+  // Reparto de una categoría entre los dos. Vacío = a medias.
+  async function cambiarReparto(cat, porcentaje) {
+    await supabase.from('categorias').update({ porcentaje_primero: porcentaje }).eq('id', cat.id)
+    recargar()
   }
 
   async function guardarEdicion(id) {
@@ -153,6 +161,11 @@ export default function GestionCategorias() {
                       className="text-xs text-gray-300 hover:text-blue-500 px-1.5 py-1">✏️</button>
                     <button onClick={() => quitar(cat)} aria-label={`Quitar ${cat.nombre}`}
                       className="text-xs text-gray-300 hover:text-red-500 px-1.5 py-1">🗑️</button>
+                    <button onClick={() => setRepartoAbierto(repartoAbierto === cat.id ? null : cat.id)}
+                      title="Cómo se reparte entre los dos"
+                      className={`text-[10px] px-1.5 py-1 rounded-lg font-semibold ${cat.porcentaje_primero != null ? 'text-teal-600 bg-teal-50' : 'text-gray-300 hover:text-teal-600'}`}>
+                      {cat.porcentaje_primero != null ? `${cat.porcentaje_primero}/${100 - cat.porcentaje_primero}` : '50/50'}
+                    </button>
                     {subs.length > 0 && (
                       <button onClick={() => toggleAbierto(cat.id)}
                         className="text-xs text-gray-400 font-semibold px-2 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 flex items-center gap-1">
@@ -162,6 +175,26 @@ export default function GestionCategorias() {
                   </>
                 )}
               </div>
+
+              {repartoAbierto === cat.id && (
+                <div className="px-4 py-3 bg-teal-50/60 border-t border-teal-100 space-y-2">
+                  <p className="text-xs text-gray-500">
+                    Cómo se reparte <b>{cat.nombre}</b> entre los dos. Afecta a «La cuenta de los dos» de Informes.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500 shrink-0">{NOMBRES[0]} paga el</span>
+                    <input type="number" min="0" max="100"
+                      value={cat.porcentaje_primero ?? 50}
+                      onChange={e => cambiarReparto(cat, Math.max(0, Math.min(100, parseInt(e.target.value) || 0)))}
+                      className="w-16 px-2 py-1 border border-gray-200 rounded-lg text-sm text-center" />
+                    <span className="text-xs text-gray-500">% · a {NOMBRES[1]} le toca el {100 - (cat.porcentaje_primero ?? 50)}%</span>
+                  </div>
+                  {cat.porcentaje_primero != null && (
+                    <button onClick={() => cambiarReparto(cat, null)}
+                      className="text-xs text-gray-400 underline">Volver a medias</button>
+                  )}
+                </div>
+              )}
 
               {/* Subcategorías (desplegables) */}
               {estaAbierto && (
