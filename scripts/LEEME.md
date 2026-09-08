@@ -3,7 +3,7 @@
 Supabase, en el plan gratuito, **no hace copias automáticas**. La única copia
 que existe es la que hagáis vosotros con esto.
 
-Las copias se guardan en **Documentos → Copias Gastos Cris y Adri**, una carpeta
+Las copias se guardan en **tu carpeta personal → Copias Gastos Cris y Adri**, una carpeta
 por fecha, con los apuntes, las categorías, las cuentas, las fotos de los tickets
 y un Excel para poder leerlo todo.
 

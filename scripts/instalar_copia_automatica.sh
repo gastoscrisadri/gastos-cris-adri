@@ -14,7 +14,10 @@ set -e
 SERVICIO="gastos-cris-adri-copia"
 ETIQUETA="com.gastoscrisadri.copia"
 CARPETA_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCRIPT="$CARPETA_SCRIPT/copia_seguridad.py"
+# El script se copia fuera de Documentos: macOS protege esa carpeta y una
+# tarea automatica no puede leer nada de ahi ("Operation not permitted").
+APP="$HOME/Library/Application Support/gastos-cris-adri"
+SCRIPT="$APP/copia_seguridad.py"
 PLIST="$HOME/Library/LaunchAgents/$ETIQUETA.plist"
 REGISTRO="$HOME/Library/Logs/gastos-cris-adri-copia.log"
 
@@ -23,11 +26,14 @@ echo "  Copia de seguridad automática — app de gastos de Cris y Adri"
 echo "  ============================================================"
 echo
 
-if [ ! -f "$SCRIPT" ]; then
+if [ ! -f "$CARPETA_SCRIPT/copia_seguridad.py" ]; then
   echo "  No encuentro copia_seguridad.py. Los dos archivos tienen que estar"
   echo "  en la misma carpeta."
   exit 1
 fi
+
+mkdir -p "$APP"
+cp "$CARPETA_SCRIPT/copia_seguridad.py" "$SCRIPT"
 
 # ---------------------------------------------------------------- 1. Los datos
 echo "  Hacen falta dos datos del panel de Supabase."
