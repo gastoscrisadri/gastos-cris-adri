@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import GestionRecurrentes from './GestionRecurrentes'
 import GestionCategorias from './GestionCategorias'
 import GestionCuentas from './GestionCuentas'
@@ -27,6 +28,30 @@ export default function Ajustes({ transacciones, onVerDetalleEvento, mostrarCifr
     setDuenoMovil(nombre)
   }
 
+  // ── Cambiar la propia contraseña ──────────────────────────────────────
+  // Hace falta para que cada uno tenga la suya de verdad: si la pone otra
+  // persona y no se puede cambiar desde aquí, esa persona la sabe siempre,
+  // y entonces los gastos personales no son privados.
+  const [clave, setClave] = useState('')
+  const [claveRepetida, setClaveRepetida] = useState('')
+  const [estadoClave, setEstadoClave] = useState(null) // null | 'guardando' | 'ok' | mensaje de error
+  const [mostrarClave, setMostrarClave] = useState(false)
+
+  async function cambiarContrasena() {
+    if (clave.length < 6) { setEstadoClave('La contraseña tiene que tener 6 caracteres o más.'); return }
+    if (clave !== claveRepetida) { setEstadoClave('Las dos contraseñas no coinciden.'); return }
+
+    setEstadoClave('guardando')
+    const { error } = await createClient().auth.updateUser({ password: clave })
+    if (error) {
+      setEstadoClave('No se ha podido cambiar. Sal de la app, vuelve a entrar e inténtalo otra vez.')
+      return
+    }
+    setClave('')
+    setClaveRepetida('')
+    setEstadoClave('ok')
+  }
+
   return (
     <div className="pb-24">
       {/* De quién es este móvil */}
@@ -43,6 +68,54 @@ export default function Ajustes({ transacciones, onVerDetalleEvento, mostrarCifr
         </div>
         {!duenoMovil && (
           <p className="text-xs text-amber-600 mt-2">Sin elegir: al crear un apunte se preguntará cada vez.</p>
+        )}
+      </div>
+
+      {/* Mi contraseña */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Mi contraseña</p>
+        <p className="text-xs text-gray-400 mb-2.5">
+          Ponte una que solo sepas tú. Es lo que hace que tus gastos personales sean tuyos.
+        </p>
+
+        {!mostrarClave ? (
+          <button type="button" onClick={() => { setMostrarClave(true); setEstadoClave(null) }}
+            className="w-full py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-500">
+            Cambiar mi contraseña
+          </button>
+        ) : (
+          <div className="space-y-2">
+            <input type="password" value={clave} autoComplete="new-password"
+              onChange={e => { setClave(e.target.value); setEstadoClave(null) }}
+              placeholder="Contraseña nueva"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            <input type="password" value={claveRepetida} autoComplete="new-password"
+              onChange={e => { setClaveRepetida(e.target.value); setEstadoClave(null) }}
+              placeholder="Repítela"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+
+            {estadoClave && estadoClave !== 'ok' && estadoClave !== 'guardando' && (
+              <p className="text-xs text-red-500">{estadoClave}</p>
+            )}
+
+            <div className="flex gap-2">
+              <button type="button" onClick={cambiarContrasena} disabled={estadoClave === 'guardando'}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[#0d1b2a] text-white disabled:opacity-50">
+                {estadoClave === 'guardando' ? 'Guardando…' : 'Guardar'}
+              </button>
+              <button type="button"
+                onClick={() => { setMostrarClave(false); setClave(''); setClaveRepetida(''); setEstadoClave(null) }}
+                className="px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-500">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {estadoClave === 'ok' && (
+          <p className="text-xs text-emerald-600 font-semibold mt-2">
+            ✓ Contraseña cambiada. A partir de ahora entras con la nueva.
+          </p>
         )}
       </div>
 
