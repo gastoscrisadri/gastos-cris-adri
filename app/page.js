@@ -439,7 +439,7 @@ export default function Home() {
           </div>
         )}
         {vista === 'informes' && !mostrarFormulario && (
-          <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} />
+          <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} />
         )}
         {vista === 'ajustes' && !mostrarFormulario && (
           <Ajustes usuario={usuario} transacciones={transacciones} onVerDetalleEvento={ev => setEventoDetalle(ev)} mostrarCifras={mostrarCifras} />
