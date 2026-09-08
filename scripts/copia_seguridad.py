@@ -20,7 +20,7 @@ CÓMO SE USA
          - la clave es la SECRETA (sb_secret_...), no la publicable
 
 DÓNDE LO GUARDA
-    En ~/Documents/Copias Gastos Cris y Adri/
+    En ~/Copias Gastos Cris y Adri/ (en tu carpeta personal)
       <fecha>/datos/*.json   las tablas completas
       <fecha>/Copia_...xlsx  lo mismo en Excel, para poder leerlo
       fotos/                 las fotos, compartidas entre copias
@@ -35,7 +35,9 @@ IMPORTANTE
 """
 import json, os, sys, datetime, getpass, urllib.request, urllib.error
 
-DESTINO = os.path.expanduser("~/Documents/Copias Gastos Cris y Adri")
+# Fuera de Documentos a proposito: macOS protege esa carpeta y la tarea
+# automatica no puede escribir alli.
+DESTINO = os.path.expanduser("~/Copias Gastos Cris y Adri")
 
 # Las cinco tablas de esta app. Si algún día se añade otra, ponerla aquí.
 TABLAS = ["transacciones", "categorias", "cuentas", "eventos", "apuntes_recurrentes"]
