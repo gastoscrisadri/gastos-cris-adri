@@ -324,10 +324,16 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
     let errDB
     if (esEdicion) {
+      // Al editar no se toca user_id: el dueño del apunte sigue siendo quien
+      // lo creó, aunque lo modifique el otro.
       const { error } = await supabase.from('transacciones').update(datos).eq('id', transaccionEditar.id)
       errDB = error
     } else {
-      const { error } = await supabase.from('transacciones').insert([datos])
+      // Se guarda quién lo crea. Hoy no cambia nada de lo que se ve; hace
+      // falta para que más adelante cada uno pueda tener gastos personales
+      // que el otro no vea. Si por lo que sea no hubiera usuario, se guarda
+      // igual sin él: nunca se bloquea el guardado por esto.
+      const { error } = await supabase.from('transacciones').insert([{ ...datos, user_id: usuario?.id || null }])
       errDB = error
     }
 
