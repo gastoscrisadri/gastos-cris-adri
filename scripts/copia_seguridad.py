@@ -58,6 +58,19 @@ def credenciales():
             print("Usando los datos de .env.local\n")
             return url.rstrip("/"), key
 
+    # Del Llavero de macOS, que es donde los deja el instalador de la copia
+    # automática. Así puede ejecutarse sola, sin nadie delante y sin dejar la
+    # clave escrita en ningún archivo.
+    del_llavero = leer_llavero()
+    if del_llavero:
+        print("Usando los datos guardados en el Llavero\n")
+        return del_llavero
+
+    if not sys.stdin.isatty():
+        print("No hay datos guardados y no hay nadie para escribirlos.")
+        print("Ejecuta primero: bash scripts/instalar_copia_automatica.sh")
+        sys.exit(1)
+
     print("Hacen falta dos datos del panel de Supabase (Project Settings > API Keys).\n")
     url = input("Dirección del proyecto (https://....supabase.co): ").strip().rstrip("/")
     key = getpass.getpass("Clave SECRETA (sb_secret_... — no se verá al escribirla): ").strip()
@@ -67,6 +80,25 @@ def credenciales():
         sys.exit(1)
     comprobar_clave(key)
     return url, key
+
+
+SERVICIO_LLAVERO = "gastos-cris-adri-copia"
+
+
+def leer_llavero():
+    """La dirección y la clave guardadas en el Llavero, o None si no están."""
+    import subprocess
+    def buscar(cuenta):
+        try:
+            r = subprocess.run(
+                ["security", "find-generic-password", "-s", SERVICIO_LLAVERO,
+                 "-a", cuenta, "-w"],
+                capture_output=True, text=True, timeout=15)
+            return r.stdout.strip() if r.returncode == 0 else None
+        except Exception:
+            return None
+    url, key = buscar("url"), buscar("clave")
+    return (url.rstrip("/"), key) if url and key else None
 
 
 def comprobar_clave(key):
