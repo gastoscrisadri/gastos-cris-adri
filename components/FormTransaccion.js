@@ -17,6 +17,7 @@ const FORM_VACIO = {
   descripcion: '',
   medio_pago: '',
   quien: '',
+  comun: true,
 }
 
 export default function FormTransaccion({ usuario, onGuardado, onCancelar, transaccionEditar, onEliminar, eventoActivo, autoAbrirCamara }) {
@@ -34,6 +35,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         descripcion: transaccionEditar.descripcion || '',
         medio_pago: transaccionEditar.medio_pago || '',
         quien: transaccionEditar.quien || '',
+        comun: transaccionEditar.comun !== false,
         evento_id: transaccionEditar.evento_id || null,
       }
     }
@@ -317,6 +319,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       descripcion: form.descripcion || null,
       medio_pago: form.medio_pago || null,
       quien: form.quien || null,
+      comun: form.comun !== false,
       imagen_url,
       evento_id: form.evento_id || null,
     }
@@ -484,6 +487,25 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-300 font-bold">€</span>
       </div>
       <p className="text-xs text-gray-400 text-center -mt-1">Importe negativo = devolución · usa punto o coma de decimales</p>
+
+      {/* De los dos o solo mío. Viene marcado "Común", que es lo más
+          frecuente viviendo juntos. Lo personal solo lo ve su dueño. */}
+      <div>
+        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">¿De quién es este gasto?</label>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => set('comun', true)}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun !== false ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-400 border-gray-200'}`}>
+            De los dos
+          </button>
+          <button type="button" onClick={() => set('comun', false)}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun === false ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
+            Solo mío
+          </button>
+        </div>
+        {form.comun === false && (
+          <p className="text-xs text-gray-400 mt-1.5">Este gasto solo lo verás tú, y no entra en la cuenta de los dos.</p>
+        )}
+      </div>
 
       {/* Categoría */}
       <div>
