@@ -375,6 +375,43 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
   // saldo saldría mal, porque desde aquí no se ven sus apuntes personales, y
   // un número incompleto no se distingue de uno correcto. Se esconde solo si
   // la cuenta es claramente del otro de los dos; ante la duda, se enseña.
+  // El reparto puesto en Ajustes, listo para preguntar por un apunte. Devuelve
+  // el porcentaje del primero de NOMBRES, o null si esa categoría va a medias.
+  // OJO: la misma regla vive también dentro del cálculo de la deuda; si algún
+  // día cambia el criterio, hay que tocarlo en los dos sitios.
+  const repartoDe = useMemo(() => {
+    const cat = {}, sub = {}
+    for (const c of categoriasReparto) {
+      if (c.porcentaje_primero == null) continue
+      if (c.padre_id) sub[c.nombre] = c.porcentaje_primero
+      else cat[c.nombre] = c.porcentaje_primero
+    }
+    return t => {
+      if (t.subcategoria && sub[t.subcategoria] != null) return sub[t.subcategoria]
+      return cat[t.categoria] ?? null
+    }
+  }, [categoriasReparto])
+
+  // Lo que le queda a quien mira: sus ingresos menos su parte de los gastos.
+  // Un gasto de los dos NO cuenta entero: cuenta la parte que le toca según el
+  // reparto. Si no se sabe quién mira, devuelve null y se enseña el balance de
+  // siempre, como hasta ahora.
+  const miBalanceMes = useMemo(() => {
+    if (!yo) return null
+    const [primero] = NOMBRES
+    const miParte = t => {
+      const importe = Number(t.importe)
+      if (t.comun === false) return importe
+      const pct = repartoDe(t)
+      if (pct == null) return importe / 2
+      return yo === primero ? importe * pct / 100 : importe * (100 - pct) / 100
+    }
+    const delMes = sinAjustes(transaccionesMes)
+    const ingresos = delMes.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + miParte(t), 0)
+    const gastos = delMes.filter(t => t.tipo === 'gasto').reduce((s, t) => s + miParte(t), 0)
+    return { ingresos, gastos, queda: ingresos - gastos }
+  }, [transaccionesMes, yo, repartoDe])
+
   const saldosCuentas = useMemo(() => {
     const mias = soloActivas(cuentas).filter(c => !(yo && NOMBRES.includes(c.persona) && c.persona !== yo))
     return mias.map(cuenta => {
@@ -688,9 +725,20 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
             })}
           </div>
 
-          {/* Balance. Solo con el filtro en "Todo": ingresos menos gastos no
-              significa nada si se están enseñando unos sí y otros no. */}
-          {deQuien === 'todo' && (
+          {/* Lo que le queda a quien mira. No es ingresos menos gastos a secas:
+              de los gastos de los dos solo cuenta su parte, si no le restaría
+              el alquiler entero cuando solo le toca un trozo. */}
+          {miBalanceMes ? (
+            <div className={`rounded-xl p-3 text-center ${miBalanceMes.queda >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
+              <p className={`text-xs font-medium ${miBalanceMes.queda >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>Lo que te queda a ti este mes</p>
+              <p className={`text-xl font-bold ${miBalanceMes.queda >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
+                {ocultar(mostrarCifras, `${miBalanceMes.queda >= 0 ? '+' : ''}${euros(miBalanceMes.queda)} €`)}
+              </p>
+              <p className="text-[10px] text-gray-400 mt-1">
+                Tus ingresos {ocultar(mostrarCifras, euros(miBalanceMes.ingresos))} € menos tu parte de los gastos {ocultar(mostrarCifras, euros(miBalanceMes.gastos))} €
+              </p>
+            </div>
+          ) : deQuien === 'todo' && (
             <>
             <div className={`rounded-xl p-3 text-center ${datosVista.balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
               <p className={`text-xs font-medium ${datosVista.balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>Balance del mes</p>

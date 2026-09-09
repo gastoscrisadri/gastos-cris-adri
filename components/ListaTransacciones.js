@@ -1,6 +1,7 @@
 'use client'
 
 import { ocultar, euros } from '@/lib/cifras'
+import { nombreDe } from '@/lib/identidad'
 
 const ICONOS = {
   'Alimentación': { emoji: '🛒', bg: '#fef3c7' },
@@ -30,7 +31,10 @@ const ICONOS = {
 
 const DEFAULT_ICONO = { emoji: '📝', bg: '#f1f5f9' }
 
-export default function ListaTransacciones({ transacciones, cargando, onSeleccionar, mostrarCifras }) {
+export default function ListaTransacciones({ transacciones, cargando, onSeleccionar, mostrarCifras, usuario }) {
+  // Un ajuste de cuentas se lee al revés según quién mire: el que paga ve que
+  // sale dinero, el que cobra ve que entra. Es el mismo apunte.
+  const yo = nombreDe(usuario)
   if (cargando) {
     return (
       <div className="flex flex-col items-center justify-center mt-20 gap-3">
@@ -79,9 +83,16 @@ export default function ListaTransacciones({ transacciones, cargando, onSeleccio
             {grupo.items.map((t, idx) => {
               const icono = ICONOS[t.categoria] || DEFAULT_ICONO
               const importe = Number(t.importe)
-              const esGastoNormal = t.tipo === 'gasto' && importe >= 0
+              // ¿Este ajuste de cuentas lo cobré yo? Entonces es dinero que entra.
+              const loCobroYo = !!t.liquidacion_a && !!yo && t.liquidacion_a === yo
+              const esGastoNormal = t.tipo === 'gasto' && importe >= 0 && !loCobroYo
               const colorImporte = esGastoNormal ? 'text-red-500' : 'text-emerald-500'
               const signo = esGastoNormal ? '−' : '+'
+              // El texto del ajuste, contado desde quien mira. Sin saber quién
+              // es, se deja el que trae guardado el apunte.
+              const titulo = t.liquidacion_a && yo
+                ? (loCobroYo ? `${t.quien} te pagó` : `Le pagaste a ${t.liquidacion_a}`)
+                : (t.descripcion || t.establecimiento || t.subcategoria || t.categoria)
 
               return (
                 <button
@@ -98,7 +109,7 @@ export default function ListaTransacciones({ transacciones, cargando, onSeleccio
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-900 text-sm truncate">
-                      {t.descripcion || t.establecimiento || t.subcategoria || t.categoria}
+                      {titulo}
                     </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       {t.descripcion && t.establecimiento && (
