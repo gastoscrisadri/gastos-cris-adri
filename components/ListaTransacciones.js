@@ -108,23 +108,23 @@ export default function ListaTransacciones({ transacciones, cargando, onSeleccio
                         </>
                       )}
                       <span className="text-xs text-gray-300">{t.fecha}</span>
-                      {/* Un pago entre ellos no es un gasto: se marca para que
-                          no se confunda con la compra o la luz. */}
-                      {t.liquidacion_a && (
-                        <>
-                          <span className="text-gray-200 text-xs">·</span>
-                          <span className="text-[10px] font-semibold text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded">
-                            ajuste de cuentas
-                          </span>
-                        </>
-                      )}
-                      {t.comun === false && (
-                        <>
-                          <span className="text-gray-200 text-xs">·</span>
-                          <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
-                            personal
-                          </span>
-                        </>
+                      {/* Siempre se dice de quién es el gasto: si solo se
+                          marcara lo personal, no se sabría si lo demás es
+                          común o es que falta el dato. Un pago entre ellos
+                          no es ninguna de las dos cosas y se marca aparte. */}
+                      <span className="text-gray-200 text-xs">·</span>
+                      {t.liquidacion_a ? (
+                        <span className="text-[10px] font-semibold text-teal-700 bg-teal-100 px-1.5 py-0.5 rounded">
+                          ajuste de cuentas
+                        </span>
+                      ) : t.comun === false ? (
+                        <span className="text-[10px] font-semibold text-violet-700 bg-violet-100 px-1.5 py-0.5 rounded">
+                          personal
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-semibold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">
+                          de los dos
+                        </span>
                       )}
                       {t.quien && (
                         <>
