@@ -19,6 +19,11 @@ const COLORES = [
 // se gasta, cambia de bolsillo. Ajusta quién ha puesto cuánto, pero nunca
 // entra en "lo que hemos gastado este mes".
 const esLiquidacion = t => !!t.liquidacion_a
+// Quitar los ajustes de cuentas de una lista. Todo lo que sume gastos o
+// ingresos tiene que pasar por aquí: un pago de uno al otro no es un gasto,
+// el dinero solo cambia de bolsillo. La excepción son los saldos de las
+// cuentas, donde ese movimiento sí es real y sí cuenta.
+const sinAjustes = ts => ts.filter(t => !esLiquidacion(t))
 
 const EMOJI_PERSONA = {
   'Cris': '👤',
@@ -337,12 +342,13 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
 
   const datosComp = useMemo(() => {
     if (!mesComparacion) return null
-    const gastos = transaccionesComp.filter(t => t.tipo === 'gasto')
-    const ingresos = transaccionesComp.filter(t => t.tipo === 'ingreso')
+    const delMes = sinAjustes(transaccionesComp)
+    const gastos = delMes.filter(t => t.tipo === 'gasto')
+    const ingresos = delMes.filter(t => t.tipo === 'ingreso')
     const totalGastos = gastos.reduce((s, t) => s + Number(t.importe), 0)
     const totalIngresos = ingresos.reduce((s, t) => s + Number(t.importe), 0)
     const porCategoria = {}
-    transaccionesComp.forEach(t => {
+    delMes.forEach(t => {
       if (!porCategoria[t.categoria]) porCategoria[t.categoria] = { gasto: 0, ingreso: 0 }
       porCategoria[t.categoria][t.tipo] += Number(t.importe)
     })
@@ -398,7 +404,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
   }, [mesSeleccionado])
 
   const datosMesAnterior = useMemo(() => {
-    const ts = transacciones.filter(t => t.fecha.startsWith(mesAnterior))
+    const ts = sinAjustes(transacciones.filter(t => t.fecha.startsWith(mesAnterior)))
     return {
       gastos: ts.filter(t => t.tipo === 'gasto').reduce((s, t) => s + Number(t.importe), 0),
       ingresos: ts.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + Number(t.importe), 0),
@@ -411,8 +417,8 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
 
   const resumenAnual = useMemo(() => {
     if (!anioActual) return null
-    const tsActual = transacciones.filter(t => t.fecha.startsWith(anioActual))
-    const tsAnterior = transacciones.filter(t => t.fecha.startsWith(anioAnterior))
+    const tsActual = sinAjustes(transacciones.filter(t => t.fecha.startsWith(anioActual)))
+    const tsAnterior = sinAjustes(transacciones.filter(t => t.fecha.startsWith(anioAnterior)))
 
     const totalGastosActual = tsActual.filter(t => t.tipo === 'gasto').reduce((s, t) => s + Number(t.importe), 0)
     const totalIngresosActual = tsActual.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + Number(t.importe), 0)
@@ -422,8 +428,8 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
     const porMes = Array.from({ length: 12 }, (_, i) => {
       const mes = `${anioActual}-${String(i + 1).padStart(2, '0')}`
       const mesAnt = `${anioAnterior}-${String(i + 1).padStart(2, '0')}`
-      const tsM = transacciones.filter(t => t.fecha.startsWith(mes))
-      const tsMa = transacciones.filter(t => t.fecha.startsWith(mesAnt))
+      const tsM = sinAjustes(transacciones.filter(t => t.fecha.startsWith(mes)))
+      const tsMa = sinAjustes(transacciones.filter(t => t.fecha.startsWith(mesAnt)))
       return {
         nombre: new Date(parseInt(anioActual), i, 1).toLocaleString('es', { month: 'short' }),
         gastos: tsM.filter(t => t.tipo === 'gasto').reduce((s, t) => s + Number(t.importe), 0),
