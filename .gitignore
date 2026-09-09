@@ -36,3 +36,7 @@ yarn-error.log*
 # Permisos locales de Claude Code: son de esta máquina, no del proyecto, y
 # pueden acabar guardando credenciales dentro de las reglas de permiso.
 .claude/settings.local.json
+
+# Papeles de trabajo: se quedan en el Mac, no en el repositorio (que es publico)
+*.pdf
+*.xlsx
