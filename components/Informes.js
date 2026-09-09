@@ -108,37 +108,12 @@ function exportarCSV(transacciones, nombreArchivo) {
   URL.revokeObjectURL(url)
 }
 
-export default function Informes({ transacciones, mostrarCifras, onCambio }) {
-  // Se cargan antes que nada: de ellas salen los emojis, los saldos y
-  // el reparto de "quién puso el dinero".
-  const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
-  useEffect(() => { cargarCuentas().then(setCuentas) }, [])
-  // Para saber si alguna categoría no va a medias (p. ej. el alquiler)
-  const [categoriasReparto, setCategoriasReparto] = useState([])
-  useEffect(() => { cargarCategorias().then(setCategoriasReparto) }, [])
-
-  const meses = useMemo(() => {
-    const set = new Set(transacciones.map(t => t.fecha.slice(0, 7)))
-    return Array.from(set).sort().reverse()
-  }, [transacciones])
-
-  const [mesSeleccionado, setMesSeleccionado] = useState(meses[0] || '')
-  const [tabActiva, setTabActiva] = useState('gasto')
-  // Informes se divide en tres pestañas para que cada pregunta tenga su
-  // sitio: el mes corriente, la cuenta entre los dos, y el histórico.
-  const [vista, setVista] = useState('mes')
-
-  useEffect(() => {
-    if (meses.length && !mesSeleccionado) setMesSeleccionado(meses[0])
-  }, [meses, mesSeleccionado])
-
-  const transaccionesMes = useMemo(() =>
-    transacciones.filter(t => t.fecha.startsWith(mesSeleccionado))
-  , [transacciones, mesSeleccionado])
-
-  const datosMes = useMemo(() => {
+// Los totales de un mes. Se llama dos veces con listas distintas: la del mes
+// entero y la que deja pasar el filtro De los dos / Míos. Al ser la misma
+// función, las dos dan cifras calculadas exactamente igual.
+function calcularDatos(lista, cuentas) {
     // Las liquidaciones quedan fuera de todos los totales: no son gasto.
-    const delMes = transaccionesMes.filter(t => !esLiquidacion(t))
+    const delMes = lista.filter(t => !esLiquidacion(t))
     const gastos = delMes.filter(t => t.tipo === 'gasto')
     const ingresos = delMes.filter(t => t.tipo === 'ingreso')
     const totalGastos = gastos.reduce((s, t) => s + Number(t.importe), 0)
@@ -178,7 +153,57 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
 
 
     return { totalGastos, totalIngresos, balance: totalIngresos - totalGastos, categorias, medios, personas }
-  }, [transaccionesMes, cuentas])
+}
+
+export default function Informes({ transacciones, mostrarCifras, onCambio }) {
+  // Se cargan antes que nada: de ellas salen los emojis, los saldos y
+  // el reparto de "quién puso el dinero".
+  const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
+  useEffect(() => { cargarCuentas().then(setCuentas) }, [])
+  // Para saber si alguna categoría no va a medias (p. ej. el alquiler)
+  const [categoriasReparto, setCategoriasReparto] = useState([])
+  useEffect(() => { cargarCategorias().then(setCategoriasReparto) }, [])
+
+  const meses = useMemo(() => {
+    const set = new Set(transacciones.map(t => t.fecha.slice(0, 7)))
+    return Array.from(set).sort().reverse()
+  }, [transacciones])
+
+  const [mesSeleccionado, setMesSeleccionado] = useState(meses[0] || '')
+  const [tabActiva, setTabActiva] = useState('gasto')
+  // Informes se divide en tres pestañas para que cada pregunta tenga su
+  // sitio: el mes corriente, la cuenta entre los dos, y el histórico.
+  const [vista, setVista] = useState('mes')
+  // De quién son los apuntes que se enseñan en "Mes": todo, los de los dos,
+  // o los particulares de quien mira. Arranca en los de los dos.
+  const [deQuien, setDeQuien] = useState('comunes')
+
+  useEffect(() => {
+    if (meses.length && !mesSeleccionado) setMesSeleccionado(meses[0])
+  }, [meses, mesSeleccionado])
+
+  const transaccionesMes = useMemo(() =>
+    transacciones.filter(t => t.fecha.startsWith(mesSeleccionado))
+  , [transacciones, mesSeleccionado])
+
+  const datosMes = useMemo(() => calcularDatos(transaccionesMes, cuentas), [transaccionesMes, cuentas])
+
+  // Qué apuntes se enseñan en la pestaña "Mes". Por defecto, los de los dos:
+  // es lo que más miran. "Míos" es donde cada uno ve sus gastos particulares.
+  const transaccionesVista = useMemo(() => {
+    if (deQuien === 'comunes') return transaccionesMes.filter(t => t.comun !== false)
+    if (deQuien === 'mios') return transaccionesMes.filter(t => t.comun === false)
+    return transaccionesMes
+  }, [transaccionesMes, deQuien])
+
+  const datosVista = useMemo(() => calcularDatos(transaccionesVista, cuentas), [transaccionesVista, cuentas])
+
+  // Lo que han gastado entre los dos este mes. No depende del filtro: es la
+  // cifra de la tarjeta de arriba, y tiene que salir igual en los dos móviles.
+  const gastoConjuntoMes = useMemo(() =>
+    transaccionesMes.filter(t => t.tipo === 'gasto' && t.comun !== false && !esLiquidacion(t))
+      .reduce((s, t) => s + Number(t.importe), 0)
+  , [transaccionesMes])
 
   // La cuenta de los dos NO es del mes: es un saldo acumulado desde el
   // principio, como se acordó. Por eso se calcula sobre todas las
@@ -283,8 +308,8 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
 
   const datosTorta = useMemo(() => {
     const campo = tabActiva === 'gasto' ? 'gasto' : 'ingreso'
-    const total = datosMes.categorias.reduce((s, c) => s + (c[campo] || 0), 0)
-    return datosMes.categorias
+    const total = datosVista.categorias.reduce((s, c) => s + (c[campo] || 0), 0)
+    return datosVista.categorias
       .filter(c => (c[campo] || 0) > 0)
       .map(c => ({
         nombre: c.nombre,
@@ -292,7 +317,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
         pct: total > 0 ? Math.round((c[campo] / total) * 100) : 0,
       }))
       .sort((a, b) => b.valor - a.valor)
-  }, [datosMes, tabActiva])
+  }, [datosVista, tabActiva])
 
   const totalTab = datosTorta.reduce((s, d) => s + d.valor, 0)
   const [categoriaAbierta, setCategoriaAbierta] = useState(null)
@@ -422,15 +447,15 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
 
   // Selector Ingresos / Gastos. Lo usan "Mes" y "Histórico": las dos enseñan
   // cifras que dependen de él, así que se define una vez y se pinta en ambas.
-  const barraTipos = (
+  const barraTipos = d => (
       <div className="flex border-b border-gray-100">
         <button onClick={() => setTabActiva('ingreso')}
           className={`flex-1 pb-2 text-sm font-semibold transition-colors ${tabActiva === 'ingreso' ? 'text-emerald-600 border-b-2 border-emerald-500' : 'text-gray-400'}`}>
-          Ingresos {ocultar(mostrarCifras, `${datosMes.totalIngresos.toFixed(2)} €`)}
+          Ingresos {ocultar(mostrarCifras, `${d.totalIngresos.toFixed(2)} €`)}
         </button>
         <button onClick={() => setTabActiva('gasto')}
           className={`flex-1 pb-2 text-sm font-semibold transition-colors ${tabActiva === 'gasto' ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-400'}`}>
-          Gastos {ocultar(mostrarCifras, `${datosMes.totalGastos.toFixed(2)} €`)}
+          Gastos {ocultar(mostrarCifras, `${d.totalGastos.toFixed(2)} €`)}
         </button>
       </div>
   )
@@ -466,10 +491,11 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
       {/* Lo único que hay que mirar de un vistazo */}
       <div className="flex gap-2">
         <div className="flex-1 bg-red-50 rounded-2xl px-4 py-3">
-          <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Gastado este mes</p>
+          <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Gasto conjunto del mes</p>
           <p className="text-xl font-bold text-red-500 mt-0.5">
-            {ocultar(mostrarCifras, `${datosMes.totalGastos.toFixed(2)} €`)}
+            {ocultar(mostrarCifras, `${gastoConjuntoMes.toFixed(2)} €`)}
           </p>
+          <p className="text-[10px] text-red-300 mt-0.5">Lo de los dos, sin los gastos particulares</p>
         </div>
         <div className="flex-1 bg-[#0d1b2a] rounded-2xl px-4 py-3">
           <p className="text-[10px] font-bold text-[#8fa6c9] uppercase tracking-widest">La cuenta de los dos</p>
@@ -518,7 +544,18 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
         </div>
       )}
 
-      {barraTipos}
+      {/* De quién son los apuntes que se enseñan debajo. Aquí es donde cada
+          uno ve sus gastos particulares desglosados. */}
+      <div className="flex gap-1 border border-gray-200 rounded-xl p-1">
+        {[['comunes', 'De los dos'], ['mios', 'Míos'], ['todo', 'Todo']].map(([id, label]) => (
+          <button key={id} type="button" onClick={() => setDeQuien(id)}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${deQuien === id ? 'bg-gray-800 text-white' : 'text-gray-400'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {barraTipos(datosVista)}
 
       {/* Gráfico de tarta */}
       {datosTorta.length > 0 ? (
@@ -552,7 +589,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
           <div className="space-y-1.5">
             {datosTorta.map((d, i) => {
               const abierta = categoriaAbierta === d.nombre
-              const apuntesCategoria = transaccionesMes
+              const apuntesCategoria = transaccionesVista
                 .filter(t => t.tipo === tabActiva && t.categoria === d.nombre)
                 .sort((a, b) => b.fecha.localeCompare(a.fecha))
               const color = COLORES[i % COLORES.length]
@@ -630,28 +667,33 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
             })}
           </div>
 
-          {/* Balance */}
-          <div className={`rounded-xl p-3 text-center ${datosMes.balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
-            <p className={`text-xs font-medium ${datosMes.balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>Balance del mes</p>
-            <p className={`text-xl font-bold ${datosMes.balance >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
-              {ocultar(mostrarCifras, `${datosMes.balance >= 0 ? '+' : ''}${datosMes.balance.toFixed(2)} €`)}
-            </p>
-          </div>
+          {/* Balance. Solo con el filtro en "Todo": ingresos menos gastos no
+              significa nada si se están enseñando unos sí y otros no. */}
+          {deQuien === 'todo' && (
+            <>
+            <div className={`rounded-xl p-3 text-center ${datosVista.balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
+              <p className={`text-xs font-medium ${datosVista.balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>Balance del mes</p>
+              <p className={`text-xl font-bold ${datosVista.balance >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
+                {ocultar(mostrarCifras, `${datosVista.balance >= 0 ? '+' : ''}${datosVista.balance.toFixed(2)} €`)}
+              </p>
+            </div>
+            </>
+          )}
         </>
       ) : (
         <p className="text-gray-400 text-sm text-center mt-4">Sin datos este mes</p>
       )}
 
       {/* Resumen por medio de pago — expandible */}
-      {datosMes.medios.length > 0 && (
+      {datosVista.medios.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Por medio de pago</p>
           <div className="space-y-1.5">
-            {datosMes.medios.map((m) => {
+            {datosVista.medios.map((m) => {
               const emoji = cuentas.find(c => c.nombre === m.nombre)?.emoji || '💳'
-              const totalMedio = datosMes.totalGastos > 0 ? Math.round((m.gasto / datosMes.totalGastos) * 100) : 0
+              const totalMedio = datosVista.totalGastos > 0 ? Math.round((m.gasto / datosVista.totalGastos) * 100) : 0
               const abierto = medioAbierto === m.nombre
-              const apuntesMedio = transaccionesMes
+              const apuntesMedio = transaccionesVista
                 .filter(t => t.medio_pago === m.nombre && t.tipo === tabActiva)
                 .sort((a, b) => b.fecha.localeCompare(a.fecha))
               return (
@@ -866,7 +908,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
       {/* HISTÓRICO — comparar con otros meses, el año y exportar */}
       {vista === 'historico' && (
         <>
-      {barraTipos}
+      {barraTipos(datosMes)}
 
       {/* Botón comparar */}
       {!mesComparacion ? (
