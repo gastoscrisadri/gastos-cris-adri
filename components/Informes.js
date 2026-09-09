@@ -7,6 +7,7 @@ import { ocultar, euros, euros0 } from '@/lib/cifras'
 import { cargarCuentas, personaDeMedioPago, soloActivas, CUENTAS_RESPALDO } from '@/lib/cuentas'
 import { NOMBRES, nombreDe } from '@/lib/identidad'
 import { cargarCategorias } from '@/lib/categorias'
+import { construirReparto } from '@/lib/reparto'
 
 const COLORES = [
   '#ef4444','#f97316','#eab308','#84cc16','#22c55e',
@@ -194,22 +195,10 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
     if (meses.length && !mesSeleccionado) setMesSeleccionado(meses[0])
   }, [meses, mesSeleccionado])
 
-  // El reparto puesto en Ajustes, listo para preguntar por un apunte. Devuelve
-  // el porcentaje del primero de NOMBRES, o null si esa categoría va a medias.
-  // OJO: la misma regla vive también dentro del cálculo de la deuda; si algún
-  // día cambia el criterio, hay que tocarlo en los dos sitios.
-  const repartoDe = useMemo(() => {
-    const cat = {}, sub = {}
-    for (const c of categoriasReparto) {
-      if (c.porcentaje_primero == null) continue
-      if (c.padre_id) sub[c.nombre] = c.porcentaje_primero
-      else cat[c.nombre] = c.porcentaje_primero
-    }
-    return t => {
-      if (t.subcategoria && sub[t.subcategoria] != null) return sub[t.subcategoria]
-      return cat[t.categoria] ?? null
-    }
-  }, [categoriasReparto])
+  // Cuánto de cada apunte es tuyo. La regla vive en lib/reparto.js para que la
+  // portada y los informes no puedan decir cosas distintas.
+  // (El cálculo de la deuda tiene la suya propia y no se toca: está verificado.)
+  const miParte = useMemo(() => construirReparto(categoriasReparto), [categoriasReparto])
 
   const transaccionesMes = useMemo(() =>
     transacciones.filter(t => t.fecha.startsWith(mesSeleccionado))
@@ -225,19 +214,10 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
       // Sin saber quién mira no se puede repartir: se enseñan al menos los
       // gastos particulares, que es lo que hacía antes.
       if (!yo) return transaccionesMes.filter(t => t.comun === false)
-      const [primero] = NOMBRES
-      return transaccionesMes.map(t => {
-        if (t.comun === false) return t           // lo particular cuenta entero
-        const importe = Number(t.importe)
-        const pct = repartoDe(t)
-        const mia = pct == null
-          ? importe / 2
-          : (yo === primero ? importe * pct / 100 : importe * (100 - pct) / 100)
-        return { ...t, importe: mia }
-      })
+      return transaccionesMes.map(t => ({ ...t, importe: miParte(t, yo) }))
     }
     return transaccionesMes
-  }, [transaccionesMes, deQuien, yo, repartoDe])
+  }, [transaccionesMes, deQuien, yo, miParte])
 
   const datosVista = useMemo(() => calcularDatos(transaccionesVista, cuentas), [transaccionesVista, cuentas])
 
@@ -412,19 +392,11 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
   // siempre, como hasta ahora.
   const miBalanceMes = useMemo(() => {
     if (!yo) return null
-    const [primero] = NOMBRES
-    const miParte = t => {
-      const importe = Number(t.importe)
-      if (t.comun === false) return importe
-      const pct = repartoDe(t)
-      if (pct == null) return importe / 2
-      return yo === primero ? importe * pct / 100 : importe * (100 - pct) / 100
-    }
     const delMes = sinAjustes(transaccionesMes)
-    const ingresos = delMes.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + miParte(t), 0)
-    const gastos = delMes.filter(t => t.tipo === 'gasto').reduce((s, t) => s + miParte(t), 0)
+    const ingresos = delMes.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + miParte(t, yo), 0)
+    const gastos = delMes.filter(t => t.tipo === 'gasto').reduce((s, t) => s + miParte(t, yo), 0)
     return { ingresos, gastos, queda: ingresos - gastos }
-  }, [transaccionesMes, yo, repartoDe])
+  }, [transaccionesMes, yo, miParte])
 
   const saldosCuentas = useMemo(() => {
     const mias = soloActivas(cuentas).filter(c => !(yo && NOMBRES.includes(c.persona) && c.persona !== yo))

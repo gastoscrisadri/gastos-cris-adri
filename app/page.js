@@ -10,6 +10,9 @@ import Ajustes from '@/components/Ajustes'
 import DetalleTransaccion from '@/components/DetalleTransaccion'
 import DetalleEvento from '@/components/DetalleEvento'
 import { ocultar, euros, euros0 } from '@/lib/cifras'
+import { cargarCategorias } from '@/lib/categorias'
+import { construirReparto } from '@/lib/reparto'
+import { nombreDe } from '@/lib/identidad'
 
 export default function Home() {
   // La app abre directamente en "nuevo apunte" con la cámara intentando
@@ -195,17 +198,27 @@ export default function Home() {
     mostrarToast('✅ Apunte guardado')
   }
 
-  // Balance del mes actual
+  // El reparto puesto en Ajustes, para saber qué parte de cada gasto común
+  // es tuya. Si no llegan las categorías, miParte devuelve el importe entero
+  // y la portada se comporta como antes.
+  const [categoriasReparto, setCategoriasReparto] = useState([])
+  useEffect(() => { cargarCategorias().then(setCategoriasReparto) }, [])
+  const miParte = useMemo(() => construirReparto(categoriasReparto), [categoriasReparto])
+
+  // Balance del mes actual, visto desde quien está mirando.
   const balanceMes = useMemo(() => {
     const mesActual = new Date().toISOString().slice(0, 7)
     // Las liquidaciones (un pago de uno al otro) no son un gasto: ese dinero
     // cambia de bolsillo, no se gasta. Si contaran aquí, la portada diría que
     // habéis gastado de más.
     const delMes = transacciones.filter(t => t.fecha.startsWith(mesActual) && !t.liquidacion_a)
-    const ingresos = delMes.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + Number(t.importe), 0)
-    const gastos = delMes.filter(t => t.tipo === 'gasto').reduce((s, t) => s + Number(t.importe), 0)
+    // De un gasto de los dos solo cuenta tu parte. Si contara entero, a quien
+    // no paga el alquiler le salían sus ingresos menos los 1.400 completos.
+    const yo = nombreDe(usuario)
+    const ingresos = delMes.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + miParte(t, yo), 0)
+    const gastos = delMes.filter(t => t.tipo === 'gasto').reduce((s, t) => s + miParte(t, yo), 0)
     return { ingresos, gastos, balance: ingresos - gastos }
-  }, [transacciones])
+  }, [transacciones, usuario, miParte])
 
   const mesNombre = new Date().toLocaleString('es', { month: 'long', year: 'numeric' })
 
