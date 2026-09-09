@@ -3,8 +3,13 @@
 import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { ocultar, euros } from '@/lib/cifras'
+import { NOMBRES, nombreDe } from '@/lib/identidad'
 
-export default function GestionCuentas({ transacciones, mostrarCifras }) {
+export default function GestionCuentas({ transacciones, mostrarCifras, usuario }) {
+  // El saldo se deduce sumando apuntes, y los personales del otro no se ven:
+  // el saldo de sus cuentas saldría a medias y engañaría. Se enseña la cuenta,
+  // que hace falta para poder editarla, pero sin la cifra.
+  const yo = nombreDe(usuario)
   const [cuentas, setCuentas] = useState([])
   const [cargando, setCargando] = useState(true)
   const [editando, setEditando] = useState(null)
@@ -135,6 +140,7 @@ export default function GestionCuentas({ transacciones, mostrarCifras }) {
           const mov = movimientos[cuenta.nombre] || { ingresos: 0, gastos: 0 }
           const saldoActual = cuenta.saldo_inicial + mov.ingresos - mov.gastos
           const esPositivo = saldoActual >= 0
+          const esDelOtro = !!yo && NOMBRES.includes(cuenta.persona) && cuenta.persona !== yo
 
           return (
             <div key={cuenta.id}
@@ -161,16 +167,27 @@ export default function GestionCuentas({ transacciones, mostrarCifras }) {
                     </div>
                   )}
                   <div className="flex gap-2 text-xs text-gray-400 mt-0.5">
-                    {mov.ingresos > 0 && <span className="text-emerald-500">↑ {ocultar(mostrarCifras, `${euros(mov.ingresos)} €`)}</span>}
-                    {mov.gastos > 0 && <span className="text-red-400">↓ {ocultar(mostrarCifras, `${euros(mov.gastos)} €`)}</span>}
-                    {!mov.ingresos && !mov.gastos && <span>Sin movimientos</span>}
+                    {esDelOtro ? <span>Cuenta de {cuenta.persona}</span> : <>
+                      {mov.ingresos > 0 && <span className="text-emerald-500">↑ {ocultar(mostrarCifras, `${euros(mov.ingresos)} €`)}</span>}
+                      {mov.gastos > 0 && <span className="text-red-400">↓ {ocultar(mostrarCifras, `${euros(mov.gastos)} €`)}</span>}
+                      {!mov.ingresos && !mov.gastos && <span>Sin movimientos</span>}
+                    </>}
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`text-base font-bold ${esPositivo ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {ocultar(mostrarCifras, `${esPositivo ? '+' : ''}${euros(saldoActual)} €`)}
-                  </p>
-                  <p className="text-[10px] text-gray-300">saldo actual</p>
+                  {esDelOtro ? (
+                    <>
+                      <p className="text-base font-bold text-gray-300">—</p>
+                      <p className="text-[10px] text-gray-300 max-w-[90px] leading-tight">no se puede calcular desde aquí</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className={`text-base font-bold ${esPositivo ? 'text-emerald-500' : 'text-red-500'}`}>
+                        {ocultar(mostrarCifras, `${esPositivo ? '+' : ''}${euros(saldoActual)} €`)}
+                      </p>
+                      <p className="text-[10px] text-gray-300">saldo actual</p>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">

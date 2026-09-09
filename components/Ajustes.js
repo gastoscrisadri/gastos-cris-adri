@@ -143,7 +143,7 @@ export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mo
       </div>
 
       {seccion === 'recurrentes' && <GestionRecurrentes mostrarCifras={mostrarCifras} />}
-      {seccion === 'cuentas' && <GestionCuentas transacciones={transacciones} mostrarCifras={mostrarCifras} />}
+      {seccion === 'cuentas' && <GestionCuentas transacciones={transacciones} mostrarCifras={mostrarCifras} usuario={usuario} />}
       {seccion === 'categorias' && <GestionCategorias />}
       {seccion === 'eventos' && <GestionEventos onVerDetalle={onVerDetalleEvento} mostrarCifras={mostrarCifras} />}
     </div>
