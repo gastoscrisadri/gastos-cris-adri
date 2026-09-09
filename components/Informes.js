@@ -223,21 +223,25 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
     const tocaCadaUno = aRepartir / 2
     const hayRepartoPropio = Object.keys(repartoCat).length + Object.keys(repartoSub).length > 0
 
-    // Las liquidaciones ajustan quién ha puesto cuánto: al que paga se le
-    // suma, al que cobra se le resta, porque lo ha recuperado. Una sola
-    // anotación mueve los dos lados.
+    // Lo pagado en gastos se guarda aparte de los ajustes por liquidaciones:
+    // mezclarlos en una sola cifra daba números que no se entienden (un
+    // "ha puesto" en negativo, por ejemplo).
+    const pagado = { ...puesto }
+    const ajuste = {}
+    for (const n of NOMBRES) ajuste[n] = 0
     transacciones.filter(esLiquidacion).forEach(t => {
       const importe = Number(t.importe)
       const paga = t.quien
       const cobra = t.liquidacion_a
-      if (puesto[paga] !== undefined) puesto[paga] += importe
-      if (puesto[cobra] !== undefined) puesto[cobra] -= importe
+      if (ajuste[paga] !== undefined) ajuste[paga] += importe
+      if (ajuste[cobra] !== undefined) ajuste[cobra] -= importe
     })
+    for (const n of NOMBRES) puesto[n] = pagado[n] + ajuste[n]
 
     // Cuánto ha puesto cada uno de más (o de menos) respecto a lo que le tocaba
     const saldo = (puesto[uno] - toca[uno]) - (puesto[otro] - toca[otro])
     return {
-      totalComun, comunSinAsignar, aRepartir, tocaCadaUno, puesto, toca, hayRepartoPropio,
+      totalComun, comunSinAsignar, aRepartir, tocaCadaUno, puesto, pagado, ajuste, toca, hayRepartoPropio,
       acreedor: saldo > 0 ? uno : otro,
       deudor: saldo > 0 ? otro : uno,
       // La deuda es la mitad de la diferencia entre lo que ha puesto cada uno.
@@ -748,17 +752,28 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                 </p>
               </>
             )}
-            <div className="flex justify-center gap-5 mt-4 pt-4 border-t border-white/10">
+            {/* De dónde sale la deuda: lo que cada uno ha pagado frente a lo
+                que le tocaba según el reparto. Los ajustes de las
+                liquidaciones van en su propia línea: mezclarlos con lo
+                pagado daba cifras que no se entendían. */}
+            <div className="mt-4 pt-4 border-t border-white/10 space-y-2.5">
               {NOMBRES.map(n => (
-                <div key={n} className="text-center">
-                  <p className="text-[10px] uppercase tracking-wide text-[#8fa6c9]">{n} puso</p>
-                  <p className="text-sm font-bold text-white">{ocultar(mostrarCifras, `${(deuda.puesto[n] || 0).toFixed(2)} €`)}</p>
+                <div key={n} className="flex items-baseline gap-2 text-left">
+                  <span className="text-xs font-semibold text-white w-12 shrink-0">{n}</span>
+                  <span className="flex-1 text-[11px] text-[#8fa6c9]">
+                    ha pagado <b className="text-white font-semibold">{ocultar(mostrarCifras, `${(deuda.pagado[n] || 0).toFixed(2)} €`)}</b>
+                    {' · '}le tocaban <b className="text-white font-semibold">{ocultar(mostrarCifras, `${(deuda.toca[n] || 0).toFixed(2)} €`)}</b>
+                    {Math.abs(deuda.ajuste[n] || 0) >= 0.01 && (
+                      <>
+                        <br />
+                        {(deuda.ajuste[n] || 0) > 0 ? 'y ha pagado a ' : 'y ha cobrado de '}
+                        {NOMBRES.find(o => o !== n)}{' '}
+                        <b className="text-white font-semibold">{ocultar(mostrarCifras, `${Math.abs(deuda.ajuste[n]).toFixed(2)} €`)}</b>
+                      </>
+                    )}
+                  </span>
                 </div>
               ))}
-              <div className="text-center">
-                <p className="text-[10px] uppercase tracking-wide text-[#8fa6c9]">A cada uno</p>
-                <p className="text-sm font-bold text-white">{ocultar(mostrarCifras, `${deuda.tocaCadaUno.toFixed(2)} €`)}</p>
-              </div>
             </div>
           </div>
           {deuda.comunSinAsignar > 0 && (
