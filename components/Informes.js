@@ -510,10 +510,10 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
       </div>
 
       {/* Las tres pestañas */}
-      <div className="flex gap-1 bg-gray-100 rounded-2xl p-1">
+      <div className="flex gap-1.5 bg-[#0d1b2a] rounded-2xl p-1.5 shadow-sm">
         {[['mes', 'Mes'], ['nosotros', 'Nosotros'], ['historico', 'Histórico']].map(([id, label]) => (
           <button key={id} type="button" onClick={() => setVista(id)}
-            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${vista === id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors ${vista === id ? 'bg-white text-[#0d1b2a] shadow' : 'text-white/60'}`}>
             {label}
           </button>
         ))}
@@ -546,13 +546,16 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
 
       {/* De quién son los apuntes que se enseñan debajo. Aquí es donde cada
           uno ve sus gastos particulares desglosados. */}
-      <div className="flex gap-1 border border-gray-200 rounded-xl p-1">
-        {[['comunes', 'De los dos'], ['mios', 'Míos'], ['todo', 'Todo']].map(([id, label]) => (
-          <button key={id} type="button" onClick={() => setDeQuien(id)}
-            className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${deQuien === id ? 'bg-gray-800 text-white' : 'text-gray-400'}`}>
-            {label}
-          </button>
-        ))}
+      <div>
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Qué gastos estás viendo</p>
+        <div className="flex gap-1.5">
+          {[['comunes', 'De los dos', 'bg-teal-600 border-teal-600'], ['mios', 'Míos', 'bg-violet-600 border-violet-600'], ['todo', 'Todo', 'bg-gray-700 border-gray-700']].map(([id, label, activo]) => (
+            <button key={id} type="button" onClick={() => setDeQuien(id)}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold border-2 transition-colors ${deQuien === id ? activo + ' text-white' : 'bg-white text-gray-500 border-gray-200'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {barraTipos(datosVista)}
