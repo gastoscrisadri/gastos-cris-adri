@@ -124,6 +124,9 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
 
   const [mesSeleccionado, setMesSeleccionado] = useState(meses[0] || '')
   const [tabActiva, setTabActiva] = useState('gasto')
+  // Informes se divide en tres pestañas para que cada pregunta tenga su
+  // sitio: el mes corriente, la cuenta entre los dos, y el histórico.
+  const [vista, setVista] = useState('mes')
 
   useEffect(() => {
     if (meses.length && !mesSeleccionado) setMesSeleccionado(meses[0])
@@ -417,31 +420,25 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
 
   const idxMes = meses.indexOf(mesSeleccionado)
 
+  // Selector Ingresos / Gastos. Lo usan "Mes" y "Histórico": las dos enseñan
+  // cifras que dependen de él, así que se define una vez y se pinta en ambas.
+  const barraTipos = (
+      <div className="flex border-b border-gray-100">
+        <button onClick={() => setTabActiva('ingreso')}
+          className={`flex-1 pb-2 text-sm font-semibold transition-colors ${tabActiva === 'ingreso' ? 'text-emerald-600 border-b-2 border-emerald-500' : 'text-gray-400'}`}>
+          Ingresos {ocultar(mostrarCifras, `${datosMes.totalIngresos.toFixed(2)} €`)}
+        </button>
+        <button onClick={() => setTabActiva('gasto')}
+          className={`flex-1 pb-2 text-sm font-semibold transition-colors ${tabActiva === 'gasto' ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-400'}`}>
+          Gastos {ocultar(mostrarCifras, `${datosMes.totalGastos.toFixed(2)} €`)}
+        </button>
+      </div>
+  )
+
   return (
     <div className="pb-24 space-y-4">
 
-      {/* Saldos actuales de cuentas */}
-      {saldosCuentas.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Saldo actual de cuentas</p>
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5 scrollbar-hide">
-            {saldosCuentas.map(cuenta => {
-              const positivo = cuenta.saldo >= 0
-              return (
-                <div key={cuenta.id}
-                  className={`shrink-0 rounded-2xl px-4 py-3 flex flex-col gap-1 min-w-[130px] border ${positivo ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
-                  <span className="text-2xl">{cuenta.emoji}</span>
-                  <p className="text-xs font-semibold text-gray-500 leading-tight">{cuenta.nombre}</p>
-                  <p className={`text-base font-bold ${positivo ? 'text-emerald-600' : 'text-red-500'}`}>
-                    {ocultar(mostrarCifras, `${positivo ? '+' : ''}${cuenta.saldo.toFixed(2)} €`)}
-                  </p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
+      {/* Mes y resumen: se ven igual en las tres pestañas */}
       {/* Navegación de mes */}
       <div className="flex items-center justify-between pt-1">
         <button
@@ -466,97 +463,62 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
         </button>
       </div>
 
-      {/* Botón comparar */}
-      {!mesComparacion ? (
-        <div className="flex justify-end">
-          <select
-            value=""
-            onChange={e => e.target.value && setMesComparacion(e.target.value)}
-            className="text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-xl px-3 py-1.5 focus:outline-none">
-            <option value="">⚖️ Comparar con...</option>
-            {meses.filter(m => m !== mesSeleccionado).map(m => {
-              const [a, mn] = m.split('-')
-              const label = new Date(a, parseInt(mn) - 1).toLocaleString('es', { month: 'short', year: 'numeric' })
-              return <option key={m} value={m}>{label}</option>
-            })}
-          </select>
+      {/* Lo único que hay que mirar de un vistazo */}
+      <div className="flex gap-2">
+        <div className="flex-1 bg-red-50 rounded-2xl px-4 py-3">
+          <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Gastado este mes</p>
+          <p className="text-xl font-bold text-red-500 mt-0.5">
+            {ocultar(mostrarCifras, `${datosMes.totalGastos.toFixed(2)} €`)}
+          </p>
         </div>
-      ) : (
-        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl px-3 py-2">
-          <span className="text-xs font-semibold text-blue-700">
-            ⚖️ Comparando con {new Date(mesComparacion.split('-')[0], parseInt(mesComparacion.split('-')[1]) - 1).toLocaleString('es', { month: 'long', year: 'numeric' })}
-          </span>
-          <button onClick={() => setMesComparacion(null)} className="text-blue-400 text-sm font-bold">✕</button>
+        <div className="flex-1 bg-[#0d1b2a] rounded-2xl px-4 py-3">
+          <p className="text-[10px] font-bold text-[#8fa6c9] uppercase tracking-widest">La cuenta de los dos</p>
+          {deuda.aRepartir <= 0 || deuda.importe < 0.01 ? (
+            <p className="text-sm font-bold text-white mt-1.5">Estáis en paz</p>
+          ) : (
+            <p className="text-sm font-bold text-white mt-1.5 leading-snug">
+              {deuda.deudor} le debe {ocultar(mostrarCifras, `${deuda.importe.toFixed(2)} €`)} a {deuda.acreedor}
+            </p>
+          )}
         </div>
-      )}
+      </div>
 
-      {/* Tabla comparativa */}
-      {mesComparacion && datosComp && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          {/* Cabecera */}
-          <div className="grid grid-cols-4 gap-1 px-3 py-2 bg-gray-50 border-b border-gray-100">
-            <span className="text-xs font-bold text-gray-400 col-span-1">Categoría</span>
-            <span className="text-xs font-bold text-gray-600 text-right">{new Date(mesSeleccionado.split('-')[0], parseInt(mesSeleccionado.split('-')[1]) - 1).toLocaleString('es', { month: 'short' })}</span>
-            <span className="text-xs font-bold text-gray-400 text-right">{new Date(mesComparacion.split('-')[0], parseInt(mesComparacion.split('-')[1]) - 1).toLocaleString('es', { month: 'short' })}</span>
-            <span className="text-xs font-bold text-gray-400 text-right">Dif.</span>
-          </div>
+      {/* Las tres pestañas */}
+      <div className="flex gap-1 bg-gray-100 rounded-2xl p-1">
+        {[['mes', 'Mes'], ['nosotros', 'Nosotros'], ['historico', 'Histórico']].map(([id, label]) => (
+          <button key={id} type="button" onClick={() => setVista(id)}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${vista === id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
 
-          {/* Fila totales */}
-          <div className="grid grid-cols-4 gap-1 px-3 py-2.5 border-b border-gray-100 bg-gray-50/50">
-            <span className="text-xs font-bold text-gray-700 col-span-1 truncate">{tabActiva === 'gasto' ? '💸 Total' : '💰 Total'}</span>
-            <span className="text-xs font-bold text-gray-800 text-right">
-              {ocultar(mostrarCifras, `${(tabActiva === 'gasto' ? datosMes.totalGastos : datosMes.totalIngresos).toFixed(0)}€`)}
-            </span>
-            <span className="text-xs font-semibold text-gray-400 text-right">
-              {ocultar(mostrarCifras, `${(tabActiva === 'gasto' ? datosComp.totalGastos : datosComp.totalIngresos).toFixed(0)}€`)}
-            </span>
-            {(() => {
-              const actual = tabActiva === 'gasto' ? datosMes.totalGastos : datosMes.totalIngresos
-              const comp = tabActiva === 'gasto' ? datosComp.totalGastos : datosComp.totalIngresos
-              const dif = actual - comp
-              const esAlerta = tabActiva === 'gasto' ? dif > 0 : dif < 0
-              return <span className={`text-xs font-bold text-right ${dif === 0 ? 'text-gray-400' : esAlerta ? 'text-red-500' : 'text-emerald-600'}`}>{ocultar(mostrarCifras, `${dif > 0 ? '+' : ''}${dif.toFixed(0)}€`)}</span>
-            })()}
-          </div>
-
-          {/* Filas por categoría */}
-          {(() => {
-            const campo = tabActiva === 'gasto' ? 'gasto' : 'ingreso'
-            const todasCats = new Set([
-              ...datosMes.categorias.filter(c => (c[campo] || 0) > 0).map(c => c.nombre),
-              ...Object.entries(datosComp.porCategoria).filter(([, v]) => (v[campo] || 0) > 0).map(([k]) => k)
-            ])
-            return Array.from(todasCats).sort().map((cat, idx) => {
-              const actual = datosMes.categorias.find(c => c.nombre === cat)?.[campo] || 0
-              const comp = datosComp.porCategoria[cat]?.[campo] || 0
-              const dif = actual - comp
-              const esAlerta = tabActiva === 'gasto' ? dif > 0 : dif < 0
+      {/* MES — en qué se ha ido el dinero este mes */}
+      {vista === 'mes' && (
+        <>
+      {/* Saldos actuales de cuentas */}
+      {saldosCuentas.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Saldo actual de cuentas</p>
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5 scrollbar-hide">
+            {saldosCuentas.map(cuenta => {
+              const positivo = cuenta.saldo >= 0
               return (
-                <div key={cat} className={`grid grid-cols-4 gap-1 px-3 py-2 ${idx % 2 === 0 ? '' : 'bg-gray-50/40'}`}>
-                  <span className="text-xs text-gray-600 col-span-1 truncate">{cat}</span>
-                  <span className="text-xs font-semibold text-gray-800 text-right">{actual > 0 ? ocultar(mostrarCifras, `${actual.toFixed(0)}€`) : '—'}</span>
-                  <span className="text-xs text-gray-400 text-right">{comp > 0 ? ocultar(mostrarCifras, `${comp.toFixed(0)}€`) : '—'}</span>
-                  <span className={`text-xs font-semibold text-right ${dif === 0 ? 'text-gray-300' : esAlerta ? 'text-red-500' : 'text-emerald-600'}`}>
-                    {dif === 0 ? '—' : ocultar(mostrarCifras, `${dif > 0 ? '+' : ''}${dif.toFixed(0)}€`)}
-                  </span>
+                <div key={cuenta.id}
+                  className={`shrink-0 rounded-2xl px-4 py-3 flex flex-col gap-1 min-w-[130px] border ${positivo ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
+                  <span className="text-2xl">{cuenta.emoji}</span>
+                  <p className="text-xs font-semibold text-gray-500 leading-tight">{cuenta.nombre}</p>
+                  <p className={`text-base font-bold ${positivo ? 'text-emerald-600' : 'text-red-500'}`}>
+                    {ocultar(mostrarCifras, `${positivo ? '+' : ''}${cuenta.saldo.toFixed(2)} €`)}
+                  </p>
                 </div>
               )
-            })
-          })()}
+            })}
+          </div>
         </div>
       )}
 
-      {/* Tabs Ingresos / Gastos */}
-      <div className="flex border-b border-gray-100">
-        <button onClick={() => setTabActiva('ingreso')}
-          className={`flex-1 pb-2 text-sm font-semibold transition-colors ${tabActiva === 'ingreso' ? 'text-emerald-600 border-b-2 border-emerald-500' : 'text-gray-400'}`}>
-          Ingresos {ocultar(mostrarCifras, `${datosMes.totalIngresos.toFixed(2)} €`)}
-        </button>
-        <button onClick={() => setTabActiva('gasto')}
-          className={`flex-1 pb-2 text-sm font-semibold transition-colors ${tabActiva === 'gasto' ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-400'}`}>
-          Gastos {ocultar(mostrarCifras, `${datosMes.totalGastos.toFixed(2)} €`)}
-        </button>
-      </div>
+      {barraTipos}
 
       {/* Gráfico de tarta */}
       {datosTorta.length > 0 ? (
@@ -733,7 +695,12 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
           </div>
         </div>
       )}
+        </>
+      )}
 
+      {/* NOSOTROS — quién debe a quién y quién ha puesto el dinero */}
+      {vista === 'nosotros' && (
+        <>
       {/* La cuenta de los dos — solo con los gastos comunes */}
       {deuda.aRepartir > 0 && (
         <div className="space-y-2">
@@ -890,6 +857,97 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
         </div>
       )}
 
+      {deuda.aRepartir <= 0 && datosMes.personas.length === 0 && (
+        <p className="text-gray-400 text-sm text-center mt-8">Todavía no hay gastos de los dos que repartir</p>
+      )}
+        </>
+      )}
+
+      {/* HISTÓRICO — comparar con otros meses, el año y exportar */}
+      {vista === 'historico' && (
+        <>
+      {barraTipos}
+
+      {/* Botón comparar */}
+      {!mesComparacion ? (
+        <div className="flex justify-end">
+          <select
+            value=""
+            onChange={e => { if (e.target.value) { setMesComparacion(e.target.value); setVista('historico') } }}
+            className="text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-xl px-3 py-1.5 focus:outline-none">
+            <option value="">⚖️ Comparar con...</option>
+            {meses.filter(m => m !== mesSeleccionado).map(m => {
+              const [a, mn] = m.split('-')
+              const label = new Date(a, parseInt(mn) - 1).toLocaleString('es', { month: 'short', year: 'numeric' })
+              return <option key={m} value={m}>{label}</option>
+            })}
+          </select>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl px-3 py-2">
+          <span className="text-xs font-semibold text-blue-700">
+            ⚖️ Comparando con {new Date(mesComparacion.split('-')[0], parseInt(mesComparacion.split('-')[1]) - 1).toLocaleString('es', { month: 'long', year: 'numeric' })}
+          </span>
+          <button onClick={() => setMesComparacion(null)} className="text-blue-400 text-sm font-bold">✕</button>
+        </div>
+      )}
+
+      {/* Tabla comparativa */}
+      {mesComparacion && datosComp && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          {/* Cabecera */}
+          <div className="grid grid-cols-4 gap-1 px-3 py-2 bg-gray-50 border-b border-gray-100">
+            <span className="text-xs font-bold text-gray-400 col-span-1">Categoría</span>
+            <span className="text-xs font-bold text-gray-600 text-right">{new Date(mesSeleccionado.split('-')[0], parseInt(mesSeleccionado.split('-')[1]) - 1).toLocaleString('es', { month: 'short' })}</span>
+            <span className="text-xs font-bold text-gray-400 text-right">{new Date(mesComparacion.split('-')[0], parseInt(mesComparacion.split('-')[1]) - 1).toLocaleString('es', { month: 'short' })}</span>
+            <span className="text-xs font-bold text-gray-400 text-right">Dif.</span>
+          </div>
+
+          {/* Fila totales */}
+          <div className="grid grid-cols-4 gap-1 px-3 py-2.5 border-b border-gray-100 bg-gray-50/50">
+            <span className="text-xs font-bold text-gray-700 col-span-1 truncate">{tabActiva === 'gasto' ? '💸 Total' : '💰 Total'}</span>
+            <span className="text-xs font-bold text-gray-800 text-right">
+              {ocultar(mostrarCifras, `${(tabActiva === 'gasto' ? datosMes.totalGastos : datosMes.totalIngresos).toFixed(0)}€`)}
+            </span>
+            <span className="text-xs font-semibold text-gray-400 text-right">
+              {ocultar(mostrarCifras, `${(tabActiva === 'gasto' ? datosComp.totalGastos : datosComp.totalIngresos).toFixed(0)}€`)}
+            </span>
+            {(() => {
+              const actual = tabActiva === 'gasto' ? datosMes.totalGastos : datosMes.totalIngresos
+              const comp = tabActiva === 'gasto' ? datosComp.totalGastos : datosComp.totalIngresos
+              const dif = actual - comp
+              const esAlerta = tabActiva === 'gasto' ? dif > 0 : dif < 0
+              return <span className={`text-xs font-bold text-right ${dif === 0 ? 'text-gray-400' : esAlerta ? 'text-red-500' : 'text-emerald-600'}`}>{ocultar(mostrarCifras, `${dif > 0 ? '+' : ''}${dif.toFixed(0)}€`)}</span>
+            })()}
+          </div>
+
+          {/* Filas por categoría */}
+          {(() => {
+            const campo = tabActiva === 'gasto' ? 'gasto' : 'ingreso'
+            const todasCats = new Set([
+              ...datosMes.categorias.filter(c => (c[campo] || 0) > 0).map(c => c.nombre),
+              ...Object.entries(datosComp.porCategoria).filter(([, v]) => (v[campo] || 0) > 0).map(([k]) => k)
+            ])
+            return Array.from(todasCats).sort().map((cat, idx) => {
+              const actual = datosMes.categorias.find(c => c.nombre === cat)?.[campo] || 0
+              const comp = datosComp.porCategoria[cat]?.[campo] || 0
+              const dif = actual - comp
+              const esAlerta = tabActiva === 'gasto' ? dif > 0 : dif < 0
+              return (
+                <div key={cat} className={`grid grid-cols-4 gap-1 px-3 py-2 ${idx % 2 === 0 ? '' : 'bg-gray-50/40'}`}>
+                  <span className="text-xs text-gray-600 col-span-1 truncate">{cat}</span>
+                  <span className="text-xs font-semibold text-gray-800 text-right">{actual > 0 ? ocultar(mostrarCifras, `${actual.toFixed(0)}€`) : '—'}</span>
+                  <span className="text-xs text-gray-400 text-right">{comp > 0 ? ocultar(mostrarCifras, `${comp.toFixed(0)}€`) : '—'}</span>
+                  <span className={`text-xs font-semibold text-right ${dif === 0 ? 'text-gray-300' : esAlerta ? 'text-red-500' : 'text-emerald-600'}`}>
+                    {dif === 0 ? '—' : ocultar(mostrarCifras, `${dif > 0 ? '+' : ''}${dif.toFixed(0)}€`)}
+                  </span>
+                </div>
+              )
+            })
+          })()}
+        </div>
+      )}
+
       {/* Comparativa con mes anterior */}
       <div className="space-y-2">
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">vs mes anterior</p>
@@ -1017,6 +1075,8 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
           <span>📥</span> Descargar todos los datos
         </button>
       </div>
+        </>
+      )}
     </div>
   )
 }
