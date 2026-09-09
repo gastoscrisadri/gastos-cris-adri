@@ -5,7 +5,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis
 import { createClient } from '@/lib/supabase/client'
 import { ocultar, euros, euros0 } from '@/lib/cifras'
 import { cargarCuentas, personaDeMedioPago, soloActivas, CUENTAS_RESPALDO } from '@/lib/cuentas'
-import { NOMBRES } from '@/lib/identidad'
+import { NOMBRES, nombreDe } from '@/lib/identidad'
 import { cargarCategorias } from '@/lib/categorias'
 
 const COLORES = [
@@ -165,6 +165,13 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
   // el reparto de "quién puso el dinero".
   const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
   useEffect(() => { cargarCuentas().then(setCuentas) }, [])
+  // Quién está mirando la pantalla, para no enseñarle el saldo de las cuentas
+  // del otro. Si no se consigue averiguar, se enseñan todas, como siempre.
+  const [yo, setYo] = useState('')
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => setYo(nombreDe(data?.user)))
+  }, [])
+
   // Para saber si alguna categoría no va a medias (p. ej. el alquiler)
   const [categoriasReparto, setCategoriasReparto] = useState([])
   useEffect(() => { cargarCategorias().then(setCategoriasReparto) }, [])
@@ -364,15 +371,20 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
   }, [])
 
   // Saldo actual de cada cuenta = saldo_inicial + ingresos - gastos de TODAS las transacciones
+  // Solo las cuentas propias y las comunes. La del otro no se enseña: su
+  // saldo saldría mal, porque desde aquí no se ven sus apuntes personales, y
+  // un número incompleto no se distingue de uno correcto. Se esconde solo si
+  // la cuenta es claramente del otro de los dos; ante la duda, se enseña.
   const saldosCuentas = useMemo(() => {
-    return soloActivas(cuentas).map(cuenta => {
+    const mias = soloActivas(cuentas).filter(c => !(yo && NOMBRES.includes(c.persona) && c.persona !== yo))
+    return mias.map(cuenta => {
       const movimientos = transacciones.filter(t => t.medio_pago === cuenta.nombre)
       const ingresos = movimientos.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + Number(t.importe), 0)
       const gastos = movimientos.filter(t => t.tipo === 'gasto').reduce((s, t) => s + Number(t.importe), 0)
       const saldo = cuenta.saldo_inicial + ingresos - gastos
       return { ...cuenta, saldo }
     })
-  }, [cuentas, transacciones])
+  }, [cuentas, transacciones, yo])
 
   // Reset al cambiar mes o tab
   useMemo(() => { setCategoriaAbierta(null); setSubcategoriaAbierta(null); setMedioAbierto(null) }, [mesSeleccionado, tabActiva])
