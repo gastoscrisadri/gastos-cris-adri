@@ -194,6 +194,23 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
     if (meses.length && !mesSeleccionado) setMesSeleccionado(meses[0])
   }, [meses, mesSeleccionado])
 
+  // El reparto puesto en Ajustes, listo para preguntar por un apunte. Devuelve
+  // el porcentaje del primero de NOMBRES, o null si esa categoría va a medias.
+  // OJO: la misma regla vive también dentro del cálculo de la deuda; si algún
+  // día cambia el criterio, hay que tocarlo en los dos sitios.
+  const repartoDe = useMemo(() => {
+    const cat = {}, sub = {}
+    for (const c of categoriasReparto) {
+      if (c.porcentaje_primero == null) continue
+      if (c.padre_id) sub[c.nombre] = c.porcentaje_primero
+      else cat[c.nombre] = c.porcentaje_primero
+    }
+    return t => {
+      if (t.subcategoria && sub[t.subcategoria] != null) return sub[t.subcategoria]
+      return cat[t.categoria] ?? null
+    }
+  }, [categoriasReparto])
+
   const transaccionesMes = useMemo(() =>
     transacciones.filter(t => t.fecha.startsWith(mesSeleccionado))
   , [transacciones, mesSeleccionado])
@@ -204,9 +221,23 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
   // es lo que más miran. "Míos" es donde cada uno ve sus gastos particulares.
   const transaccionesVista = useMemo(() => {
     if (deQuien === 'comunes') return transaccionesMes.filter(t => t.comun !== false)
-    if (deQuien === 'mios') return transaccionesMes.filter(t => t.comun === false)
+    if (deQuien === 'mios') {
+      // Sin saber quién mira no se puede repartir: se enseñan al menos los
+      // gastos particulares, que es lo que hacía antes.
+      if (!yo) return transaccionesMes.filter(t => t.comun === false)
+      const [primero] = NOMBRES
+      return transaccionesMes.map(t => {
+        if (t.comun === false) return t           // lo particular cuenta entero
+        const importe = Number(t.importe)
+        const pct = repartoDe(t)
+        const mia = pct == null
+          ? importe / 2
+          : (yo === primero ? importe * pct / 100 : importe * (100 - pct) / 100)
+        return { ...t, importe: mia }
+      })
+    }
     return transaccionesMes
-  }, [transaccionesMes, deQuien])
+  }, [transaccionesMes, deQuien, yo, repartoDe])
 
   const datosVista = useMemo(() => calcularDatos(transaccionesVista, cuentas), [transaccionesVista, cuentas])
 
@@ -375,23 +406,6 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
   // saldo saldría mal, porque desde aquí no se ven sus apuntes personales, y
   // un número incompleto no se distingue de uno correcto. Se esconde solo si
   // la cuenta es claramente del otro de los dos; ante la duda, se enseña.
-  // El reparto puesto en Ajustes, listo para preguntar por un apunte. Devuelve
-  // el porcentaje del primero de NOMBRES, o null si esa categoría va a medias.
-  // OJO: la misma regla vive también dentro del cálculo de la deuda; si algún
-  // día cambia el criterio, hay que tocarlo en los dos sitios.
-  const repartoDe = useMemo(() => {
-    const cat = {}, sub = {}
-    for (const c of categoriasReparto) {
-      if (c.porcentaje_primero == null) continue
-      if (c.padre_id) sub[c.nombre] = c.porcentaje_primero
-      else cat[c.nombre] = c.porcentaje_primero
-    }
-    return t => {
-      if (t.subcategoria && sub[t.subcategoria] != null) return sub[t.subcategoria]
-      return cat[t.categoria] ?? null
-    }
-  }, [categoriasReparto])
-
   // Lo que le queda a quien mira: sus ingresos menos su parte de los gastos.
   // Un gasto de los dos NO cuenta entero: cuenta la parte que le toca según el
   // reparto. Si no se sabe quién mira, devuelve null y se enseña el balance de
@@ -604,13 +618,20 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
       <div>
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Qué gastos estás viendo</p>
         <div className="flex gap-1.5">
-          {[['comunes', 'De los dos', 'bg-teal-600 border-teal-600'], ['mios', 'Míos', 'bg-violet-600 border-violet-600'], ['todo', 'Todo', 'bg-gray-700 border-gray-700']].map(([id, label, activo]) => (
+          {[['comunes', 'De los dos', 'bg-teal-600 border-teal-600'], ['mios', 'Lo mío', 'bg-violet-600 border-violet-600'], ['todo', 'Todo', 'bg-gray-700 border-gray-700']].map(([id, label, activo]) => (
             <button key={id} type="button" onClick={() => setDeQuien(id)}
               className={`flex-1 py-2 rounded-xl text-xs font-bold border-2 transition-colors ${deQuien === id ? activo + ' text-white' : 'bg-white text-gray-500 border-gray-200'}`}>
               {label}
             </button>
           ))}
         </div>
+        {/* Sin esto las cifras confunden: en "Lo mío" el alquiler no sale por
+            1.400 sino por lo que te toque, y conviene decirlo. */}
+        <p className="text-[11px] text-gray-400 mt-1.5">
+          {deQuien === 'comunes' && 'Los gastos de los dos, por su importe entero.'}
+          {deQuien === 'mios' && 'Tu parte: lo tuyo entero y de lo de los dos, solo lo que te toca.'}
+          {deQuien === 'todo' && 'Todo junto, por su importe entero.'}
+        </p>
       </div>
 
       {barraTipos(datosVista)}
