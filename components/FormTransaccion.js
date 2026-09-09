@@ -319,7 +319,10 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       descripcion: form.descripcion || null,
       medio_pago: form.medio_pago || null,
       quien: form.quien || null,
-      comun: form.comun !== false,
+      // Los ingresos no se reparten: cada nómina es de quien la cobra, así que
+      // van siempre como personales y solo los ve su dueño. El botón "De los
+      // dos" ni siquiera se enseña cuando el tipo es ingreso.
+      comun: form.tipo === 'ingreso' ? false : form.comun !== false,
       imagen_url,
       evento_id: form.evento_id || null,
     }
@@ -488,24 +491,30 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       </div>
       <p className="text-xs text-gray-400 text-center -mt-1">Importe negativo = devolución · usa punto o coma de decimales</p>
 
-      {/* De los dos o solo mío. Viene marcado "Común", que es lo más
-          frecuente viviendo juntos. Lo personal solo lo ve su dueño. */}
-      <div>
-        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">¿De quién es este gasto?</label>
-        <div className="flex gap-2">
-          <button type="button" onClick={() => set('comun', true)}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun !== false ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-400 border-gray-200'}`}>
-            De los dos
-          </button>
-          <button type="button" onClick={() => set('comun', false)}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun === false ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
-            Solo mío
-          </button>
+      {/* Solo en los gastos: un ingreso es siempre de quien lo cobra, así
+          que no hay nada que preguntar. */}
+      {form.tipo !== 'ingreso' && (
+        <>
+        {/* De los dos o solo mío. Viene marcado "Común", que es lo más
+            frecuente viviendo juntos. Lo personal solo lo ve su dueño. */}
+        <div>
+          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">¿De quién es este gasto?</label>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => set('comun', true)}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun !== false ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-400 border-gray-200'}`}>
+              De los dos
+            </button>
+            <button type="button" onClick={() => set('comun', false)}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun === false ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
+              Solo mío
+            </button>
+          </div>
+          {form.comun === false && (
+            <p className="text-xs text-gray-400 mt-1.5">Este gasto solo lo verás tú, y no entra en la cuenta de los dos.</p>
+          )}
         </div>
-        {form.comun === false && (
-          <p className="text-xs text-gray-400 mt-1.5">Este gasto solo lo verás tú, y no entra en la cuenta de los dos.</p>
-        )}
-      </div>
+        </>
+      )}
 
       {/* Categoría */}
       <div>
