@@ -198,7 +198,10 @@ export default function Home() {
   // Balance del mes actual
   const balanceMes = useMemo(() => {
     const mesActual = new Date().toISOString().slice(0, 7)
-    const delMes = transacciones.filter(t => t.fecha.startsWith(mesActual))
+    // Las liquidaciones (un pago de uno al otro) no son un gasto: ese dinero
+    // cambia de bolsillo, no se gasta. Si contaran aquí, la portada diría que
+    // habéis gastado de más.
+    const delMes = transacciones.filter(t => t.fecha.startsWith(mesActual) && !t.liquidacion_a)
     const ingresos = delMes.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + Number(t.importe), 0)
     const gastos = delMes.filter(t => t.tipo === 'gasto').reduce((s, t) => s + Number(t.importe), 0)
     return { ingresos, gastos, balance: ingresos - gastos }
