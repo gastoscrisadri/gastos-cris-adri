@@ -154,6 +154,15 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
             valor={esDevolucion ? 'Devolución o cobro' : t.tipo === 'gasto' ? 'Gasto' : 'Ingreso'}
           />
           {t.medio_pago && <Fila label="Medio de pago" valor={t.medio_pago} />}
+          {/* De quién es el gasto. Se dice siempre, también cuando es común:
+              si solo se marcara lo personal no se sabría si lo demás es de
+              los dos o es que falta el dato. */}
+          <Fila
+            label="De quién es"
+            valor={t.liquidacion_a
+              ? `Ajuste de cuentas · pago a ${t.liquidacion_a}`
+              : t.comun === false ? 'Personal, solo lo ves tú' : 'De los dos'}
+          />
           {t.quien && <Fila label="Registrado por" valor={t.quien} />}
           {t.descripcion && <Fila label="Notas" valor={t.descripcion} />}
         </div>
