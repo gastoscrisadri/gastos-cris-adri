@@ -406,6 +406,7 @@ export default function Home() {
               cargando={cargando}
               onSeleccionar={t => setTransaccionDetalle(t)}
               mostrarCifras={mostrarCifras}
+              usuario={usuario}
             />
           </>
         )}
