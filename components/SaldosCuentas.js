@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { euros } from '@/lib/cifras'
 
 export default function SaldosCuentas({ transacciones }) {
   const [cuentas, setCuentas] = useState([])
@@ -90,7 +91,7 @@ export default function SaldosCuentas({ transacciones }) {
                   <span className="text-lg">{cuenta.emoji}</span>
                   <span className="text-sm font-semibold text-gray-800 flex-1">{cuenta.nombre}</span>
                   <span className={`text-sm font-bold ${saldoActual >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {saldoActual >= 0 ? '+' : ''}{saldoActual.toFixed(2)} €
+                    {saldoActual >= 0 ? '+' : ''}{euros(saldoActual)} €
                   </span>
                 </div>
                 <div className="flex gap-2 items-center">
@@ -123,13 +124,13 @@ export default function SaldosCuentas({ transacciones }) {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-800">{cuenta.nombre}</p>
                     <div className="flex gap-2 text-xs text-gray-400 mt-0.5">
-                      {mov.ingresos > 0 && <span className="text-emerald-500">↑ {mov.ingresos.toFixed(2)} €</span>}
-                      {mov.gastos > 0 && <span className="text-red-400">↓ {mov.gastos.toFixed(2)} €</span>}
+                      {mov.ingresos > 0 && <span className="text-emerald-500">↑ {euros(mov.ingresos)} €</span>}
+                      {mov.gastos > 0 && <span className="text-red-400">↓ {euros(mov.gastos)} €</span>}
                     </div>
                   </div>
                   <div className="text-right">
                     <p className={`text-base font-bold ${esPositivo ? 'text-emerald-500' : 'text-red-500'}`}>
-                      {esPositivo ? '+' : ''}{saldoActual.toFixed(2)} €
+                      {esPositivo ? '+' : ''}{euros(saldoActual)} €
                     </p>
                     <p className="text-[10px] text-gray-300">saldo actual</p>
                   </div>
@@ -163,7 +164,7 @@ function SaldoInlineEdit({ valor, onGuardar }) {
     return (
       <button onClick={() => setEditando(true)}
         className="flex items-center gap-1 text-xs text-blue-500 font-medium border border-blue-200 rounded-lg px-2 py-1 bg-blue-50">
-        {valor.toFixed(2)} € <span className="text-gray-300">✏️</span>
+        {euros(valor)} € <span className="text-gray-300">✏️</span>
       </button>
     )
   }

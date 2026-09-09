@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ocultar } from '@/lib/cifras'
+import { ocultar, euros } from '@/lib/cifras'
 import { createClient } from '@/lib/supabase/client'
 import { urlFirmada } from '@/lib/fotos'
 import FormTransaccion from './FormTransaccion'
@@ -137,7 +137,7 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
             <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">Devolución o cobro</p>
           )}
           <p className={`text-5xl font-bold ${colorImporte}`}>
-            {ocultar(mostrarCifras, `${signo}${Math.abs(importe).toFixed(2)} €`)}
+            {ocultar(mostrarCifras, `${signo}${euros(Math.abs(importe))} €`)}
           </p>
           <p className="text-sm text-gray-400 mt-2 capitalize">{fechaLegible}</p>
         </div>

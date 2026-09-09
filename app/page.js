@@ -9,7 +9,7 @@ import Informes from '@/components/Informes'
 import Ajustes from '@/components/Ajustes'
 import DetalleTransaccion from '@/components/DetalleTransaccion'
 import DetalleEvento from '@/components/DetalleEvento'
-import { ocultar } from '@/lib/cifras'
+import { ocultar, euros, euros0 } from '@/lib/cifras'
 
 export default function Home() {
   // La app abre directamente en "nuevo apunte" con la cámara intentando
@@ -290,7 +290,7 @@ export default function Home() {
           <div className="mb-3">
             <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Balance {mesNombre}</p>
             <p className={`text-3xl font-black tracking-tight ${balanceMes.balance >= 0 ? 'text-white' : 'text-red-300'}`}>
-              {ocultar(mostrarCifras, `${balanceMes.balance >= 0 ? '+' : ''}${balanceMes.balance.toFixed(2)} €`)}
+              {ocultar(mostrarCifras, `${balanceMes.balance >= 0 ? '+' : ''}${euros(balanceMes.balance)} €`)}
             </p>
           </div>
 
@@ -298,11 +298,11 @@ export default function Home() {
           <div className="flex gap-2">
             <div className="flex items-center gap-1.5 bg-white/8 rounded-xl px-2.5 py-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-              <span className="text-xs text-emerald-300 font-semibold">↑ {ocultar(mostrarCifras, `${balanceMes.ingresos.toFixed(2)} €`)}</span>
+              <span className="text-xs text-emerald-300 font-semibold">↑ {ocultar(mostrarCifras, `${euros(balanceMes.ingresos)} €`)}</span>
             </div>
             <div className="flex items-center gap-1.5 bg-white/8 rounded-xl px-2.5 py-1">
               <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
-              <span className="text-xs text-red-300 font-semibold">↓ {ocultar(mostrarCifras, `${balanceMes.gastos.toFixed(2)} €`)}</span>
+              <span className="text-xs text-red-300 font-semibold">↓ {ocultar(mostrarCifras, `${euros(balanceMes.gastos)} €`)}</span>
             </div>
           </div>
         </header>
@@ -469,7 +469,7 @@ export default function Home() {
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-xs text-white/80">
-                    {ocultar(mostrarCifras, `${gastoEvento.toFixed(0)} € gastado de ${Number(eventoActivo.presupuesto).toFixed(0)} €`)}
+                    {ocultar(mostrarCifras, `${euros0(gastoEvento)} € gastado de ${euros0(Number(eventoActivo.presupuesto))} €`)}
                   </span>
                   <span className="text-xs font-bold text-white">
                     {Math.round((gastoEvento / eventoActivo.presupuesto) * 100)}%
@@ -484,7 +484,7 @@ export default function Home() {
               </div>
             ) : (
               <span className="text-xs text-white/70">
-                {gastoEvento > 0 ? ocultar(mostrarCifras, `${gastoEvento.toFixed(2)} € gastado`) : 'Sin presupuesto definido'}
+                {gastoEvento > 0 ? ocultar(mostrarCifras, `${euros(gastoEvento)} € gastado`) : 'Sin presupuesto definido'}
               </span>
             )}
           </div>
