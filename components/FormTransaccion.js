@@ -79,6 +79,9 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   const fechaRef = useRef()
   const establecimientoRef = useRef()
   const notasRef = useRef()
+  // Notas se pliega: es el campo que menos se rellena y así cabe más en la
+  // pantalla. Se abre solo si el apunte que se edita ya trae algo escrito.
+  const [masDetalles, setMasDetalles] = useState(() => !!transaccionEditar?.descripcion)
   const subcategoriaRef = useRef()
   const medioPagoRef = useRef()
   const supabase = createClient()
@@ -178,7 +181,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
     e.preventDefault()
     const activo = document.activeElement
     if (activo === importeRef.current) categoriaRef.current?.focus()
-    else if (activo === establecimientoRef.current) notasRef.current?.focus()
+    else if (activo === establecimientoRef.current) (notasRef.current || medioPagoRef.current)?.focus()
     else if (activo === notasRef.current) medioPagoRef.current?.focus()
   }
 
@@ -256,6 +259,9 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           medio_pago: form.medio_pago,
         }
         setForm(f => ({ ...f, ...nuevo }))
+        // Si el ticket ha traído notas, se abre el desplegable: si no, se
+        // habría escrito algo que nadie ve.
+        if (nuevo.descripcion) setMasDetalles(true)
 
         const faltantes = []
         if (!nuevo.importe) faltantes.push('importe')
@@ -485,11 +491,10 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           onChange={e => set('importe', e.target.value)}
           onKeyDown={e => e.key === 'Enter' && categoriaRef.current?.focus()}
           placeholder="0,00"
-          className="w-full pl-4 pr-10 py-3 border-2 border-blue-300 rounded-xl text-3xl font-bold text-center focus:outline-none focus:border-blue-500"
+          className="w-full pl-4 pr-10 py-2 border-2 border-blue-300 rounded-xl text-2xl font-bold text-center focus:outline-none focus:border-blue-500"
         />
         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-300 font-bold">€</span>
       </div>
-      <p className="text-xs text-gray-400 text-center -mt-1">Importe negativo = devolución · usa punto o coma de decimales</p>
 
       {/* Solo en los gastos: un ingreso es siempre de quien lo cobra, así
           que no hay nada que preguntar. */}
@@ -551,12 +556,12 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         </div>
       )}
 
-      {/* Fecha */}
-      <div>
-        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Fecha *</label>
+      {/* Fecha: en una sola línea, que casi nunca se toca (viene la de hoy) */}
+      <div className="flex items-center gap-3">
+        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Fecha *</label>
         <input ref={fechaRef} type="date" value={form.fecha} onChange={e => set('fecha', e.target.value)}
           onKeyDown={e => e.key === 'Enter' && establecimientoRef.current?.focus()}
-          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          className="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
       </div>
 
       {/* Establecimiento */}
@@ -565,7 +570,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         <input ref={establecimientoRef} type="text" enterKeyHint="next" value={form.establecimiento} autoComplete="off"
           onChange={e => { set('establecimiento', e.target.value); filtrarSugerencias(e.target.value, historialEstablecimientos, setSugerenciasEstablecimiento) }}
           onBlur={() => setTimeout(() => setSugerenciasEstablecimiento([]), 150)}
-          onKeyDown={e => e.key === 'Enter' && notasRef.current?.focus()}
+          onKeyDown={e => e.key === 'Enter' && (notasRef.current || medioPagoRef.current)?.focus()}
           placeholder="Mercadona, Empresa S.L., ..."
           className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
         {sugerenciasEstablecimiento.length > 0 && (
@@ -582,7 +587,13 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         )}
       </div>
 
-      {/* Notas */}
+      {/* Notas, plegado por defecto */}
+      {!masDetalles ? (
+        <button type="button" onClick={() => setMasDetalles(true)}
+          className="w-full text-xs font-semibold text-gray-400 py-1.5">
+          Más detalles ▾
+        </button>
+      ) : (
       <div className="relative">
         <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Notas (opcional)</label>
         <input ref={notasRef} type="text" enterKeyHint="done" value={form.descripcion} autoComplete="off"
@@ -604,6 +615,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           </ul>
         )}
       </div>
+      )}
 
       {/* Medio de pago — scroll horizontal */}
       <div>

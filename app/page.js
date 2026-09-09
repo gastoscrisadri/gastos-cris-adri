@@ -425,9 +425,10 @@ export default function Home() {
         )}
         {mostrarFormulario && (
           <div>
-            <div className="bg-[#0d1b2a] px-5 pt-10 pb-5 -mx-4 -mt-4 mb-4">
-              <p className="text-xs text-white/40 uppercase tracking-widest font-medium">Control de gastos</p>
-              <h1 className="text-xl font-bold text-white">
+            {/* Cabecera baja a propósito: en esta pantalla lo que hace falta es
+                sitio para los campos, no un título grande. */}
+            <div className="bg-[#0d1b2a] px-5 pt-5 pb-3 -mx-4 -mt-4 mb-3">
+              <h1 className="text-base font-bold text-white">
                 {transaccionEditar ? 'Editar apunte' : 'Nuevo apunte'}
               </h1>
             </div>
