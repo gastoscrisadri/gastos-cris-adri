@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ocultar } from '@/lib/cifras'
+import { ocultar, euros } from '@/lib/cifras'
 import { createClient } from '@/lib/supabase/client'
 import { cargarCategorias, principalesPorTipo, subcategoriasDeCategoria } from '@/lib/categorias'
 import { cargarCuentas, soloActivas, CUENTAS_RESPALDO } from '@/lib/cuentas'
@@ -112,7 +112,7 @@ export default function GestionRecurrentes({ mostrarCifras }) {
                 </div>
                 <div className="text-right shrink-0 mr-2">
                   <p className={`font-bold text-sm ${esGasto ? 'text-red-500' : 'text-emerald-500'}`}>
-                    {ocultar(mostrarCifras, `${esGasto ? '−' : '+'}${Math.abs(importe).toFixed(2)} €`)}
+                    {ocultar(mostrarCifras, `${esGasto ? '−' : '+'}${euros(Math.abs(importe))} €`)}
                   </p>
                 </div>
                 <div className="flex flex-col gap-1 shrink-0">

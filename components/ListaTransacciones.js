@@ -1,6 +1,6 @@
 'use client'
 
-import { ocultar } from '@/lib/cifras'
+import { ocultar, euros } from '@/lib/cifras'
 
 const ICONOS = {
   'Alimentación': { emoji: '🛒', bg: '#fef3c7' },
@@ -140,7 +140,7 @@ export default function ListaTransacciones({ transacciones, cargando, onSeleccio
                   {/* Importe */}
                   <div className="text-right shrink-0">
                     <p className={`font-bold text-sm ${colorImporte}`}>
-                      {ocultar(mostrarCifras, `${signo}${Math.abs(importe).toFixed(2)} €`)}
+                      {ocultar(mostrarCifras, `${signo}${euros(Math.abs(importe))} €`)}
                     </p>
                     <div className="flex justify-end gap-1 mt-0.5">
                       {t.evento_id && <span className="text-[10px]">🎯</span>}

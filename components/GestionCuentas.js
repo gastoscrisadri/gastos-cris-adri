@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { ocultar } from '@/lib/cifras'
+import { ocultar, euros } from '@/lib/cifras'
 
 export default function GestionCuentas({ transacciones, mostrarCifras }) {
   const [cuentas, setCuentas] = useState([])
@@ -161,14 +161,14 @@ export default function GestionCuentas({ transacciones, mostrarCifras }) {
                     </div>
                   )}
                   <div className="flex gap-2 text-xs text-gray-400 mt-0.5">
-                    {mov.ingresos > 0 && <span className="text-emerald-500">↑ {ocultar(mostrarCifras, `${mov.ingresos.toFixed(2)} €`)}</span>}
-                    {mov.gastos > 0 && <span className="text-red-400">↓ {ocultar(mostrarCifras, `${mov.gastos.toFixed(2)} €`)}</span>}
+                    {mov.ingresos > 0 && <span className="text-emerald-500">↑ {ocultar(mostrarCifras, `${euros(mov.ingresos)} €`)}</span>}
+                    {mov.gastos > 0 && <span className="text-red-400">↓ {ocultar(mostrarCifras, `${euros(mov.gastos)} €`)}</span>}
                     {!mov.ingresos && !mov.gastos && <span>Sin movimientos</span>}
                   </div>
                 </div>
                 <div className="text-right">
                   <p className={`text-base font-bold ${esPositivo ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {ocultar(mostrarCifras, `${esPositivo ? '+' : ''}${saldoActual.toFixed(2)} €`)}
+                    {ocultar(mostrarCifras, `${esPositivo ? '+' : ''}${euros(saldoActual)} €`)}
                   </p>
                   <p className="text-[10px] text-gray-300">saldo actual</p>
                 </div>
@@ -263,7 +263,7 @@ function SaldoEditor({ valor, onGuardar, mostrarCifras }) {
     return (
       <button onClick={() => setEditando(true)}
         className="flex items-center gap-1.5 text-xs text-blue-500 font-semibold border border-blue-200 rounded-lg px-2.5 py-1 bg-blue-50">
-        {ocultar(mostrarCifras, `${valor.toFixed(2)} €`)} <span className="text-blue-300">✏️</span>
+        {ocultar(mostrarCifras, `${euros(valor)} €`)} <span className="text-blue-300">✏️</span>
       </button>
     )
   }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { ocultar } from '@/lib/cifras'
+import { ocultar, euros, euros0 } from '@/lib/cifras'
 
 export default function DetalleEvento({ evento, onCerrar, mostrarCifras }) {
   const [transacciones, setTransacciones] = useState([])
@@ -100,12 +100,12 @@ export default function DetalleEvento({ evento, onCerrar, mostrarCifras }) {
           <div className="mt-3">
             <div className="flex justify-between items-end mb-1.5">
               <div>
-                <p className="text-2xl font-black text-white">{ocultar(mostrarCifras, `${totalGastado.toFixed(2)} €`)}</p>
+                <p className="text-2xl font-black text-white">{ocultar(mostrarCifras, `${euros(totalGastado)} €`)}</p>
                 <p className="text-xs text-white/70">de {ocultar(mostrarCifras, `${presupuesto.toLocaleString('es-ES')} €`)} presupuestados</p>
               </div>
               <div className="text-right">
                 <p className={`text-lg font-bold ${restante < 0 ? 'text-red-200' : 'text-white'}`}>
-                  {ocultar(mostrarCifras, restante >= 0 ? `${restante.toFixed(0)} €` : `+${Math.abs(restante).toFixed(0)} €`)}
+                  {ocultar(mostrarCifras, restante >= 0 ? `${euros0(restante)} €` : `+${euros0(Math.abs(restante))} €`)}
                 </p>
                 <p className="text-xs text-white/70">{restante >= 0 ? 'disponible' : 'excedido'}</p>
               </div>
@@ -119,7 +119,7 @@ export default function DetalleEvento({ evento, onCerrar, mostrarCifras }) {
             <p className="text-xs text-white/60 mt-1 text-right">{porcentaje.toFixed(0)}% usado</p>
           </div>
         ) : (
-          <p className="text-2xl font-black text-white mt-3">{ocultar(mostrarCifras, `${totalGastado.toFixed(2)} €`)} gastado</p>
+          <p className="text-2xl font-black text-white mt-3">{ocultar(mostrarCifras, `${euros(totalGastado)} €`)} gastado</p>
         )}
       </div>
 
@@ -148,7 +148,7 @@ export default function DetalleEvento({ evento, onCerrar, mostrarCifras }) {
                 <p className="text-xs text-gray-400 mt-0.5">días</p>
               </div>
               <div className="bg-gray-50 rounded-2xl p-3 text-center">
-                <p className="text-lg font-black text-gray-900">{mediaPorDia > 0 ? ocultar(mostrarCifras, `${mediaPorDia.toFixed(0)}€`) : '—'}</p>
+                <p className="text-lg font-black text-gray-900">{mediaPorDia > 0 ? ocultar(mostrarCifras, `${euros0(mediaPorDia)}€`) : '—'}</p>
                 <p className="text-xs text-gray-400 mt-0.5">media/día</p>
               </div>
             </div>
@@ -162,7 +162,7 @@ export default function DetalleEvento({ evento, onCerrar, mostrarCifras }) {
                     <div key={cat} className={`px-4 py-3 ${idx > 0 ? 'border-t border-gray-50' : ''}`}>
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-sm font-medium text-gray-700">{cat}</span>
-                        <span className="text-sm font-bold text-gray-900">{ocultar(mostrarCifras, `${importe.toFixed(2)} €`)}</span>
+                        <span className="text-sm font-bold text-gray-900">{ocultar(mostrarCifras, `${euros(importe)} €`)}</span>
                       </div>
                       <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
                         <div
@@ -197,7 +197,7 @@ export default function DetalleEvento({ evento, onCerrar, mostrarCifras }) {
                               </p>
                             </div>
                             <p className={`text-sm font-bold shrink-0 ${esGasto ? 'text-red-500' : 'text-emerald-500'}`}>
-                              {ocultar(mostrarCifras, `${esGasto ? '−' : '+'}${Math.abs(Number(t.importe)).toFixed(2)} €`)}
+                              {ocultar(mostrarCifras, `${esGasto ? '−' : '+'}${euros(Math.abs(Number(t.importe)))} €`)}
                             </p>
                           </div>
                         )

@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { createClient } from '@/lib/supabase/client'
-import { ocultar } from '@/lib/cifras'
+import { ocultar, euros, euros0 } from '@/lib/cifras'
 import { cargarCuentas, personaDeMedioPago, soloActivas, CUENTAS_RESPALDO } from '@/lib/cuentas'
 import { NOMBRES } from '@/lib/identidad'
 import { cargarCategorias } from '@/lib/categorias'
@@ -50,7 +50,7 @@ function FilaApunte({ t, mostrarCifras, extra }) {
       </div>
       {extra}
       <span className={`text-xs font-bold shrink-0 ${esGasto ? 'text-red-500' : 'text-emerald-500'}`}>
-        {ocultar(mostrarCifras, `${esGasto ? '−' : '+'}${Math.abs(importe).toFixed(2)} €`)}
+        {ocultar(mostrarCifras, `${esGasto ? '−' : '+'}${euros(Math.abs(importe))} €`)}
       </span>
     </div>
   )
@@ -64,7 +64,7 @@ function TarjetaComparativa({ label, actual, anterior, colorActual, colorBg, eti
   return (
     <div className={`${colorBg} rounded-2xl p-3 space-y-1`}>
       <p className="text-xs font-semibold text-gray-500">{label}</p>
-      <p className={`text-lg font-bold ${colorActual}`}>{ocultar(mostrarCifras, `${actual.toFixed(2)} €`)}</p>
+      <p className={`text-lg font-bold ${colorActual}`}>{ocultar(mostrarCifras, `${euros(actual)} €`)}</p>
       <div className="flex items-center gap-1">
         {igual ? (
           <span className="text-xs text-gray-400">Sin datos anteriores</span>
@@ -73,7 +73,7 @@ function TarjetaComparativa({ label, actual, anterior, colorActual, colorBg, eti
             <span className={`text-xs font-bold ${sube ? 'text-red-500' : 'text-emerald-600'}`}>
               {sube ? '▲' : '▼'} {Math.abs(diff).toFixed(1)}%
             </span>
-            <span className="text-xs text-gray-400">vs {etiquetaAnterior || 'mes ant.'} ({ocultar(mostrarCifras, `${anterior.toFixed(0)} €`)})</span>
+            <span className="text-xs text-gray-400">vs {etiquetaAnterior || 'mes ant.'} ({ocultar(mostrarCifras, `${euros0(anterior)} €`)})</span>
           </>
         )}
       </div>
@@ -451,11 +451,11 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
       <div className="flex border-b border-gray-100">
         <button onClick={() => setTabActiva('ingreso')}
           className={`flex-1 pb-2 text-sm font-semibold transition-colors ${tabActiva === 'ingreso' ? 'text-emerald-600 border-b-2 border-emerald-500' : 'text-gray-400'}`}>
-          Ingresos {ocultar(mostrarCifras, `${d.totalIngresos.toFixed(2)} €`)}
+          Ingresos {ocultar(mostrarCifras, `${euros(d.totalIngresos)} €`)}
         </button>
         <button onClick={() => setTabActiva('gasto')}
           className={`flex-1 pb-2 text-sm font-semibold transition-colors ${tabActiva === 'gasto' ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-400'}`}>
-          Gastos {ocultar(mostrarCifras, `${d.totalGastos.toFixed(2)} €`)}
+          Gastos {ocultar(mostrarCifras, `${euros(d.totalGastos)} €`)}
         </button>
       </div>
   )
@@ -493,7 +493,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
         <div className="flex-1 bg-red-50 rounded-2xl px-4 py-3">
           <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Gasto conjunto del mes</p>
           <p className="text-xl font-bold text-red-500 mt-0.5">
-            {ocultar(mostrarCifras, `${gastoConjuntoMes.toFixed(2)} €`)}
+            {ocultar(mostrarCifras, `${euros(gastoConjuntoMes)} €`)}
           </p>
           <p className="text-[10px] text-red-300 mt-0.5">Lo de los dos, sin los gastos particulares</p>
         </div>
@@ -503,7 +503,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
             <p className="text-sm font-bold text-white mt-1.5">Estáis en paz</p>
           ) : (
             <p className="text-sm font-bold text-white mt-1.5 leading-snug">
-              {deuda.deudor} le debe {ocultar(mostrarCifras, `${deuda.importe.toFixed(2)} €`)} a {deuda.acreedor}
+              {deuda.deudor} le debe {ocultar(mostrarCifras, `${euros(deuda.importe)} €`)} a {deuda.acreedor}
             </p>
           )}
         </div>
@@ -535,7 +535,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                   <span className="text-2xl">{cuenta.emoji}</span>
                   <p className="text-xs font-semibold text-gray-500 leading-tight">{cuenta.nombre}</p>
                   <p className={`text-base font-bold ${positivo ? 'text-emerald-600' : 'text-red-500'}`}>
-                    {ocultar(mostrarCifras, `${positivo ? '+' : ''}${cuenta.saldo.toFixed(2)} €`)}
+                    {ocultar(mostrarCifras, `${positivo ? '+' : ''}${euros(cuenta.saldo)} €`)}
                   </p>
                 </div>
               )
@@ -578,7 +578,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(val) => [ocultar(mostrarCifras, `${val.toFixed(2)} €`), '']}
+                  formatter={(val) => [ocultar(mostrarCifras, `${euros(val)} €`), '']}
                   labelFormatter={(_, payload) => payload?.[0]?.payload?.nombre || ''}
                 />
               </PieChart>
@@ -619,7 +619,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                       {d.pct}%
                     </span>
                     <span className="flex-1 text-sm font-medium text-gray-800">{d.nombre}</span>
-                    <span className="text-sm font-semibold text-gray-700 mr-1">{ocultar(mostrarCifras, `${d.valor.toFixed(2)} €`)}</span>
+                    <span className="text-sm font-semibold text-gray-700 mr-1">{ocultar(mostrarCifras, `${euros(d.valor)} €`)}</span>
                     <span className="text-gray-400 text-xs">{abierta ? '▲' : '▼'}</span>
                   </button>
 
@@ -646,7 +646,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                               onClick={() => setSubcategoriaAbierta(subAbierta ? null : claveSub)}
                               className="w-full flex items-center gap-2 px-3 py-2.5 text-left active:bg-gray-50 bg-gray-50/40">
                               <span className="flex-1 text-xs font-semibold text-gray-600">{g.nombre}</span>
-                              <span className="text-xs font-bold text-gray-700">{ocultar(mostrarCifras, `${g.total.toFixed(2)} €`)}</span>
+                              <span className="text-xs font-bold text-gray-700">{ocultar(mostrarCifras, `${euros(g.total)} €`)}</span>
                               <span className="text-gray-400 text-[10px]">{subAbierta ? '▲' : '▼'}</span>
                             </button>
                             {subAbierta && (
@@ -674,7 +674,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
             <div className={`rounded-xl p-3 text-center ${datosVista.balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
               <p className={`text-xs font-medium ${datosVista.balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>Balance del mes</p>
               <p className={`text-xl font-bold ${datosVista.balance >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
-                {ocultar(mostrarCifras, `${datosVista.balance >= 0 ? '+' : ''}${datosVista.balance.toFixed(2)} €`)}
+                {ocultar(mostrarCifras, `${datosVista.balance >= 0 ? '+' : ''}${euros(datosVista.balance)} €`)}
               </p>
             </div>
             </>
@@ -711,10 +711,10 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                     </div>
                     <div className="text-right shrink-0 mr-1">
                       {tabActiva === 'gasto' && m.gasto > 0 && (
-                        <p className="text-sm font-bold text-red-500">{ocultar(mostrarCifras, `−${m.gasto.toFixed(2)} €`)}</p>
+                        <p className="text-sm font-bold text-red-500">{ocultar(mostrarCifras, `−${euros(m.gasto)} €`)}</p>
                       )}
                       {tabActiva === 'ingreso' && m.ingreso > 0 && (
-                        <p className="text-sm font-bold text-emerald-500">{ocultar(mostrarCifras, `+${m.ingreso.toFixed(2)} €`)}</p>
+                        <p className="text-sm font-bold text-emerald-500">{ocultar(mostrarCifras, `+${euros(m.ingreso)} €`)}</p>
                       )}
                       <p className="text-xs text-gray-300">{totalMedio}%</p>
                     </div>
@@ -757,7 +757,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
               <>
                 <p className="text-[10px] uppercase tracking-widest text-[#8fa6c9] mb-1.5">En total, desde el principio</p>
                 <p className="text-lg font-bold text-white leading-snug">
-                  {deuda.deudor} le debe {ocultar(mostrarCifras, `${deuda.importe.toFixed(2)} €`)} a {deuda.acreedor}
+                  {deuda.deudor} le debe {ocultar(mostrarCifras, `${euros(deuda.importe)} €`)} a {deuda.acreedor}
                 </p>
               </>
             )}
@@ -770,14 +770,14 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                 <div key={n} className="flex items-baseline gap-2 text-left">
                   <span className="text-xs font-semibold text-white w-12 shrink-0">{n}</span>
                   <span className="flex-1 text-[11px] text-[#8fa6c9]">
-                    ha pagado <b className="text-white font-semibold">{ocultar(mostrarCifras, `${(deuda.pagado[n] || 0).toFixed(2)} €`)}</b>
-                    {' · '}le tocaban <b className="text-white font-semibold">{ocultar(mostrarCifras, `${(deuda.toca[n] || 0).toFixed(2)} €`)}</b>
+                    ha pagado <b className="text-white font-semibold">{ocultar(mostrarCifras, `${euros((deuda.pagado[n] || 0))} €`)}</b>
+                    {' · '}le tocaban <b className="text-white font-semibold">{ocultar(mostrarCifras, `${euros((deuda.toca[n] || 0))} €`)}</b>
                     {Math.abs(deuda.ajuste[n] || 0) >= 0.01 && (
                       <>
                         <br />
                         {(deuda.ajuste[n] || 0) > 0 ? 'y ha pagado a ' : 'y ha cobrado de '}
                         {NOMBRES.find(o => o !== n)}{' '}
-                        <b className="text-white font-semibold">{ocultar(mostrarCifras, `${Math.abs(deuda.ajuste[n]).toFixed(2)} €`)}</b>
+                        <b className="text-white font-semibold">{ocultar(mostrarCifras, `${euros(Math.abs(deuda.ajuste[n]))} €`)}</b>
                       </>
                     )}
                   </span>
@@ -787,7 +787,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
           </div>
           {deuda.comunSinAsignar > 0 && (
             <p className="text-xs text-gray-400">
-              No cuentan {ocultar(mostrarCifras, `${deuda.comunSinAsignar.toFixed(2)} €`)} pagados con dinero común: no los ha puesto ninguno de los dos.
+              No cuentan {ocultar(mostrarCifras, `${euros(deuda.comunSinAsignar)} €`)} pagados con dinero común: no los ha puesto ninguno de los dos.
             </p>
           )}
           {/* Saldar: anota que uno le ha pagado al otro. No es un gasto —
@@ -807,7 +807,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                     className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
                   <button type="button" onClick={() => setImporteSaldo(deuda.importe.toFixed(2))}
                     className="text-xs text-blue-500 mt-1.5">
-                    Poner los {deuda.importe.toFixed(2)} € enteros
+                    Poner los {euros(deuda.importe)} € enteros
                   </button>
                 </div>
                 <div>
@@ -872,10 +872,10 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                     </div>
                     <div className="text-right shrink-0 mr-1">
                       {tabActiva === 'gasto' && p.gasto > 0 && (
-                        <p className="text-sm font-bold text-red-500">{ocultar(mostrarCifras, `−${p.gasto.toFixed(2)} €`)}</p>
+                        <p className="text-sm font-bold text-red-500">{ocultar(mostrarCifras, `−${euros(p.gasto)} €`)}</p>
                       )}
                       {tabActiva === 'ingreso' && p.ingreso > 0 && (
-                        <p className="text-sm font-bold text-emerald-500">{ocultar(mostrarCifras, `+${p.ingreso.toFixed(2)} €`)}</p>
+                        <p className="text-sm font-bold text-emerald-500">{ocultar(mostrarCifras, `+${euros(p.ingreso)} €`)}</p>
                       )}
                       <p className="text-xs text-gray-300">{pctPersona}%</p>
                     </div>
@@ -949,17 +949,17 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
           <div className="grid grid-cols-4 gap-1 px-3 py-2.5 border-b border-gray-100 bg-gray-50/50">
             <span className="text-xs font-bold text-gray-700 col-span-1 truncate">{tabActiva === 'gasto' ? '💸 Total' : '💰 Total'}</span>
             <span className="text-xs font-bold text-gray-800 text-right">
-              {ocultar(mostrarCifras, `${(tabActiva === 'gasto' ? datosMes.totalGastos : datosMes.totalIngresos).toFixed(0)}€`)}
+              {ocultar(mostrarCifras, `${euros0((tabActiva === 'gasto' ? datosMes.totalGastos : datosMes.totalIngresos))}€`)}
             </span>
             <span className="text-xs font-semibold text-gray-400 text-right">
-              {ocultar(mostrarCifras, `${(tabActiva === 'gasto' ? datosComp.totalGastos : datosComp.totalIngresos).toFixed(0)}€`)}
+              {ocultar(mostrarCifras, `${euros0((tabActiva === 'gasto' ? datosComp.totalGastos : datosComp.totalIngresos))}€`)}
             </span>
             {(() => {
               const actual = tabActiva === 'gasto' ? datosMes.totalGastos : datosMes.totalIngresos
               const comp = tabActiva === 'gasto' ? datosComp.totalGastos : datosComp.totalIngresos
               const dif = actual - comp
               const esAlerta = tabActiva === 'gasto' ? dif > 0 : dif < 0
-              return <span className={`text-xs font-bold text-right ${dif === 0 ? 'text-gray-400' : esAlerta ? 'text-red-500' : 'text-emerald-600'}`}>{ocultar(mostrarCifras, `${dif > 0 ? '+' : ''}${dif.toFixed(0)}€`)}</span>
+              return <span className={`text-xs font-bold text-right ${dif === 0 ? 'text-gray-400' : esAlerta ? 'text-red-500' : 'text-emerald-600'}`}>{ocultar(mostrarCifras, `${dif > 0 ? '+' : ''}${euros0(dif)}€`)}</span>
             })()}
           </div>
 
@@ -978,10 +978,10 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
               return (
                 <div key={cat} className={`grid grid-cols-4 gap-1 px-3 py-2 ${idx % 2 === 0 ? '' : 'bg-gray-50/40'}`}>
                   <span className="text-xs text-gray-600 col-span-1 truncate">{cat}</span>
-                  <span className="text-xs font-semibold text-gray-800 text-right">{actual > 0 ? ocultar(mostrarCifras, `${actual.toFixed(0)}€`) : '—'}</span>
-                  <span className="text-xs text-gray-400 text-right">{comp > 0 ? ocultar(mostrarCifras, `${comp.toFixed(0)}€`) : '—'}</span>
+                  <span className="text-xs font-semibold text-gray-800 text-right">{actual > 0 ? ocultar(mostrarCifras, `${euros0(actual)}€`) : '—'}</span>
+                  <span className="text-xs text-gray-400 text-right">{comp > 0 ? ocultar(mostrarCifras, `${euros0(comp)}€`) : '—'}</span>
                   <span className={`text-xs font-semibold text-right ${dif === 0 ? 'text-gray-300' : esAlerta ? 'text-red-500' : 'text-emerald-600'}`}>
-                    {dif === 0 ? '—' : ocultar(mostrarCifras, `${dif > 0 ? '+' : ''}${dif.toFixed(0)}€`)}
+                    {dif === 0 ? '—' : ocultar(mostrarCifras, `${dif > 0 ? '+' : ''}${euros0(dif)}€`)}
                   </span>
                 </div>
               )
@@ -1050,7 +1050,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                 <YAxis tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={32}
                   tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
                 <Tooltip
-                  formatter={(val, name) => [ocultar(mostrarCifras, `${val.toFixed(2)} €`), name === 'gastos' ? anioActual : anioAnterior]}
+                  formatter={(val, name) => [ocultar(mostrarCifras, `${euros(val)} €`), name === 'gastos' ? anioActual : anioAnterior]}
                   contentStyle={{ borderRadius: 12, border: '1px solid #f0f0f0', fontSize: 12 }}
                 />
                 <Bar dataKey="gastosAnt" fill="#fca5a5" radius={[3, 3, 0, 0]} name="gastosAnt" />
@@ -1084,7 +1084,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                       <span className="text-sm font-semibold text-gray-800 truncate">{ev.nombre}</span>
                       <span className="text-xs text-gray-400 shrink-0">{ev.count} apunte{ev.count !== 1 ? 's' : ''}</span>
                     </div>
-                    <span className="text-sm font-bold text-red-500 shrink-0 ml-2">{ocultar(mostrarCifras, `${ev.total.toFixed(2)} €`)}</span>
+                    <span className="text-sm font-bold text-red-500 shrink-0 ml-2">{ocultar(mostrarCifras, `${euros(ev.total)} €`)}</span>
                   </div>
                   {pct !== null && (
                     <div className="mt-1.5">
@@ -1092,7 +1092,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                         <div className="h-full bg-orange-400 rounded-full" style={{ width: `${pct}%` }} />
                       </div>
                       <p className="text-[10px] text-gray-400 mt-0.5">
-                        {pct.toFixed(0)}% de {ocultar(mostrarCifras, `${Number(ev.presupuesto).toLocaleString('es-ES')} €`)} presupuestados
+                        {pct.toFixed(0)}% de {ocultar(mostrarCifras, `${euros0(ev.presupuesto)} €`)} presupuestados
                       </p>
                     </div>
                   )}
