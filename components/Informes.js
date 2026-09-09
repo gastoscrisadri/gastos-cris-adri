@@ -26,6 +26,18 @@ const esLiquidacion = t => !!t.liquidacion_a
 // cuentas, donde ese movimiento sí es real y sí cuenta.
 const sinAjustes = ts => ts.filter(t => !esLiquidacion(t))
 
+// Lo que enseña la pestaña Histórico. Los gastos, solo los de los dos: así
+// "Gastos 2026" significa lo mismo en los dos móviles. Los personales de cada
+// uno quedan fuera, que si no cada cual veía una cifra distinta y ninguna era
+// ni lo gastado en casa ni lo gastado por él. Los ingresos se dejan todos:
+// como son siempre de quien los cobra, son los tuyos.
+const soloComunes = ts => ts.filter(t => t.comun !== false)
+// Lo personal que ve este móvil es, por fuerza, del que mira: la regla de
+// Supabase no deja ver lo personal del otro.
+const soloMios = ts => ts.filter(t => t.comun === false)
+
+const soloConjunto = ts => ts.filter(t => t.tipo === 'ingreso' || t.comun !== false)
+
 const EMOJI_PERSONA = {
   'Cris': '👤',
   'Adri': '👤',
@@ -221,6 +233,9 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
 
   const datosVista = useMemo(() => calcularDatos(transaccionesVista, cuentas), [transaccionesVista, cuentas])
 
+  // El mismo mes, pero como lo cuenta el Histórico
+  const datosHist = useMemo(() => calcularDatos(soloConjunto(transaccionesMes), cuentas), [transaccionesMes, cuentas])
+
   // Lo que han gastado entre los dos este mes. No depende del filtro: es la
   // cifra de la tarjeta de arriba, y tiene que salir igual en los dos móviles.
   const gastoConjuntoMes = useMemo(() =>
@@ -360,7 +375,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
 
   const datosComp = useMemo(() => {
     if (!mesComparacion) return null
-    const delMes = sinAjustes(transaccionesComp)
+    const delMes = sinAjustes(soloConjunto(transaccionesComp))
     const gastos = delMes.filter(t => t.tipo === 'gasto')
     const ingresos = delMes.filter(t => t.tipo === 'ingreso')
     const totalGastos = gastos.reduce((s, t) => s + Number(t.importe), 0)
@@ -439,7 +454,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
   }, [mesSeleccionado])
 
   const datosMesAnterior = useMemo(() => {
-    const ts = sinAjustes(transacciones.filter(t => t.fecha.startsWith(mesAnterior)))
+    const ts = sinAjustes(soloConjunto(transacciones.filter(t => t.fecha.startsWith(mesAnterior))))
     return {
       gastos: ts.filter(t => t.tipo === 'gasto').reduce((s, t) => s + Number(t.importe), 0),
       ingresos: ts.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + Number(t.importe), 0),
@@ -452,8 +467,8 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
 
   const resumenAnual = useMemo(() => {
     if (!anioActual) return null
-    const tsActual = sinAjustes(transacciones.filter(t => t.fecha.startsWith(anioActual)))
-    const tsAnterior = sinAjustes(transacciones.filter(t => t.fecha.startsWith(anioAnterior)))
+    const tsActual = sinAjustes(soloConjunto(transacciones.filter(t => t.fecha.startsWith(anioActual))))
+    const tsAnterior = sinAjustes(soloConjunto(transacciones.filter(t => t.fecha.startsWith(anioAnterior))))
 
     const totalGastosActual = tsActual.filter(t => t.tipo === 'gasto').reduce((s, t) => s + Number(t.importe), 0)
     const totalIngresosActual = tsActual.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + Number(t.importe), 0)
@@ -463,8 +478,8 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
     const porMes = Array.from({ length: 12 }, (_, i) => {
       const mes = `${anioActual}-${String(i + 1).padStart(2, '0')}`
       const mesAnt = `${anioAnterior}-${String(i + 1).padStart(2, '0')}`
-      const tsM = sinAjustes(transacciones.filter(t => t.fecha.startsWith(mes)))
-      const tsMa = sinAjustes(transacciones.filter(t => t.fecha.startsWith(mesAnt)))
+      const tsM = sinAjustes(soloConjunto(transacciones.filter(t => t.fecha.startsWith(mes))))
+      const tsMa = sinAjustes(soloConjunto(transacciones.filter(t => t.fecha.startsWith(mesAnt))))
       return {
         nombre: new Date(parseInt(anioActual), i, 1).toLocaleString('es', { month: 'short' }),
         gastos: tsM.filter(t => t.tipo === 'gasto').reduce((s, t) => s + Number(t.importe), 0),
@@ -970,7 +985,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
       {/* HISTÓRICO — comparar con otros meses, el año y exportar */}
       {vista === 'historico' && (
         <>
-      {barraTipos(datosMes)}
+      {barraTipos(datosHist)}
 
       {/* Botón comparar */}
       {!mesComparacion ? (
@@ -1011,13 +1026,13 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
           <div className="grid grid-cols-4 gap-1 px-3 py-2.5 border-b border-gray-100 bg-gray-50/50">
             <span className="text-xs font-bold text-gray-700 col-span-1 truncate">{tabActiva === 'gasto' ? '💸 Total' : '💰 Total'}</span>
             <span className="text-xs font-bold text-gray-800 text-right">
-              {ocultar(mostrarCifras, `${euros0((tabActiva === 'gasto' ? datosMes.totalGastos : datosMes.totalIngresos))}€`)}
+              {ocultar(mostrarCifras, `${euros0((tabActiva === 'gasto' ? datosHist.totalGastos : datosHist.totalIngresos))}€`)}
             </span>
             <span className="text-xs font-semibold text-gray-400 text-right">
               {ocultar(mostrarCifras, `${euros0((tabActiva === 'gasto' ? datosComp.totalGastos : datosComp.totalIngresos))}€`)}
             </span>
             {(() => {
-              const actual = tabActiva === 'gasto' ? datosMes.totalGastos : datosMes.totalIngresos
+              const actual = tabActiva === 'gasto' ? datosHist.totalGastos : datosHist.totalIngresos
               const comp = tabActiva === 'gasto' ? datosComp.totalGastos : datosComp.totalIngresos
               const dif = actual - comp
               const esAlerta = tabActiva === 'gasto' ? dif > 0 : dif < 0
@@ -1029,11 +1044,11 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
           {(() => {
             const campo = tabActiva === 'gasto' ? 'gasto' : 'ingreso'
             const todasCats = new Set([
-              ...datosMes.categorias.filter(c => (c[campo] || 0) > 0).map(c => c.nombre),
+              ...datosHist.categorias.filter(c => (c[campo] || 0) > 0).map(c => c.nombre),
               ...Object.entries(datosComp.porCategoria).filter(([, v]) => (v[campo] || 0) > 0).map(([k]) => k)
             ])
             return Array.from(todasCats).sort().map((cat, idx) => {
-              const actual = datosMes.categorias.find(c => c.nombre === cat)?.[campo] || 0
+              const actual = datosHist.categorias.find(c => c.nombre === cat)?.[campo] || 0
               const comp = datosComp.porCategoria[cat]?.[campo] || 0
               const dif = actual - comp
               const esAlerta = tabActiva === 'gasto' ? dif > 0 : dif < 0
@@ -1057,16 +1072,16 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">vs mes anterior</p>
         <div className="grid grid-cols-2 gap-2">
           <TarjetaComparativa
-            label="Gastos"
-            actual={datosMes.totalGastos}
+            label="Gastos de los dos"
+            actual={datosHist.totalGastos}
             anterior={datosMesAnterior.gastos}
             colorActual="text-red-500"
             colorBg="bg-red-50"
             mostrarCifras={mostrarCifras}
           />
           <TarjetaComparativa
-            label="Ingresos"
-            actual={datosMes.totalIngresos}
+            label="Tus ingresos"
+            actual={datosHist.totalIngresos}
             anterior={datosMesAnterior.ingresos}
             colorActual="text-emerald-600"
             colorBg="bg-emerald-50"
@@ -1083,7 +1098,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
           </p>
           <div className="grid grid-cols-2 gap-2">
             <TarjetaComparativa
-              label={`Gastos ${anioActual}`}
+              label={`Gastos de los dos ${anioActual}`}
               actual={resumenAnual.totalGastosActual}
               anterior={resumenAnual.totalGastosAnterior}
               colorActual="text-red-500"
@@ -1092,7 +1107,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
               mostrarCifras={mostrarCifras}
             />
             <TarjetaComparativa
-              label={`Ingresos ${anioActual}`}
+              label={`Tus ingresos ${anioActual}`}
               actual={resumenAnual.totalIngresosActual}
               anterior={resumenAnual.totalIngresosAnterior}
               colorActual="text-emerald-600"
@@ -1104,7 +1119,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
 
           {/* Gráfico de barras mensual */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3">
-            <p className="text-xs font-semibold text-gray-400 mb-3">Gastos por mes — {anioActual} vs {anioAnterior}</p>
+            <p className="text-xs font-semibold text-gray-400 mb-3">Gastos de los dos por mes — {anioActual} vs {anioAnterior}</p>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={resumenAnual.porMes} barCategoryGap="20%" barGap={2}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
@@ -1165,19 +1180,27 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
         </div>
       )}
 
-      {/* Exportar */}
+      {/* Exportar. Se separa la copia de la casa de la copia personal: la
+          primera es la que vale como copia de seguridad de los dos y se puede
+          compartir sin enseñar los gastos particulares de nadie. */}
       <div className="space-y-2 pt-1">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Exportar a Excel</p>
-        <button onClick={() => exportarCSV(transaccionesMes, `gastos_${mesSeleccionado}.csv`)}
-          disabled={transaccionesMes.length === 0}
+        <button onClick={() => exportarCSV(soloComunes(transacciones), `gastos_de_los_dos_${new Date().toISOString().slice(0,10)}.csv`)}
+          disabled={soloComunes(transacciones).length === 0}
           className="w-full py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold rounded-xl active:bg-emerald-100 disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
-          <span>📥</span> Descargar {mesSeleccionado}
+          <span>📥</span> Copia de los gastos de los dos
         </button>
-        <button onClick={() => exportarCSV(transacciones, `gastos_todos_${new Date().toISOString().slice(0,10)}.csv`)}
-          disabled={transacciones.length === 0}
-          className="w-full py-2.5 bg-gray-50 border border-gray-200 text-gray-600 font-semibold rounded-xl active:bg-gray-100 disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
-          <span>📥</span> Descargar todos los datos
+        <p className="text-[11px] text-gray-400 -mt-0.5">
+          Sin gastos particulares de nadie. Es la que vale como copia de seguridad y se puede pasar al otro.
+        </p>
+        <button onClick={() => exportarCSV(soloMios(transacciones), `mis_gastos_${new Date().toISOString().slice(0,10)}.csv`)}
+          disabled={soloMios(transacciones).length === 0}
+          className="w-full py-2.5 bg-gray-50 border border-gray-200 text-gray-600 font-semibold rounded-xl active:bg-gray-100 disabled:opacity-40 flex items-center justify-center gap-2 text-sm mt-2">
+          <span>📥</span> Solo mis apuntes personales
         </button>
+        <p className="text-[11px] text-gray-400 -mt-0.5">
+          Tuyos y de nadie más. No lo compartas si no quieres que se vean.
+        </p>
       </div>
         </>
       )}
