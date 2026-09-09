@@ -82,7 +82,7 @@ function TarjetaComparativa({ label, actual, anterior, colorActual, colorBg, eti
 }
 
 function exportarCSV(transacciones, nombreArchivo) {
-  const cabecera = ['Fecha','Tipo','Importe (€)','Categoría','Subcategoría','Establecimiento','Notas','Medio de pago','Quién']
+  const cabecera = ['Fecha','Tipo','Importe (€)','Categoría','Subcategoría','Establecimiento','Notas','Medio de pago','Quién','De los dos o personal','Ajuste de cuentas a']
   const filas = transacciones.map(t => [
     t.fecha,
     t.tipo === 'gasto' && Number(t.importe) < 0 ? 'Devolución o cobro' : t.tipo,
@@ -93,6 +93,8 @@ function exportarCSV(transacciones, nombreArchivo) {
     t.descripcion || '',
     t.medio_pago || '',
     t.quien || '',
+    t.comun === false ? 'Personal' : 'De los dos',
+    t.liquidacion_a || '',
   ])
   const csv = [cabecera, ...filas]
     .map(fila => fila.map(campo => `"${String(campo).replace(/"/g, '""')}"`).join(';'))
