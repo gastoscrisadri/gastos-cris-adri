@@ -17,7 +17,9 @@ const FORM_VACIO = {
   descripcion: '',
   medio_pago: '',
   quien: '',
-  comun: true,
+  // Nada marcado a propósito: si viniera "De los dos" por defecto, un descuido
+  // grabaría como común un gasto que es de uno solo. Hay que elegir.
+  comun: null,
 }
 
 export default function FormTransaccion({ usuario, onGuardado, onCancelar, transaccionEditar, onEliminar, eventoActivo, autoAbrirCamara }) {
@@ -181,8 +183,16 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
     e.preventDefault()
     const activo = document.activeElement
     if (activo === importeRef.current) categoriaRef.current?.focus()
-    else if (activo === establecimientoRef.current) (notasRef.current || medioPagoRef.current)?.focus()
+    else if (activo === establecimientoRef.current) irANotas()
     else if (activo === notasRef.current) medioPagoRef.current?.focus()
+  }
+
+  // Ir a Notas desde Establecimiento. Si están plegadas las abre y luego pone
+  // el cursor dentro; se pueden dejar vacías y seguir, pero al menos se ven.
+  function irANotas() {
+    if (notasRef.current) { notasRef.current.focus(); return }
+    setMasDetalles(true)
+    setTimeout(() => notasRef.current?.focus(), 0)
   }
 
   // Sigue a quien registra el apunte, no al dueño del móvil: si se edita un
@@ -268,6 +278,8 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         if (!nuevo.fecha) faltantes.push('fecha')
         if (!nuevo.categoria || data.confianza_categoria === 'baja') faltantes.push('categoría')
         if (!nuevo.establecimiento) faltantes.push('establecimiento')
+        // El ticket no puede saber de quién es el gasto: eso lo dice la persona.
+        if (nuevo.tipo !== 'ingreso' && form.comun !== true && form.comun !== false) faltantes.push('de quién es')
 
         setCamposFaltantes(faltantes)
         setEstadoOCR(faltantes.length === 0 ? 'exito' : 'duda')
@@ -291,6 +303,12 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         setError(`El campo "${etiqueta}" es obligatorio.`)
         return
       }
+    }
+    // De quién es solo se pregunta en los gastos: un ingreso es siempre de
+    // quien lo cobra y se guarda como personal más abajo.
+    if (form.tipo !== 'ingreso' && form.comun !== true && form.comun !== false) {
+      setError('Di de quién es el gasto: «De los dos» o «Solo mío».')
+      return
     }
     const importeNormalizado = normalizarImporte(form.importe)
     if (isNaN(parseFloat(importeNormalizado))) {
@@ -328,7 +346,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       // Los ingresos no se reparten: cada nómina es de quien la cobra, así que
       // van siempre como personales y solo los ve su dueño. El botón "De los
       // dos" ni siquiera se enseña cuando el tipo es ingreso.
-      comun: form.tipo === 'ingreso' ? false : form.comun !== false,
+      comun: form.tipo === 'ingreso' ? false : form.comun === true,
       imagen_url,
       evento_id: form.evento_id || null,
     }
@@ -503,10 +521,10 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         {/* De los dos o solo mío. Viene marcado "Común", que es lo más
             frecuente viviendo juntos. Lo personal solo lo ve su dueño. */}
         <div>
-          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">¿De quién es este gasto?</label>
+          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">¿De quién es este gasto? *</label>
           <div className="flex gap-2">
             <button type="button" onClick={() => set('comun', true)}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun !== false ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-400 border-gray-200'}`}>
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun === true ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-400 border-gray-200'}`}>
               De los dos
             </button>
             <button type="button" onClick={() => set('comun', false)}
@@ -516,6 +534,9 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           </div>
           {form.comun === false && (
             <p className="text-xs text-gray-400 mt-1.5">Este gasto solo lo verás tú, y no entra en la cuenta de los dos.</p>
+          )}
+          {form.comun == null && (
+            <p className="text-xs text-gray-400 mt-1.5">Elige una de las dos: no se puede guardar sin decirlo.</p>
           )}
         </div>
         </>
@@ -570,7 +591,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         <input ref={establecimientoRef} type="text" enterKeyHint="next" value={form.establecimiento} autoComplete="off"
           onChange={e => { set('establecimiento', e.target.value); filtrarSugerencias(e.target.value, historialEstablecimientos, setSugerenciasEstablecimiento) }}
           onBlur={() => setTimeout(() => setSugerenciasEstablecimiento([]), 150)}
-          onKeyDown={e => e.key === 'Enter' && (notasRef.current || medioPagoRef.current)?.focus()}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); irANotas() } }}
           placeholder="Mercadona, Empresa S.L., ..."
           className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
         {sugerenciasEstablecimiento.length > 0 && (
