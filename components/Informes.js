@@ -104,12 +104,23 @@ function TarjetaComparativa({ label, actual, anterior, colorActual, colorBg, eti
   )
 }
 
-function exportarCSV(transacciones, nombreArchivo) {
-  const cabecera = ['Fecha','Tipo','Importe (€)','Categoría','Subcategoría','Establecimiento','Notas','Medio de pago','Quién','De los dos o personal','Ajuste de cuentas a']
+// Exportar a Excel de verdad (.xlsx), no a CSV.
+//
+// Un CSV es texto pelado: no puede llevar dentro cómo se pinta un número, así
+// que los importes salían como 1400 en vez de 1.400,00. En un .xlsx el
+// formato va dentro del archivo, y además el importe es un NÚMERO, no texto:
+// se puede sumar, ordenar y filtrar.
+//
+// La librería se carga solo al pulsar el botón (import dinámico), para que no
+// pese en el arranque de la app en el móvil.
+async function exportarExcel(transacciones, nombreArchivo) {
+  const XLSX = await import('xlsx')
+
+  const cabecera = ['Fecha', 'Tipo', 'Importe (€)', 'Categoría', 'Subcategoría', 'Establecimiento', 'Notas', 'Medio de pago', 'Quién', 'De los dos o personal', 'Ajuste de cuentas a']
   const filas = transacciones.map(t => [
     t.fecha,
     t.tipo === 'gasto' && Number(t.importe) < 0 ? 'Devolución o cobro' : t.tipo,
-    String(Number(t.importe).toFixed(2)).replace('.', ','),
+    Number(Number(t.importe).toFixed(2)),   // número, no texto
     t.categoria || '',
     t.subcategoria || '',
     t.establecimiento || '',
@@ -119,16 +130,27 @@ function exportarCSV(transacciones, nombreArchivo) {
     t.comun === false ? 'Personal' : 'De los dos',
     t.liquidacion_a || '',
   ])
-  const csv = [cabecera, ...filas]
-    .map(fila => fila.map(campo => `"${String(campo).replace(/"/g, '""')}"`).join(';'))
-    .join('\n')
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = nombreArchivo
-  a.click()
-  URL.revokeObjectURL(url)
+
+  const hoja = XLSX.utils.aoa_to_sheet([cabecera, ...filas])
+
+  // Punto de miles y dos decimales siempre, también cuando son ,00.
+  // La columna del importe es la tercera (índice 2).
+  const FORMATO_EUROS = '#,##0.00'
+  for (let fila = 1; fila <= filas.length; fila++) {
+    const celda = hoja[XLSX.utils.encode_cell({ r: fila, c: 2 })]
+    if (celda) { celda.t = 'n'; celda.z = FORMATO_EUROS }
+  }
+
+  // Anchos para no tener que ajustarlos a mano cada vez
+  hoja['!cols'] = [
+    { wch: 11 }, { wch: 18 }, { wch: 13 }, { wch: 18 }, { wch: 18 },
+    { wch: 22 }, { wch: 24 }, { wch: 16 }, { wch: 8 }, { wch: 20 }, { wch: 18 },
+  ]
+  hoja['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: filas.length, c: cabecera.length - 1 } }) }
+
+  const libro = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(libro, hoja, 'Apuntes')
+  XLSX.writeFile(libro, nombreArchivo)
 }
 
 // Los totales de un mes. Se llama dos veces con listas distintas: la del mes
@@ -1154,18 +1176,18 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
           compartir sin enseñar los gastos particulares de nadie. */}
       <div className="space-y-2 pt-1">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Exportar a Excel</p>
-        <button onClick={() => exportarCSV(soloComunes(transacciones), `gastos_de_los_dos_${new Date().toISOString().slice(0,10)}.csv`)}
+        <button onClick={() => exportarExcel(soloComunes(transacciones), `gastos_de_los_dos_${new Date().toISOString().slice(0,10)}.xlsx`)}
           disabled={soloComunes(transacciones).length === 0}
           className="w-full py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold rounded-xl active:bg-emerald-100 disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
-          <span>📥</span> Copia de los gastos de los dos
+          <span>📥</span> Copia de los gastos de los dos (Excel)
         </button>
         <p className="text-[11px] text-gray-400 -mt-0.5">
           Sin gastos particulares de nadie. Es la que vale como copia de seguridad y se puede pasar al otro.
         </p>
-        <button onClick={() => exportarCSV(soloMios(transacciones), `mis_gastos_${new Date().toISOString().slice(0,10)}.csv`)}
+        <button onClick={() => exportarExcel(soloMios(transacciones), `mis_gastos_${new Date().toISOString().slice(0,10)}.xlsx`)}
           disabled={soloMios(transacciones).length === 0}
           className="w-full py-2.5 bg-gray-50 border border-gray-200 text-gray-600 font-semibold rounded-xl active:bg-gray-100 disabled:opacity-40 flex items-center justify-center gap-2 text-sm mt-2">
-          <span>📥</span> Solo mis apuntes personales
+          <span>📥</span> Solo mis apuntes personales (Excel)
         </button>
         <p className="text-[11px] text-gray-400 -mt-0.5">
           Tuyos y de nadie más. No lo compartas si no quieres que se vean.
