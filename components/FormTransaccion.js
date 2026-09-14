@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { cargarCategorias, principalesPorTipo, subcategoriasDeCategoria } from '@/lib/categorias'
-import { cargarCuentas, ordenarPara, CUENTAS_RESPALDO } from '@/lib/cuentas'
+import { cargarCuentas, ordenarPara, personaDeMedioPago, CUENTAS_RESPALDO } from '@/lib/cuentas'
 import { NOMBRES, nombreDe, guardarNombre } from '@/lib/identidad'
 
 
@@ -185,6 +185,18 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
     else if (activo === establecimientoRef.current) notasRef.current?.focus()
     else if (activo === notasRef.current) medioPagoRef.current?.focus()
   }
+
+  // Un gasto personal pagado con la tarjeta del otro: ese dinero lo ha puesto
+  // él y, al ser personal, no entra en la cuenta de los dos ni él puede verlo.
+  // No se prohíbe (el apunte es real), pero hay que decirlo: si no, el dinero
+  // desaparece en silencio.
+  const duenoDelMedio = useMemo(() => personaDeMedioPago(form.medio_pago, cuentas), [form.medio_pago, cuentas])
+  const personalConTarjetaAjena =
+    form.tipo !== 'ingreso' &&
+    form.comun === false &&
+    NOMBRES.includes(duenoDelMedio) &&
+    !!form.quien &&
+    duenoDelMedio !== form.quien
 
   // Sigue a quien registra el apunte, no al dueño del móvil: si se edita un
   // apunte antiguo del otro, sus medios de pago pasan a ir primero.
@@ -679,8 +691,15 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
               Solo mío
             </button>
           </div>
-          {form.comun === false && (
+          {form.comun === false && !personalConTarjetaAjena && (
             <p className="text-xs text-gray-400 mt-1.5">Este gasto solo lo verás tú, y no entra en la cuenta de los dos.</p>
+          )}
+          {personalConTarjetaAjena && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-2.5 mt-1.5 leading-snug">
+              Lo pagas con «{form.medio_pago}», que es de {duenoDelMedio}, pero lo marcas como tuyo.
+              Ese dinero lo ha puesto {duenoDelMedio} y <b>no entra en la cuenta de los dos</b> — ni podrá verlo.
+              Si hay que ajustarlo, márcalo «De los dos» o apuntad el pago aparte.
+            </p>
           )}
           {form.comun == null && (
             <p className="text-xs text-gray-400 mt-1.5">Elige una de las dos: no se puede guardar sin decirlo.</p>
