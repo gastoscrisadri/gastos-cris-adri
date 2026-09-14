@@ -50,9 +50,12 @@ const EMOJI_PERSONA = {
 // (categoría, subcategoría, medio de pago y quién puso el dinero); "extra" es
 // el dato que cambia según dónde se muestre: el medio de pago cuando ya
 // sabemos la categoría, y la categoría en los demás casos.
-function FilaApunte({ t, mostrarCifras, extra }) {
+function FilaApunte({ t, mostrarCifras, extra, yo }) {
   const importe = Number(t.importe)
-  const esGasto = t.tipo === 'gasto' && importe >= 0
+  // Un ajuste de cuentas se lee al revés según quién mire: al que cobra le
+  // entra dinero, no le sale. Mismo criterio que en ListaTransacciones.js.
+  const loCobroYo = !!t.liquidacion_a && !!yo && t.liquidacion_a === yo
+  const esGasto = t.tipo === 'gasto' && importe >= 0 && !loCobroYo
   const [, mesN, dia] = t.fecha.split('-')
   const fechaCorta = `${parseInt(dia)}/${parseInt(mesN)}`
   return (
@@ -60,7 +63,9 @@ function FilaApunte({ t, mostrarCifras, extra }) {
       <span className="text-xs text-gray-400 w-10 shrink-0">{fechaCorta}</span>
       <div className="flex-1 min-w-0">
         <p className="text-xs font-semibold text-gray-700 truncate">
-          {t.establecimiento || t.descripcion || t.subcategoria || t.categoria}
+          {t.liquidacion_a && yo
+            ? (loCobroYo ? `${t.quien} te pagó` : `Le pagaste a ${t.liquidacion_a}`)
+            : (t.establecimiento || t.descripcion || t.subcategoria || t.categoria)}
         </p>
         {t.descripcion && t.establecimiento && (
           <p className="text-[10px] text-gray-400 truncate">{t.descripcion}</p>
@@ -201,7 +206,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
   const [vista, setVista] = useState('mes')
   // De quién son los apuntes que se enseñan en "Mes": todo, los de los dos,
   // o los particulares de quien mira. Arranca en los de los dos.
-  const [deQuien, setDeQuien] = useState('comunes')
+  const [deQuien, setDeQuien] = useState('comunes')  // 'comunes' | 'mios'
 
   useEffect(() => {
     if (meses.length && !mesSeleccionado) setMesSeleccionado(meses[0])
@@ -216,7 +221,6 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
     transacciones.filter(t => t.fecha.startsWith(mesSeleccionado))
   , [transacciones, mesSeleccionado])
 
-  const datosMes = useMemo(() => calcularDatos(transaccionesMes, cuentas), [transaccionesMes, cuentas])
 
   // Qué apuntes se enseñan en la pestaña "Mes". Por defecto, los de los dos:
   // es lo que más miran. "Míos" es donde cada uno ve sus gastos particulares.
@@ -235,6 +239,11 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
 
   // El mismo mes, pero como lo cuenta el Histórico
   const datosHist = useMemo(() => calcularDatos(soloConjunto(transaccionesMes), cuentas), [transaccionesMes, cuentas])
+
+  // Quién puso el dinero DE LOS GASTOS DE LOS DOS. Solo comunes: así el total
+  // cuadra con la cuenta de los dos, que está justo encima en la misma pestaña.
+  const transaccionesComunesMes = useMemo(() => sinAjustes(soloComunes(transaccionesMes)), [transaccionesMes])
+  const datosComunes = useMemo(() => calcularDatos(transaccionesComunesMes, cuentas), [transaccionesComunesMes, cuentas])
 
   // Lo que han gastado entre los dos este mes. No depende del filtro: es la
   // cifra de la tarjeta de arriba, y tiene que salir igual en los dos móviles.
@@ -413,17 +422,6 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
     return { ingresos, gastos, queda: ingresos - gastos }
   }, [transaccionesMes, yo, miParte])
 
-  const saldosCuentas = useMemo(() => {
-    const mias = soloActivas(cuentas).filter(c => !(yo && NOMBRES.includes(c.persona) && c.persona !== yo))
-    return mias.map(cuenta => {
-      const movimientos = transacciones.filter(t => t.medio_pago === cuenta.nombre)
-      const ingresos = movimientos.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + Number(t.importe), 0)
-      const gastos = movimientos.filter(t => t.tipo === 'gasto').reduce((s, t) => s + Number(t.importe), 0)
-      const saldo = cuenta.saldo_inicial + ingresos - gastos
-      return { ...cuenta, saldo }
-    })
-  }, [cuentas, transacciones, yo])
-
   // Reset al cambiar mes o tab
   useMemo(() => { setCategoriaAbierta(null); setSubcategoriaAbierta(null); setMedioAbierto(null) }, [mesSeleccionado, tabActiva])
 
@@ -578,34 +576,12 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
       {/* MES — en qué se ha ido el dinero este mes */}
       {vista === 'mes' && (
         <>
-      {/* Saldos actuales de cuentas */}
-      {saldosCuentas.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Saldo actual de cuentas</p>
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5 scrollbar-hide">
-            {saldosCuentas.map(cuenta => {
-              const positivo = cuenta.saldo >= 0
-              return (
-                <div key={cuenta.id}
-                  className={`shrink-0 rounded-2xl px-4 py-3 flex flex-col gap-1 min-w-[130px] border ${positivo ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
-                  <span className="text-2xl">{cuenta.emoji}</span>
-                  <p className="text-xs font-semibold text-gray-500 leading-tight">{cuenta.nombre}</p>
-                  <p className={`text-base font-bold ${positivo ? 'text-emerald-600' : 'text-red-500'}`}>
-                    {ocultar(mostrarCifras, `${positivo ? '+' : ''}${euros(cuenta.saldo)} €`)}
-                  </p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
       {/* De quién son los apuntes que se enseñan debajo. Aquí es donde cada
           uno ve sus gastos particulares desglosados. */}
       <div>
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Qué gastos estás viendo</p>
         <div className="flex gap-1.5">
-          {[['comunes', 'De los dos', 'bg-teal-600 border-teal-600'], ['mios', 'Lo mío', 'bg-violet-600 border-violet-600'], ['todo', 'Todo', 'bg-gray-700 border-gray-700']].map(([id, label, activo]) => (
+          {[['comunes', 'De los dos', 'bg-teal-600 border-teal-600'], ['mios', 'Lo mío', 'bg-violet-600 border-violet-600']].map(([id, label, activo]) => (
             <button key={id} type="button" onClick={() => setDeQuien(id)}
               className={`flex-1 py-2 rounded-xl text-xs font-bold border-2 transition-colors ${deQuien === id ? activo + ' text-white' : 'bg-white text-gray-500 border-gray-200'}`}>
               {label}
@@ -617,7 +593,6 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
         <p className="text-[11px] text-gray-400 mt-1.5">
           {deQuien === 'comunes' && 'Los gastos de los dos, por su importe entero.'}
           {deQuien === 'mios' && 'Tu parte: lo tuyo entero y de lo de los dos, solo lo que te toca.'}
-          {deQuien === 'todo' && 'Todo junto, por su importe entero.'}
         </p>
       </div>
 
@@ -694,7 +669,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                   {abierta && !agruparPorSub && (
                     <div className="border-t border-gray-50 divide-y divide-gray-50">
                       {apuntesCategoria.map(t => (
-                        <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras}
+                        <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras} yo={yo}
                           extra={t.medio_pago && <span className="text-[10px] text-gray-400 shrink-0">{t.medio_pago.split(' ')[0]}</span>} />
                       ))}
                     </div>
@@ -718,7 +693,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                             {subAbierta && (
                               <div className="divide-y divide-gray-50">
                                 {g.apuntes.map(t => (
-                                  <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras}
+                                  <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras} yo={yo}
                                     extra={t.medio_pago && <span className="text-[10px] text-gray-400 shrink-0">{t.medio_pago.split(' ')[0]}</span>} />
                                 ))}
                               </div>
@@ -746,16 +721,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                 Tus ingresos {ocultar(mostrarCifras, euros(miBalanceMes.ingresos))} € menos tu parte de los gastos {ocultar(mostrarCifras, euros(miBalanceMes.gastos))} €
               </p>
             </div>
-          ) : deQuien === 'todo' && (
-            <>
-            <div className={`rounded-xl p-3 text-center ${datosVista.balance >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
-              <p className={`text-xs font-medium ${datosVista.balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>Balance del mes</p>
-              <p className={`text-xl font-bold ${datosVista.balance >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
-                {ocultar(mostrarCifras, `${datosVista.balance >= 0 ? '+' : ''}${euros(datosVista.balance)} €`)}
-              </p>
-            </div>
-            </>
-          )}
+          ) : null}
         </>
       ) : (
         <p className="text-gray-400 text-sm text-center mt-4">Sin datos este mes</p>
@@ -803,7 +769,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                       {apuntesMedio.length === 0 ? (
                         <p className="text-xs text-gray-400 text-center py-3">Sin apuntes de {tabActiva === 'gasto' ? 'gastos' : 'ingresos'} con este medio</p>
                       ) : apuntesMedio.map(t => (
-                        <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras}
+                        <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras} yo={yo}
                           extra={<span className="text-[10px] text-gray-400 shrink-0">{t.categoria}</span>} />
                       ))}
                     </div>
@@ -923,15 +889,18 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
       )}
 
       {/* Resumen por persona — expandible */}
-      {datosMes.personas.length > 0 && (
+      {datosComunes.personas.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Quién puso el dinero</p>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Quién puso el dinero de los dos</p>
           <div className="space-y-1.5">
-            {datosMes.personas.map((p) => {
+            {datosComunes.personas.map((p) => {
               const emoji = EMOJI_PERSONA[p.nombre] || '👤'
-              const pctPersona = datosMes.totalGastos > 0 ? Math.round((p.gasto / datosMes.totalGastos) * 100) : 0
+              const pctPersona = datosComunes.totalGastos > 0 ? Math.round((p.gasto / datosComunes.totalGastos) * 100) : 0
               const abierto = personaAbierta === p.nombre
-              const apuntesPersona = transaccionesMes
+              // La lista sale de la MISMA lista que el total. Antes el total
+              // quitaba los ajustes de cuentas y la lista no, así que se veía
+              // un apunte que no estaba sumado y las cuentas no cuadraban.
+              const apuntesPersona = transaccionesComunesMes
                 .filter(t => personaDeMedioPago(t.medio_pago, cuentas) === p.nombre && t.tipo === tabActiva)
                 .sort((a, b) => b.fecha.localeCompare(a.fecha))
               return (
@@ -964,7 +933,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
                       {apuntesPersona.length === 0 ? (
                         <p className="text-xs text-gray-400 text-center py-3">Sin apuntes de {tabActiva === 'gasto' ? 'gastos' : 'ingresos'} de esta persona</p>
                       ) : apuntesPersona.map(t => (
-                        <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras}
+                        <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras} yo={yo}
                           extra={<span className="text-[10px] text-gray-400 shrink-0">{t.categoria}</span>} />
                       ))}
                     </div>
@@ -976,7 +945,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
         </div>
       )}
 
-      {deuda.aRepartir <= 0 && datosMes.personas.length === 0 && (
+      {deuda.aRepartir <= 0 && datosComunes.personas.length === 0 && (
         <p className="text-gray-400 text-sm text-center mt-8">Todavía no hay gastos de los dos que repartir</p>
       )}
         </>
