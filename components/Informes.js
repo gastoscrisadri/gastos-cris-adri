@@ -31,12 +31,20 @@ const sinAjustes = ts => ts.filter(t => !esLiquidacion(t))
 // uno quedan fuera, que si no cada cual veía una cifra distinta y ninguna era
 // ni lo gastado en casa ni lo gastado por él. Los ingresos se dejan todos:
 // como son siempre de quien los cobra, son los tuyos.
+// Un gasto DE LA CASA: lo ven los dos y además es de los dos. Un apunte con
+// a_cargo_de lo ven los dos (lo pagó el otro) pero es de uno solo, así que no
+// entra en las cifras de "lo que gastamos entre los dos". Ojo: el cálculo de
+// la deuda sí lo incluye, porque ahí es donde tiene que generar la deuda.
+const esDeLaCasa = t => t.comun !== false && !t.a_cargo_de
+
+// Para la copia de seguridad: todo lo que ven los dos, incluidos los apuntes
+// a cargo de uno (los ven los dos porque el otro los pagó).
 const soloComunes = ts => ts.filter(t => t.comun !== false)
 // Lo personal que ve este móvil es, por fuerza, del que mira: la regla de
 // Supabase no deja ver lo personal del otro.
 const soloMios = ts => ts.filter(t => t.comun === false)
 
-const soloConjunto = ts => ts.filter(t => t.tipo === 'ingreso' || t.comun !== false)
+const soloConjunto = ts => ts.filter(t => t.tipo === 'ingreso' || esDeLaCasa(t))
 
 const EMOJI_PERSONA = {
   'Cris': '👤',
@@ -247,7 +255,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
   // Qué apuntes se enseñan en la pestaña "Mes". Por defecto, los de los dos:
   // es lo que más miran. "Míos" es donde cada uno ve sus gastos particulares.
   const transaccionesVista = useMemo(() => {
-    if (deQuien === 'comunes') return transaccionesMes.filter(t => t.comun !== false)
+    if (deQuien === 'comunes') return transaccionesMes.filter(esDeLaCasa)
     if (deQuien === 'mios') {
       // Sin saber quién mira no se puede repartir: se enseñan al menos los
       // gastos particulares, que es lo que hacía antes.
@@ -264,13 +272,13 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
 
   // Quién puso el dinero DE LOS GASTOS DE LOS DOS. Solo comunes: así el total
   // cuadra con la cuenta de los dos, que está justo encima en la misma pestaña.
-  const transaccionesComunesMes = useMemo(() => sinAjustes(soloComunes(transaccionesMes)), [transaccionesMes])
+  const transaccionesComunesMes = useMemo(() => sinAjustes(transaccionesMes.filter(esDeLaCasa)), [transaccionesMes])
   const datosComunes = useMemo(() => calcularDatos(transaccionesComunesMes, cuentas), [transaccionesComunesMes, cuentas])
 
   // Lo que han gastado entre los dos este mes. No depende del filtro: es la
   // cifra de la tarjeta de arriba, y tiene que salir igual en los dos móviles.
   const gastoConjuntoMes = useMemo(() =>
-    transaccionesMes.filter(t => t.tipo === 'gasto' && t.comun !== false && !esLiquidacion(t))
+    transaccionesMes.filter(t => t.tipo === 'gasto' && esDeLaCasa(t) && !esLiquidacion(t))
       .reduce((s, t) => s + Number(t.importe), 0)
   , [transaccionesMes])
 
@@ -311,6 +319,12 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
     comunes.forEach(t => {
       if (personaDeMedioPago(t.medio_pago, cuentas) === 'Común') return  // no lo puso nadie
       const importe = Number(t.importe)
+      // Gasto de uno pagado por el otro: le toca entero a su dueño, y el
+      // reparto de la categoría no pinta nada. Es lo que genera la deuda.
+      if (t.a_cargo_de && toca[t.a_cargo_de] !== undefined) {
+        toca[t.a_cargo_de] += importe
+        return
+      }
       const pct = repartoDeApunte(t)
       const parteUno = pct == null ? importe / 2 : importe * pct / 100
       toca[uno] += parteUno

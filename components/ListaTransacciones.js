@@ -128,6 +128,10 @@ export default function ListaTransacciones({ transacciones, cargando, onSeleccio
                         <span className="text-[10px] font-semibold text-teal-700 bg-teal-100 px-1.5 py-0.5 rounded">
                           ajuste de cuentas
                         </span>
+                      ) : t.a_cargo_de ? (
+                        <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">
+                          {t.a_cargo_de === yo ? 'tuyo, lo pagó el otro' : `de ${t.a_cargo_de}, lo pagaste tú`}
+                        </span>
                       ) : t.comun === false ? (
                         <span className="text-[10px] font-semibold text-violet-700 bg-violet-100 px-1.5 py-0.5 rounded">
                           personal
