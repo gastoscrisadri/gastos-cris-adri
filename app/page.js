@@ -141,10 +141,30 @@ export default function Home() {
       const LIMITE_BYTES = 1_073_741_824 // 1 GB (plan gratuito Supabase)
       const UMBRAL = 0.75
 
-      const { data: archivos } = await supabase.storage.from('documentos').list('', { limit: 1000 })
-      if (!archivos) return
+      // Las fotos se cuentan POR TANDAS.
+      //
+      // Antes se pedían con { limit: 1000 } y se sumaban esas. Pasadas las mil
+      // fotos, la cuenta se quedaba congelada y siempre daba menos de lo real:
+      // el aviso de "se te llena el almacén" no habría saltado NUNCA, justo
+      // cuando más falta hace. A un ticket por compra, mil fotos son un par de
+      // años.
+      //
+      // Si una tanda falla no se avisa de nada y se reintentará el mes que
+      // viene: mejor callar que dar un susto con media cuenta.
+      const TANDA = 1000
+      const MAX_TANDAS = 50
+      let totalBytes = 0
+      let desde = 0
+      for (let i = 0; i < MAX_TANDAS; i++) {
+        const { data: archivos, error } = await supabase.storage
+          .from('documentos')
+          .list('', { limit: TANDA, offset: desde })
+        if (error) return
+        if (!archivos?.length) break
+        totalBytes += archivos.reduce((s, f) => s + (f.metadata?.size || 0), 0)
+        desde += archivos.length
+      }
 
-      const totalBytes = archivos.reduce((s, f) => s + (f.metadata?.size || 0), 0)
       localStorage.setItem(KEY, String(ahora))
       if (totalBytes >= LIMITE_BYTES * UMBRAL) setAvisoAlmacenamiento(true)
     }
