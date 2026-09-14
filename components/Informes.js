@@ -298,41 +298,21 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
     })
     // Lo pagado con dinero común no lo ha puesto ninguno de los dos, así que
     // no genera deuda: se descuenta del total a repartir.
-    // Lo que le toca a cada uno. Por defecto a medias, salvo las categorías
-    // que tengan un reparto propio puesto en Ajustes (el alquiler, por ejemplo).
-    // El reparto puede estar puesto en la categoría o en una subcategoría
-    // concreta. La subcategoría manda sobre su categoría: así "Vivienda" puede
-    // ir al 60/40 y dentro "Alquiler" al 70/30.
-    const repartoCat = {}
-    const repartoSub = {}
-    for (const c of categoriasReparto) {
-      if (c.porcentaje_primero == null) continue
-      if (c.padre_id) repartoSub[c.nombre] = c.porcentaje_primero
-      else repartoCat[c.nombre] = c.porcentaje_primero
-    }
-    const repartoDeApunte = t => {
-      if (t.subcategoria && repartoSub[t.subcategoria] != null) return repartoSub[t.subcategoria]
-      return repartoCat[t.categoria]
-    }
+    //
+    // Cuánto le toca a cada uno. La regla (a medias, el porcentaje de la
+    // categoría o de la subcategoría, y los gastos a cargo de uno solo) vive
+    // en lib/reparto.js, que es la MISMA que usan la portada y "Lo mío".
+    // Aquí había una segunda copia de esa regla: esa duplicación fue la causa
+    // de que un arreglo entrara en una pantalla y no en la gemela.
     const [uno, otro] = NOMBRES
     const toca = { [uno]: 0, [otro]: 0 }
     comunes.forEach(t => {
       if (personaDeMedioPago(t.medio_pago, cuentas) === 'Común') return  // no lo puso nadie
-      const importe = Number(t.importe)
-      // Gasto de uno pagado por el otro: le toca entero a su dueño, y el
-      // reparto de la categoría no pinta nada. Es lo que genera la deuda.
-      if (t.a_cargo_de && toca[t.a_cargo_de] !== undefined) {
-        toca[t.a_cargo_de] += importe
-        return
-      }
-      const pct = repartoDeApunte(t)
-      const parteUno = pct == null ? importe / 2 : importe * pct / 100
-      toca[uno] += parteUno
-      toca[otro] += importe - parteUno
+      toca[uno] += miParte(t, uno)
+      toca[otro] += miParte(t, otro)
     })
     const aRepartir = totalComun - comunSinAsignar
     const tocaCadaUno = aRepartir / 2
-    const hayRepartoPropio = Object.keys(repartoCat).length + Object.keys(repartoSub).length > 0
 
     // Lo pagado en gastos se guarda aparte de los ajustes por liquidaciones:
     // mezclarlos en una sola cifra daba números que no se entienden (un
@@ -352,13 +332,13 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
     // Cuánto ha puesto cada uno de más (o de menos) respecto a lo que le tocaba
     const saldo = (puesto[uno] - toca[uno]) - (puesto[otro] - toca[otro])
     return {
-      totalComun, comunSinAsignar, aRepartir, tocaCadaUno, puesto, pagado, ajuste, toca, hayRepartoPropio,
+      totalComun, comunSinAsignar, aRepartir, tocaCadaUno, puesto, pagado, ajuste, toca,
       acreedor: saldo > 0 ? uno : otro,
       deudor: saldo > 0 ? otro : uno,
       // La deuda es la mitad de la diferencia entre lo que ha puesto cada uno.
       importe: Math.abs(saldo) / 2,
     }
-  }, [transacciones, cuentas, categoriasReparto])
+  }, [transacciones, cuentas, miParte])
 
   async function anotarPago() {
     const importe = parseFloat(String(importeSaldo).replace(',', '.'))
