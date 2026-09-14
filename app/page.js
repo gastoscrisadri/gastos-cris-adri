@@ -13,6 +13,7 @@ import { ocultar, euros, euros0 } from '@/lib/cifras'
 import { cargarCategorias } from '@/lib/categorias'
 import { construirReparto } from '@/lib/reparto'
 import { nombreDe } from '@/lib/identidad'
+import { hoy, mesDeHoy } from '@/lib/fechas'
 
 export default function Home() {
   // La app abre directamente en "nuevo apunte" con la cámara intentando
@@ -68,7 +69,7 @@ export default function Home() {
   useEffect(() => { cargarTransacciones() }, [cargarTransacciones])
 
   const cargarEventoActivo = useCallback(async () => {
-    const today = new Date().toISOString().split('T')[0]
+    const today = hoy()
     const { data: eventos } = await supabase.from('eventos').select('*').eq('archivado', false)
     if (!eventos?.length) { setEventoActivo(null); return }
 
@@ -120,7 +121,7 @@ export default function Home() {
 
   // Recordatorio mensual de backup
   useEffect(() => {
-    const mesActual = new Date().toISOString().slice(0, 7) // "2026-05"
+    const mesActual = mesDeHoy()
     const copiaHecha = localStorage.getItem('copiaCsvHecha') // mes en que se descargó
     if (copiaHecha !== mesActual) {
       const timer = setTimeout(() => setMostrarRecordatorioCopia(true), 3000)
@@ -134,7 +135,7 @@ export default function Home() {
   }
 
   function marcarCopiaHecha() {
-    const mesActual = new Date().toISOString().slice(0, 7)
+    const mesActual = mesDeHoy()
     localStorage.setItem('copiaCsvHecha', mesActual)
     setMostrarRecordatorioCopia(false)
   }
@@ -142,7 +143,7 @@ export default function Home() {
   // Auto-generación de apuntes recurrentes al cargar
   useEffect(() => {
     async function generarRecurrentes() {
-      const mesActual = new Date().toISOString().slice(0, 7)
+      const mesActual = mesDeHoy()
       const { data: recurrentes } = await supabase
         .from('apuntes_recurrentes')
         .select('*')
@@ -150,7 +151,33 @@ export default function Home() {
 
       if (!recurrentes?.length) return
 
-      const pendientes = recurrentes.filter(r => r.ultimo_generado !== mesActual)
+      const candidatos = recurrentes.filter(r => r.ultimo_generado !== mesActual)
+      if (!candidatos.length) return
+
+      // PEDIR EL TURNO ANTES DE CREAR NADA.
+      //
+      // Antes esto iba al revés: se miraba si estaba generado, se creaba, y
+      // después se marcaba. Si Cris y Adri abrían la app con unos segundos de
+      // diferencia --lo normal el día que llega el cargo-- los dos veían "aún
+      // no está" antes de que ninguno llegase a marcarlo, y los dos lo creaban:
+      // alquiler duplicado, y la cuenta de los dos descuadrada sin avisar.
+      //
+      // Ahora se marca PRIMERO, y solo si nadie lo había marcado ya. Esa
+      // condición la resuelve la base de datos, así que de dos móviles a la vez
+      // solo uno se lleva el turno. Y solo quien se lo lleva crea el apunte.
+      //
+      // Si algo fallara después, el gasto no se crearía y se vería enseguida.
+      // Es el lado seguro: mejor que falte y se note, a que se duplique y no.
+      const pendientes = []
+      for (const r of candidatos) {
+        const { data: ganado } = await supabase
+          .from('apuntes_recurrentes')
+          .update({ ultimo_generado: mesActual })
+          .eq('id', r.id)
+          .or(`ultimo_generado.is.null,ultimo_generado.neq.${mesActual}`)
+          .select('id')
+        if (ganado?.length) pendientes.push(r)
+      }
       if (!pendientes.length) return
 
       const [anio, mes] = mesActual.split('-')
@@ -171,11 +198,6 @@ export default function Home() {
       })
 
       await supabase.from('transacciones').insert(inserts)
-      await Promise.all(
-        pendientes.map(r =>
-          supabase.from('apuntes_recurrentes').update({ ultimo_generado: mesActual }).eq('id', r.id)
-        )
-      )
       await cargarTransacciones()
       mostrarToast(`🔄 ${pendientes.length} apunte${pendientes.length > 1 ? 's' : ''} fijo${pendientes.length > 1 ? 's' : ''} generado${pendientes.length > 1 ? 's' : ''}`)
     }
@@ -207,7 +229,7 @@ export default function Home() {
 
   // Balance del mes actual, visto desde quien está mirando.
   const balanceMes = useMemo(() => {
-    const mesActual = new Date().toISOString().slice(0, 7)
+    const mesActual = mesDeHoy()
     // Las liquidaciones (un pago de uno al otro) no son un gasto: ese dinero
     // cambia de bolsillo, no se gasta. Si contaran aquí, la portada diría que
     // habéis gastado de más.

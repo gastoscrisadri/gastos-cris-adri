@@ -7,6 +7,7 @@ import { ocultar, euros, euros0 } from '@/lib/cifras'
 import { cargarCuentas, personaDeMedioPago, soloActivas, CUENTAS_RESPALDO } from '@/lib/cuentas'
 import { NOMBRES, nombreDe } from '@/lib/identidad'
 import { cargarCategorias } from '@/lib/categorias'
+import { hoy } from '@/lib/fechas'
 import { construirReparto } from '@/lib/reparto'
 
 const COLORES = [
@@ -350,7 +351,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     const { error } = await supabase.from('transacciones').insert([{
-      fecha: new Date().toISOString().split('T')[0],
+      fecha: hoy(),
       importe,
       tipo: 'gasto',
       categoria: 'Ajuste de cuentas',
@@ -1170,7 +1171,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
           compartir sin enseñar los gastos particulares de nadie. */}
       <div className="space-y-2 pt-1">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Exportar a Excel</p>
-        <button onClick={() => exportarExcel(soloComunes(transacciones), `gastos_de_los_dos_${new Date().toISOString().slice(0,10)}.xlsx`)}
+        <button onClick={() => exportarExcel(soloComunes(transacciones), `gastos_de_los_dos_${hoy()}.xlsx`)}
           disabled={soloComunes(transacciones).length === 0}
           className="w-full py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold rounded-xl active:bg-emerald-100 disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
           <span>📥</span> Copia de los gastos de los dos (Excel)
@@ -1178,7 +1179,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
         <p className="text-[11px] text-gray-400 -mt-0.5">
           Sin gastos particulares de nadie. Es la que vale como copia de seguridad y se puede pasar al otro.
         </p>
-        <button onClick={() => exportarExcel(soloMios(transacciones), `mis_gastos_${new Date().toISOString().slice(0,10)}.xlsx`)}
+        <button onClick={() => exportarExcel(soloMios(transacciones), `mis_gastos_${hoy()}.xlsx`)}
           disabled={soloMios(transacciones).length === 0}
           className="w-full py-2.5 bg-gray-50 border border-gray-200 text-gray-600 font-semibold rounded-xl active:bg-gray-100 disabled:opacity-40 flex items-center justify-center gap-2 text-sm mt-2">
           <span>📥</span> Solo mis apuntes personales (Excel)
