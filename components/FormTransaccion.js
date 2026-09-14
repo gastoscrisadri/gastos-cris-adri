@@ -502,34 +502,6 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-300 font-bold">€</span>
       </div>
 
-      {/* Solo en los gastos: un ingreso es siempre de quien lo cobra, así
-          que no hay nada que preguntar. */}
-      {form.tipo !== 'ingreso' && (
-        <>
-        {/* De los dos o solo mío. Viene marcado "Común", que es lo más
-            frecuente viviendo juntos. Lo personal solo lo ve su dueño. */}
-        <div>
-          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">¿De quién es este gasto? *</label>
-          <div className="flex gap-2">
-            <button type="button" onClick={() => set('comun', true)}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun === true ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-400 border-gray-200'}`}>
-              De los dos
-            </button>
-            <button type="button" onClick={() => set('comun', false)}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun === false ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
-              Solo mío
-            </button>
-          </div>
-          {form.comun === false && (
-            <p className="text-xs text-gray-400 mt-1.5">Este gasto solo lo verás tú, y no entra en la cuenta de los dos.</p>
-          )}
-          {form.comun == null && (
-            <p className="text-xs text-gray-400 mt-1.5">Elige una de las dos: no se puede guardar sin decirlo.</p>
-          )}
-        </div>
-        </>
-      )}
-
       {/* Categoría */}
       <div>
         <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Categoría *</label>
@@ -686,6 +658,35 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
             </button>
           ) : null}
         </div>
+      )}
+
+      {/* De quién es el gasto. Va aquí, pegado a Guardar, y no entre el
+          importe y la categoría: son botones, y las flechas del teclado del
+          iPhone solo pasan por las casillas de escribir, así que en medio
+          de la cadena se lo saltaban. Solo en los gastos: un ingreso es
+          siempre de quien lo cobra. */}
+      {form.tipo !== 'ingreso' && (
+        <>
+        <div>
+          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">¿De quién es este gasto? *</label>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => set('comun', true)}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun === true ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-400 border-gray-200'}`}>
+              De los dos
+            </button>
+            <button type="button" onClick={() => set('comun', false)}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun === false ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
+              Solo mío
+            </button>
+          </div>
+          {form.comun === false && (
+            <p className="text-xs text-gray-400 mt-1.5">Este gasto solo lo verás tú, y no entra en la cuenta de los dos.</p>
+          )}
+          {form.comun == null && (
+            <p className="text-xs text-gray-400 mt-1.5">Elige una de las dos: no se puede guardar sin decirlo.</p>
+          )}
+        </div>
+        </>
       )}
 
       {error && <p className="text-red-500 text-sm bg-red-50 rounded-xl p-3">{error}</p>}
