@@ -83,7 +83,6 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   const notasRef = useRef()
   // Notas se pliega: es el campo que menos se rellena y así cabe más en la
   // pantalla. Se abre solo si el apunte que se edita ya trae algo escrito.
-  const [masDetalles, setMasDetalles] = useState(() => !!transaccionEditar?.descripcion)
   const subcategoriaRef = useRef()
   const medioPagoRef = useRef()
   const supabase = createClient()
@@ -183,16 +182,8 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
     e.preventDefault()
     const activo = document.activeElement
     if (activo === importeRef.current) categoriaRef.current?.focus()
-    else if (activo === establecimientoRef.current) irANotas()
+    else if (activo === establecimientoRef.current) notasRef.current?.focus()
     else if (activo === notasRef.current) medioPagoRef.current?.focus()
-  }
-
-  // Ir a Notas desde Establecimiento. Si están plegadas las abre y luego pone
-  // el cursor dentro; se pueden dejar vacías y seguir, pero al menos se ven.
-  function irANotas() {
-    if (notasRef.current) { notasRef.current.focus(); return }
-    setMasDetalles(true)
-    setTimeout(() => notasRef.current?.focus(), 0)
   }
 
   // Sigue a quien registra el apunte, no al dueño del móvil: si se edita un
@@ -269,9 +260,6 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           medio_pago: form.medio_pago,
         }
         setForm(f => ({ ...f, ...nuevo }))
-        // Si el ticket ha traído notas, se abre el desplegable: si no, se
-        // habría escrito algo que nadie ve.
-        if (nuevo.descripcion) setMasDetalles(true)
 
         const faltantes = []
         if (!nuevo.importe) faltantes.push('importe')
@@ -591,7 +579,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         <input ref={establecimientoRef} type="text" enterKeyHint="next" value={form.establecimiento} autoComplete="off"
           onChange={e => { set('establecimiento', e.target.value); filtrarSugerencias(e.target.value, historialEstablecimientos, setSugerenciasEstablecimiento) }}
           onBlur={() => setTimeout(() => setSugerenciasEstablecimiento([]), 150)}
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); irANotas() } }}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); notasRef.current?.focus() } }}
           placeholder="Mercadona, Empresa S.L., ..."
           className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
         {sugerenciasEstablecimiento.length > 0 && (
@@ -608,16 +596,13 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         )}
       </div>
 
-      {/* Notas, plegado por defecto */}
-      {!masDetalles ? (
-        <button type="button" onClick={() => setMasDetalles(true)}
-          className="w-full text-xs font-semibold text-gray-400 py-1.5">
-          Más detalles ▾
-        </button>
-      ) : (
+      {/* Notas. Tiene que estar SIEMPRE en la página, aunque se deje vacía:
+          las flechas de encima del teclado del iPhone las pone Safari mirando
+          los campos que hay, y si este no está, la flecha de bajar se apaga y
+          desde Establecimiento solo se puede subir a Fecha. */}
       <div className="relative">
         <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Notas (opcional)</label>
-        <input ref={notasRef} type="text" enterKeyHint="done" value={form.descripcion} autoComplete="off"
+        <input ref={notasRef} type="text" enterKeyHint="next" value={form.descripcion} autoComplete="off"
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); medioPagoRef.current?.focus() } }}
           onChange={e => { set('descripcion', e.target.value); filtrarSugerencias(e.target.value, historialNotas, setSugerenciasNotas) }}
           onBlur={() => setTimeout(() => setSugerenciasNotas([]), 150)}
@@ -636,7 +621,6 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           </ul>
         )}
       </div>
-      )}
 
       {/* Medio de pago — scroll horizontal */}
       <div>
