@@ -5,6 +5,56 @@ import { createClient } from '@/lib/supabase/client'
 import { cargarCategorias } from '@/lib/categorias'
 import { NOMBRES } from '@/lib/identidad'
 
+function EditorReparto({ item, esSub, onGuardar, onQuitar }) {
+  // Se monta al abrir el desplegable, así que el valor de partida es el
+  // guardado. Se escribe en su propio estado, no en la base de datos.
+  const [texto, setTexto] = useState(() =>
+    item.porcentaje_primero != null ? String(item.porcentaje_primero).replace('.', ',') : '50')
+  const [guardado, setGuardado] = useState(false)
+
+  // Vale con coma o con punto: aquí se escribe con coma.
+  const num = parseFloat(String(texto).replace(',', '.'))
+  const valido = !isNaN(num) && num >= 0 && num <= 100
+  const cambiado = !valido || item.porcentaje_primero == null || Math.abs(num - item.porcentaje_primero) > 0.00005
+
+  async function guardar() {
+    if (!valido) return
+    await onGuardar(num)
+    setGuardado(true)
+    setTimeout(() => setGuardado(false), 2000)
+  }
+
+  const corto = n => Number(n).toLocaleString('es-ES', { maximumFractionDigits: 4 })
+
+  return (
+    <div className={esSub ? 'w-full mt-2 pt-2 border-t border-gray-100 space-y-2' : 'space-y-2'}>
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-xs text-gray-500 shrink-0">{NOMBRES[0]} paga el</span>
+        <input type="text" inputMode="decimal" value={texto}
+          onChange={e => setTexto(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); guardar() } }}
+          className={`w-20 px-2 py-1 border rounded-lg text-sm text-center ${valido ? 'border-gray-200' : 'border-red-300 bg-red-50'}`} />
+        <span className="text-xs text-gray-500">%</span>
+        <button type="button" onClick={guardar} disabled={!valido || !cambiado}
+          className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-teal-600 text-white disabled:bg-gray-200 disabled:text-gray-400">
+          Guardar
+        </button>
+        {guardado && <span className="text-xs font-semibold text-teal-600">Guardado ✓</span>}
+      </div>
+      <p className="text-xs text-gray-400">
+        {valido
+          ? `A ${NOMBRES[1]} le toca el ${corto(100 - num)} %. Se puede escribir con coma: 66,6667`
+          : 'Pon un número entre 0 y 100.'}
+      </p>
+      {item.porcentaje_primero != null && (
+        <button type="button" onClick={onQuitar} className="text-xs text-gray-400 underline">
+          {esSub ? 'como la categoría' : 'Volver a medias'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function GestionCategorias() {
   const [categorias, setCategorias] = useState([])
   const [vistaFiltro, setVistaFiltro] = useState('gasto')
@@ -184,19 +234,9 @@ export default function GestionCategorias() {
                   <p className="text-xs text-gray-500">
                     Cómo se reparte <b>{cat.nombre}</b> entre los dos. Afecta a «La cuenta de los dos» de Informes.
                   </p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500 shrink-0">{NOMBRES[0]} paga el</span>
-                    <input type="number" min="0" max="100"
-                      value={cat.porcentaje_primero ?? 50}
-                      step="0.0001"
-                      onChange={e => cambiarReparto(cat, Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)))}
-                      className="w-16 px-2 py-1 border border-gray-200 rounded-lg text-sm text-center" />
-                    <span className="text-xs text-gray-500">% · a {NOMBRES[1]} le toca el {corto(100 - (cat.porcentaje_primero ?? 50))}%</span>
-                  </div>
-                  {cat.porcentaje_primero != null && (
-                    <button onClick={() => cambiarReparto(cat, null)}
-                      className="text-xs text-gray-400 underline">Volver a medias</button>
-                  )}
+                  <EditorReparto item={cat}
+                    onGuardar={v => cambiarReparto(cat, v)}
+                    onQuitar={() => cambiarReparto(cat, null)} />
                 </div>
               )}
 
@@ -229,19 +269,9 @@ export default function GestionCategorias() {
                         </>
                       )}
                       {repartoAbierto === sub.id && (
-                        <div className="w-full mt-2 pt-2 border-t border-gray-100 flex items-center gap-2 flex-wrap">
-                          <span className="text-xs text-gray-500">{NOMBRES[0]} paga el</span>
-                          <input type="number" min="0" max="100"
-                            value={sub.porcentaje_primero ?? 50}
-                            step="0.0001"
-                            onChange={e => cambiarReparto(sub, Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)))}
-                            className="w-14 px-2 py-1 border border-gray-200 rounded-lg text-xs text-center" />
-                          <span className="text-xs text-gray-500">% de «{sub.nombre}»</span>
-                          {sub.porcentaje_primero != null && (
-                            <button onClick={() => cambiarReparto(sub, null)}
-                              className="text-xs text-gray-400 underline">como la categoría</button>
-                          )}
-                        </div>
+                        <EditorReparto item={sub} esSub
+                          onGuardar={v => cambiarReparto(sub, v)}
+                          onQuitar={() => cambiarReparto(sub, null)} />
                       )}
                     </div>
                   ))}
