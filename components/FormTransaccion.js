@@ -5,10 +5,10 @@ import { createClient } from '@/lib/supabase/client'
 import { cargarCategorias, principalesPorTipo, subcategoriasDeCategoria } from '@/lib/categorias'
 import { cargarCuentas, ordenarPara, personaDeMedioPago, CUENTAS_RESPALDO } from '@/lib/cuentas'
 import { NOMBRES, nombreDe, guardarNombre } from '@/lib/identidad'
+import { hoy } from '@/lib/fechas'
 
 
 const FORM_VACIO = {
-  fecha: new Date().toISOString().split('T')[0],
   importe: '',
   tipo: 'gasto',
   categoria: '',
@@ -29,7 +29,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   const [form, setForm] = useState(() => {
     if (transaccionEditar) {
       return {
-        fecha: transaccionEditar.fecha || FORM_VACIO.fecha,
+        fecha: transaccionEditar.fecha || hoy(),
         importe: transaccionEditar.importe != null ? String(transaccionEditar.importe) : '',
         tipo: transaccionEditar.tipo || 'gasto',
         categoria: transaccionEditar.categoria || '',
@@ -49,6 +49,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
     const recordado = nombreDe(usuario)
     return {
       ...FORM_VACIO,
+      fecha: hoy(),
       quien: recordado || '',
       evento_id: eventoActivo?.id || null,
     }
