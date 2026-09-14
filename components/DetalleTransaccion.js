@@ -161,7 +161,9 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
             label="De quién es"
             valor={t.liquidacion_a
               ? `Ajuste de cuentas · pago a ${t.liquidacion_a}`
-              : t.comun === false ? 'Personal, solo lo ves tú' : 'De los dos'}
+              : t.a_cargo_de
+                ? `Gasto de ${t.a_cargo_de} · lo pagó el otro, por eso lo veis los dos`
+                : t.comun === false ? 'Personal, solo lo ves tú' : 'De los dos'}
           />
           {t.quien && <Fila label="Registrado por" valor={t.quien} />}
           {t.descripcion && <Fila label="Notas" valor={t.descripcion} />}

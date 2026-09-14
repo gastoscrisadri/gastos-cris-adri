@@ -20,6 +20,7 @@ const FORM_VACIO = {
   // Nada marcado a propósito: si viniera "De los dos" por defecto, un descuido
   // grabaría como común un gasto que es de uno solo. Hay que elegir.
   comun: null,
+  a_cargo_de: null,
 }
 
 export default function FormTransaccion({ usuario, onGuardado, onCancelar, transaccionEditar, onEliminar, eventoActivo, autoAbrirCamara }) {
@@ -38,6 +39,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         medio_pago: transaccionEditar.medio_pago || '',
         quien: transaccionEditar.quien || '',
         comun: transaccionEditar.comun !== false,
+        a_cargo_de: transaccionEditar.a_cargo_de || null,
         evento_id: transaccionEditar.evento_id || null,
       }
     }
@@ -346,7 +348,8 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       // Los ingresos no se reparten: cada nómina es de quien la cobra, así que
       // van siempre como personales y solo los ve su dueño. El botón "De los
       // dos" ni siquiera se enseña cuando el tipo es ingreso.
-      comun: form.tipo === 'ingreso' ? false : form.comun === true,
+      comun: form.tipo === 'ingreso' ? false : (personalConTarjetaAjena ? true : form.comun === true),
+      a_cargo_de: personalConTarjetaAjena ? form.quien : null,
       imagen_url,
       evento_id: form.evento_id || null,
     }
@@ -695,10 +698,12 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
             <p className="text-xs text-gray-400 mt-1.5">Este gasto solo lo verás tú, y no entra en la cuenta de los dos.</p>
           )}
           {personalConTarjetaAjena && (
-            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-2.5 mt-1.5 leading-snug">
-              Lo pagas con «{form.medio_pago}», que es de {duenoDelMedio}, pero lo marcas como tuyo.
-              Ese dinero lo ha puesto {duenoDelMedio} y <b>no entra en la cuenta de los dos</b> — ni podrá verlo.
-              Si hay que ajustarlo, márcalo «De los dos» o apuntad el pago aparte.
+            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-2.5 mt-1.5 leading-snug">
+              Lo pagas con «{form.medio_pago}», que es de {duenoDelMedio}. Si lo guardas así:
+              <br />· El gasto sigue siendo <b>tuyo entero</b>, no se reparte ni cuenta como gasto de los dos.
+              <br />· <b>{duenoDelMedio} verá este apunte</b>, porque lo ha pagado.
+              <br />· Y quedará que <b>le debes {form.importe ? form.importe + ' €' : 'ese importe'}</b>.
+              <br />Si te has equivocado de tarjeta, cámbiala.
             </p>
           )}
           {form.comun == null && (
