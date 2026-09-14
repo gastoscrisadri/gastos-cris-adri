@@ -55,14 +55,46 @@ export default function Home() {
     setAutoAbrirCamara(false)
   }, [])
 
+  // Los apuntes se piden POR TANDAS, no de una vez.
+  //
+  // Supabase no devuelve más de unos 1.000 de golpe, y no avisa de nada:
+  // manda los primeros y se queda tan ancho. La cuenta de los dos se calcula
+  // desde el principio de los tiempos, así que en cuanto se cayeran los
+  // apuntes viejos la deuda saldría mal SIN dar ningún error. Con unos 100
+  // apuntes al mes entre los dos, eso llegaría en menos de un año.
+  //
+  // Si una tanda falla no se pisan los datos que ya había: mejor quedarse con
+  // lo de antes y avisar, que enseñar media contabilidad como si fuera entera.
   const cargarTransacciones = useCallback(async () => {
     setCargando(true)
-    const { data } = await supabase
-      .from('transacciones')
-      .select('*')
-      .order('fecha', { ascending: false })
-      .order('created_at', { ascending: false })
-    if (data) setTransacciones(data)
+    const TANDA = 1000
+    const MAX_TANDAS = 50   // 50.000 apuntes; tope para no dar vueltas sin fin
+    const todos = []
+    let fallo = false
+    // Se avanza por lo que ha venido DE VERDAD, no por lo que se ha pedido.
+    // Si el servidor tuviera un tope más bajo que TANDA, contar de mil en mil
+    // se saltaría apuntes; así funciona sea cual sea su tope.
+    let desde = 0
+
+    for (let i = 0; i < MAX_TANDAS; i++) {
+      const { data, error } = await supabase
+        .from('transacciones')
+        .select('*')
+        .order('fecha', { ascending: false })
+        .order('created_at', { ascending: false })
+        .range(desde, desde + TANDA - 1)
+
+      if (error) { fallo = true; break }
+      if (!data?.length) break         // no queda nada más
+      todos.push(...data)
+      desde += data.length
+    }
+
+    if (fallo) {
+      mostrarToast('⚠️ No se han podido cargar todos los apuntes. Vuelve a abrir la app.')
+    } else {
+      setTransacciones(todos)
+    }
     setCargando(false)
   }, [])
 
