@@ -13,7 +13,7 @@ import { ocultar, euros, euros0 } from '@/lib/cifras'
 import { cargarCategorias } from '@/lib/categorias'
 import { construirReparto } from '@/lib/reparto'
 import { nombreDe } from '@/lib/identidad'
-import { hoy, mesDeHoy } from '@/lib/fechas'
+import { hoy, mesDeHoy, mesesEntre } from '@/lib/fechas'
 
 export default function Home() {
   // La app abre directamente en "nuevo apunte" con la cámara intentando
@@ -36,6 +36,10 @@ export default function Home() {
   const [usuario, setUsuario] = useState(null)
   const [toast, setToast] = useState(null)
   const [mostrarRecordatorioCopia, setMostrarRecordatorioCopia] = useState(false)
+  // Meses enteros desde la última copia. Con 2 o más el aviso cambia de tono:
+  // una sugerencia que se cierra y se olvida no sirve para algo que, si falla,
+  // se pierde y no se recupera.
+  const [mesesSinCopia, setMesesSinCopia] = useState(0)
   const [avisoAlmacenamiento, setAvisoAlmacenamiento] = useState(false)
   const [eventoActivo, setEventoActivo] = useState(null)
   const [eventoDetalle, setEventoDetalle] = useState(null)
@@ -176,6 +180,7 @@ export default function Home() {
     const mesActual = mesDeHoy()
     const copiaHecha = localStorage.getItem('copiaCsvHecha') // mes en que se descargó
     if (copiaHecha !== mesActual) {
+      setMesesSinCopia(mesesEntre(copiaHecha, mesActual))
       const timer = setTimeout(() => setMostrarRecordatorioCopia(true), 3000)
       return () => clearTimeout(timer)
     }
@@ -186,10 +191,14 @@ export default function Home() {
     setMostrarRecordatorioCopia(false)
   }
 
+  // Se llama desde Informes cuando la descarga ha terminado de verdad.
+  // Antes se daba por hecha al pulsar "Ir a Informes", así que bastaba con
+  // asomarse a la pantalla para que el aviso callara un mes entero sin que
+  // existiera ninguna copia.
   function marcarCopiaHecha() {
-    const mesActual = mesDeHoy()
-    localStorage.setItem('copiaCsvHecha', mesActual)
+    localStorage.setItem('copiaCsvHecha', mesDeHoy())
     setMostrarRecordatorioCopia(false)
+    setMesesSinCopia(0)
   }
 
   // Auto-generación de apuntes recurrentes al cargar
@@ -531,7 +540,7 @@ export default function Home() {
           </div>
         )}
         {vista === 'informes' && !mostrarFormulario && (
-          <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} />
+          <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} onCopiaDescargada={marcarCopiaHecha} />
         )}
         {vista === 'ajustes' && !mostrarFormulario && (
           <Ajustes usuario={usuario} transacciones={transacciones} onVerDetalleEvento={ev => setEventoDetalle(ev)} mostrarCifras={mostrarCifras} />
@@ -616,20 +625,30 @@ export default function Home() {
           <div className="absolute inset-0 bg-black/40" onClick={posponerRecordatorio} />
           <div className="relative w-full max-w-lg bg-white rounded-t-3xl px-6 pt-6 pb-10 shadow-2xl animate-fade-in">
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
-            <div className="text-4xl text-center mb-3">💾</div>
-            <h2 className="text-lg font-bold text-gray-900 text-center mb-1">Copia de seguridad</h2>
-            <p className="text-sm text-gray-500 text-center mb-6">
-              Descarga tus datos una vez al mes para tenerlos a salvo si algo falla con el servidor.
+            {/* A partir de dos meses el aviso cambia de tono. No hay copias
+                automáticas a propósito (una copia entera dejaría ver los gastos
+                personales del otro), así que esto es lo único que hay entre
+                vosotros y perder la contabilidad. */}
+            <div className="text-4xl text-center mb-3">{mesesSinCopia >= 2 ? '⚠️' : '💾'}</div>
+            <h2 className={`text-lg font-bold text-center mb-1 ${mesesSinCopia >= 2 ? 'text-red-600' : 'text-gray-900'}`}>
+              {mesesSinCopia >= 2 ? 'Lleváis sin copia de seguridad' : 'Copia de seguridad'}
+            </h2>
+            <p className={`text-sm text-center mb-6 ${mesesSinCopia >= 2 ? 'text-gray-700' : 'text-gray-500'}`}>
+              {mesesSinCopia >= 99
+                ? <>Todavía no habéis descargado ninguna copia. Si algo le pasara al servidor, <b>no habría forma de recuperar nada</b>.</>
+                : mesesSinCopia >= 2
+                  ? <>Han pasado <b>{mesesSinCopia} meses</b> desde la última. Si algo le pasara al servidor, se perdería todo lo apuntado desde entonces.</>
+                  : <>Descarga tus datos una vez al mes para tenerlos a salvo si algo falla con el servidor.</>}
             </p>
             <button
-              onClick={() => { marcarCopiaHecha(); setVista('informes') }}
-              className="w-full py-3.5 bg-[#0d1b2a] text-white font-bold rounded-2xl text-sm mb-3">
+              onClick={() => { setMostrarRecordatorioCopia(false); setVista('informes') }}
+              className={`w-full py-3.5 text-white font-bold rounded-2xl text-sm mb-3 ${mesesSinCopia >= 2 ? 'bg-red-600' : 'bg-[#0d1b2a]'}`}>
               📥 Ir a Informes y descargar
             </button>
             <button
               onClick={posponerRecordatorio}
               className="w-full py-3 text-gray-400 font-medium text-sm">
-              Recordar la próxima vez que entre
+              {mesesSinCopia >= 2 ? 'Ahora no puedo' : 'Recordar la próxima vez que entre'}
             </button>
           </div>
         </div>
