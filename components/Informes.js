@@ -209,7 +209,7 @@ function calcularDatos(lista, cuentas) {
     return { totalGastos, totalIngresos, balance: totalIngresos - totalGastos, categorias, medios, personas }
 }
 
-export default function Informes({ transacciones, mostrarCifras, onCambio }) {
+export default function Informes({ transacciones, mostrarCifras, onCambio, onCopiaDescargada }) {
   // Se cargan antes que nada: de ellas salen los emojis, los saldos y
   // el reparto de "quién puso el dinero".
   const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
@@ -1171,7 +1171,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio }) {
           compartir sin enseñar los gastos particulares de nadie. */}
       <div className="space-y-2 pt-1">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Exportar a Excel</p>
-        <button onClick={() => exportarExcel(soloComunes(transacciones), `gastos_de_los_dos_${hoy()}.xlsx`)}
+        <button onClick={async () => { await exportarExcel(soloComunes(transacciones), `gastos_de_los_dos_${hoy()}.xlsx`); onCopiaDescargada?.() }}
           disabled={soloComunes(transacciones).length === 0}
           className="w-full py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold rounded-xl active:bg-emerald-100 disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
           <span>📥</span> Copia de los gastos de los dos (Excel)
