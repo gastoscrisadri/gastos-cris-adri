@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { createClient } from '@/lib/supabase/client'
 import { ocultar, euros, euros0 } from '@/lib/cifras'
@@ -21,6 +21,13 @@ const COLORES = [
   '#0ea5e9','#a855f7','#10b981','#f59e0b','#6366f1',
   '#d946ef','#64748b',
 ]
+
+// "17 de septiembre" a partir de la fecha y hora que guarda la base de datos.
+const fechaCorta = iso => {
+  try {
+    return new Date(iso).toLocaleDateString('es', { day: 'numeric', month: 'long' })
+  } catch { return '' }
+}
 
 const EMOJI_PERSONA = {
   'Cris': '👤',
@@ -197,6 +204,18 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
   }, [])
 
   // Para saber si alguna categoría no va a medias (p. ej. el alquiler)
+  // El último cierre: desde ahí empieza a contar la cuenta de los dos. Si no
+  // hay ninguno, queda en null y todo se calcula como siempre, desde el
+  // principio.
+  const [ultimoCierre, setUltimoCierre] = useState(null)
+  const cargarCierres = useCallback(async () => {
+    const { data } = await createClient()
+      .from('cierres').select('created_at, quien')
+      .order('created_at', { ascending: false }).limit(1)
+    setUltimoCierre(data?.[0] || null)
+  }, [])
+  useEffect(() => { cargarCierres() }, [cargarCierres])
+
   const [categoriasReparto, setCategoriasReparto] = useState([])
   useEffect(() => { cargarCategorias().then(setCategoriasReparto) }, [])
 
@@ -266,7 +285,26 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
   // El cálculo vive en lib/deuda.js: lo usan esta pantalla y el resumen del
   // mes cerrado de la portada. Aquí solo se envuelve para no recalcularlo
   // en cada repintado.
-  const deuda = useMemo(() => calcularDeuda(transacciones, cuentas, miParte), [transacciones, cuentas, miParte])
+  const deuda = useMemo(
+    () => calcularDeuda(transacciones, cuentas, miParte, ultimoCierre?.created_at || null),
+    [transacciones, cuentas, miParte, ultimoCierre]
+  )
+
+  // Cerrar la cuenta: a partir de ahora se empieza de cero.
+  //
+  // SOLO se puede cuando el saldo está a cero. Es lo que hace que sea seguro:
+  // si se pudiera cerrar debiendo 200 €, esos 200 € desaparecerían. Como no
+  // hay nada que repartir, da igual cuál de los dos lo cierre.
+  const [cerrando, setCerrando] = useState(false)
+  async function cerrarCuenta() {
+    if (deuda.importe >= 0.01) return   // cinturón: el botón ya no sale, pero por si acaso
+    setCerrando(true)
+    const { error } = await createClient().from('cierres').insert([{ quien: yo || null }])
+    setCerrando(false)
+    if (error) return
+    await cargarCierres()
+    onCambio?.()
+  }
 
   async function anotarPago() {
     const importe = parseFloat(String(importeSaldo).replace(',', '.'))
@@ -738,11 +776,15 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
             {deuda.importe < 0.01 ? (
               <>
                 <p className="text-base font-bold text-white">Estáis en paz</p>
-                <p className="text-xs text-[#8fa6c9] mt-1">Habéis puesto lo mismo los dos</p>
+                <p className="text-xs text-[#8fa6c9] mt-1">
+                  {ultimoCierre ? `Desde el cierre del ${fechaCorta(ultimoCierre.created_at)}` : 'Habéis puesto lo mismo los dos'}
+                </p>
               </>
             ) : (
               <>
-                <p className="text-[10px] uppercase tracking-widest text-[#8fa6c9] mb-1.5">En total, desde el principio</p>
+                <p className="text-[10px] uppercase tracking-widest text-[#8fa6c9] mb-1.5">
+                  {ultimoCierre ? `Desde el cierre del ${fechaCorta(ultimoCierre.created_at)}` : 'En total, desde el principio'}
+                </p>
                 <p className="text-lg font-bold text-white leading-snug">
                   {deuda.deudor} le debe {ocultar(mostrarCifras, `${euros(deuda.importe)} €`)} a {deuda.acreedor}
                 </p>
@@ -776,6 +818,21 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
             <p className="text-xs text-gray-400">
               No cuentan {ocultar(mostrarCifras, `${euros(deuda.comunSinAsignar)} €`)} pagados con dinero común: no los ha puesto ninguno de los dos.
             </p>
+          )}
+
+          {/* Cerrar la cuenta. Solo aparece estando en paz: es lo que hace que
+              no se pueda perder dinero de nadie al cerrar. */}
+          {deuda.importe < 0.01 && (
+            <div className="space-y-1.5">
+              <button type="button" onClick={cerrarCuenta} disabled={cerrando}
+                className="w-full py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-2xl text-sm disabled:opacity-50">
+                {cerrando ? 'Cerrando…' : '🔒 Cerrar la cuenta y empezar de cero'}
+              </button>
+              <p className="text-xs text-gray-400 leading-snug">
+                Los gastos se quedan donde están; lo único que cambia es que la cuenta de los
+                dos empieza a contar desde hoy. Así se entiende mejor de dónde sale cada cifra.
+              </p>
+            </div>
           )}
           {/* Saldar: anota que uno le ha pagado al otro. No es un gasto —
               ese dinero cambia de bolsillo, no se gasta— así que no entra
