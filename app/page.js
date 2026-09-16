@@ -16,6 +16,7 @@ import { nombreDe } from '@/lib/identidad'
 import { hoy, mesDeHoy, mesesEntre } from '@/lib/fechas'
 import { esDeLaCasa, esLiquidacion, gastoDeLaCasaDelMes } from '@/lib/apuntes'
 import { cargarCuentas, personaDeMedioPago, CUENTAS_RESPALDO } from '@/lib/cuentas'
+import { calcularDeuda } from '@/lib/deuda'
 
 export default function Home() {
   // La app abre directamente en "nuevo apunte", que es lo que más se hace.
@@ -40,6 +41,7 @@ export default function Home() {
   // primera vez del mes nuevo. Antes había que acordarse de entrar en Informes
   // y mirar tres sitios; ahora el cierre del mes te sale al paso.
   const [mostrarResumenMes, setMostrarResumenMes] = useState(false)
+  const [abrirInformesEn, setAbrirInformesEn] = useState(null)
   const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
   useEffect(() => { cargarCuentas().then(setCuentas) }, [])
   // Meses enteros desde la última copia. Con 2 o más el aviso cambia de tono:
@@ -175,9 +177,8 @@ export default function Home() {
     comprobarAlmacenamiento()
   }, [])
 
+
   // Lo gastado entre los dos el mes pasado, y cuánto puso cada uno. La deuda
-  // NO se calcula aquí: vive en Informes y es el cálculo más delicado de la
-  // app. Desde esta tarjeta se va allí a verla, que ya sale bien.
   const resumenMes = useMemo(() => {
     const d = new Date()
     d.setDate(1)                 // primero el día, o al restar un mes se va al mes que no es
@@ -332,6 +333,10 @@ export default function Home() {
   useEffect(() => { cargarCategorias().then(setCategoriasReparto) }, [])
   const miParte = useMemo(() => construirReparto(categoriasReparto), [categoriasReparto])
 
+  // La cuenta de los dos, del MISMO cálculo que usa Informes (lib/deuda.js).
+  // No es una copia: es la misma función.
+  const deuda = useMemo(() => calcularDeuda(transacciones, cuentas, miParte), [transacciones, cuentas, miParte])
+
   // Balance del mes actual, visto desde quien está mirando.
   const balanceMes = useMemo(() => {
     const mesActual = mesDeHoy()
@@ -391,6 +396,7 @@ export default function Home() {
 
   function cambiarVista(nuevaVista) {
     setTransaccionEditar(null)
+    setAbrirInformesEn(null)   // navegando a mano, Informes abre donde siempre
     setVista(nuevaVista)
     if (nuevaVista !== 'ajustes') cargarEventoActivo()
   }
@@ -583,7 +589,7 @@ export default function Home() {
           </div>
         )}
         {vista === 'informes' && !mostrarFormulario && (
-          <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} onCopiaDescargada={marcarCopiaHecha} />
+          <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} onCopiaDescargada={marcarCopiaHecha} abrirEn={abrirInformesEn} />
         )}
         {vista === 'ajustes' && !mostrarFormulario && (
           <Ajustes usuario={usuario} transacciones={transacciones} onVerDetalleEvento={ev => setEventoDetalle(ev)} mostrarCifras={mostrarCifras} />
@@ -692,13 +698,38 @@ export default function Home() {
               ))}
             </div>
 
+            {/* La cuenta de los dos sale del mismo cálculo que Informes
+                (lib/deuda.js), no de una copia. Si están en paz no se enseña
+                el botón de saldar: no habría nada que saldar. */}
+            {deuda.importe >= 0.01 ? (
+              <>
+                <div className="bg-[#0d1b2a] rounded-2xl px-4 py-3 text-center mb-4">
+                  <p className="text-[10px] font-bold text-[#8fa6c9] uppercase tracking-widest">La cuenta de los dos</p>
+                  <p className="text-base font-bold text-white mt-1 leading-snug">
+                    {deuda.deudor} le debe {ocultar(mostrarCifras, `${euros(deuda.importe)} €`)} a {deuda.acreedor}
+                  </p>
+                </div>
+                <button
+                  onClick={() => { cerrarResumenMes(); setAbrirInformesEn({ vista: 'nosotros', saldar: true }); setVista('informes') }}
+                  className="w-full py-3.5 bg-teal-600 text-white font-bold rounded-2xl text-sm mb-2.5">
+                  🤝 Saldar cuentas
+                </button>
+              </>
+            ) : (
+              <div className="bg-[#0d1b2a] rounded-2xl px-4 py-3 text-center mb-4">
+                <p className="text-base font-bold text-white">Estáis en paz</p>
+              </div>
+            )}
+
+            {/* La copia del mes se ofrece aquí, que es cuando toca: el mes
+                acaba de cerrarse. Así no hacen falta dos ventanas seguidas. */}
             <button
-              onClick={() => { cerrarResumenMes(); setVista('informes') }}
-              className="w-full py-3.5 bg-[#0d1b2a] text-white font-bold rounded-2xl text-sm mb-3">
-              Ver la cuenta de los dos
+              onClick={() => { cerrarResumenMes(); setAbrirInformesEn({ vista: 'historico' }); setVista('informes') }}
+              className="w-full py-3.5 bg-[#0d1b2a] text-white font-bold rounded-2xl text-sm mb-2.5">
+              📥 Descargar la copia
             </button>
             <button onClick={cerrarResumenMes} className="w-full py-3 text-gray-400 font-medium text-sm">
-              Cerrar
+              Ahora no
             </button>
           </div>
         </div>

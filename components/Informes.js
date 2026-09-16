@@ -9,6 +9,7 @@ import { NOMBRES, nombreDe } from '@/lib/identidad'
 import { cargarCategorias } from '@/lib/categorias'
 import { hoy } from '@/lib/fechas'
 import { construirReparto } from '@/lib/reparto'
+import { calcularDeuda } from '@/lib/deuda'
 // Las reglas de qué es cada apunte viven en lib/apuntes.js, no aquí: las usan
 // también la portada y lo que venga, y copiarlas es lo que ha causado que un
 // arreglo entrara en una pantalla y no en su gemela.
@@ -183,7 +184,7 @@ function calcularDatos(lista, cuentas) {
     return { totalGastos, totalIngresos, balance: totalIngresos - totalGastos, categorias, medios, personas }
 }
 
-export default function Informes({ transacciones, mostrarCifras, onCambio, onCopiaDescargada }) {
+export default function Informes({ transacciones, mostrarCifras, onCambio, onCopiaDescargada, abrirEn }) {
   // Se cargan antes que nada: de ellas salen los emojis, los saldos y
   // el reparto de "quién puso el dinero".
   const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
@@ -208,7 +209,9 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
   const [tabActiva, setTabActiva] = useState('gasto')
   // Informes se divide en tres pestañas para que cada pregunta tenga su
   // sitio: el mes corriente, la cuenta entre los dos, y el histórico.
-  const [vista, setVista] = useState('mes')
+  // abrirEn deja que la portada mande abrir esta pantalla en un sitio concreto:
+  // el resumen del mes cerrado lleva directo a saldar la cuenta.
+  const [vista, setVista] = useState(abrirEn?.vista || 'mes')
   // De quién son los apuntes que se enseñan en "Mes": todo, los de los dos,
   // o los particulares de quien mira. Arranca en los de los dos.
   const [deQuien, setDeQuien] = useState('comunes')  // 'comunes' | 'mios'
@@ -260,60 +263,10 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
   // La cuenta de los dos NO es del mes: es un saldo acumulado desde el
   // principio, como se acordó. Por eso se calcula sobre todas las
   // transacciones y no sobre las del mes seleccionado.
-  const deuda = useMemo(() => {
-    const comunes = transacciones.filter(t => t.tipo === 'gasto' && t.comun !== false && !esLiquidacion(t))
-    const totalComun = comunes.reduce((s, t) => s + Number(t.importe), 0)
-    const puesto = {}
-    for (const n of NOMBRES) puesto[n] = 0
-    let comunSinAsignar = 0
-    comunes.forEach(t => {
-      const quien = personaDeMedioPago(t.medio_pago, cuentas)
-      if (puesto[quien] === undefined) { comunSinAsignar += Number(t.importe); return }
-      puesto[quien] += Number(t.importe)
-    })
-    // Lo pagado con dinero común no lo ha puesto ninguno de los dos, así que
-    // no genera deuda: se descuenta del total a repartir.
-    //
-    // Cuánto le toca a cada uno. La regla (a medias, el porcentaje de la
-    // categoría o de la subcategoría, y los gastos a cargo de uno solo) vive
-    // en lib/reparto.js, que es la MISMA que usan la portada y "Lo mío".
-    // Aquí había una segunda copia de esa regla: esa duplicación fue la causa
-    // de que un arreglo entrara en una pantalla y no en la gemela.
-    const [uno, otro] = NOMBRES
-    const toca = { [uno]: 0, [otro]: 0 }
-    comunes.forEach(t => {
-      if (personaDeMedioPago(t.medio_pago, cuentas) === 'Común') return  // no lo puso nadie
-      toca[uno] += miParte(t, uno)
-      toca[otro] += miParte(t, otro)
-    })
-    const aRepartir = totalComun - comunSinAsignar
-    const tocaCadaUno = aRepartir / 2
-
-    // Lo pagado en gastos se guarda aparte de los ajustes por liquidaciones:
-    // mezclarlos en una sola cifra daba números que no se entienden (un
-    // "ha puesto" en negativo, por ejemplo).
-    const pagado = { ...puesto }
-    const ajuste = {}
-    for (const n of NOMBRES) ajuste[n] = 0
-    transacciones.filter(esLiquidacion).forEach(t => {
-      const importe = Number(t.importe)
-      const paga = t.quien
-      const cobra = t.liquidacion_a
-      if (ajuste[paga] !== undefined) ajuste[paga] += importe
-      if (ajuste[cobra] !== undefined) ajuste[cobra] -= importe
-    })
-    for (const n of NOMBRES) puesto[n] = pagado[n] + ajuste[n]
-
-    // Cuánto ha puesto cada uno de más (o de menos) respecto a lo que le tocaba
-    const saldo = (puesto[uno] - toca[uno]) - (puesto[otro] - toca[otro])
-    return {
-      totalComun, comunSinAsignar, aRepartir, tocaCadaUno, puesto, pagado, ajuste, toca,
-      acreedor: saldo > 0 ? uno : otro,
-      deudor: saldo > 0 ? otro : uno,
-      // La deuda es la mitad de la diferencia entre lo que ha puesto cada uno.
-      importe: Math.abs(saldo) / 2,
-    }
-  }, [transacciones, cuentas, miParte])
+  // El cálculo vive en lib/deuda.js: lo usan esta pantalla y el resumen del
+  // mes cerrado de la portada. Aquí solo se envuelve para no recalcularlo
+  // en cada repintado.
+  const deuda = useMemo(() => calcularDeuda(transacciones, cuentas, miParte), [transacciones, cuentas, miParte])
 
   async function anotarPago() {
     const importe = parseFloat(String(importeSaldo).replace(',', '.'))
@@ -362,7 +315,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
   const [subcategoriaAbierta, setSubcategoriaAbierta] = useState(null)
   const [medioAbierto, setMedioAbierto] = useState(null)
   const [personaAbierta, setPersonaAbierta] = useState(null)
-  const [saldando, setSaldando] = useState(false)
+  const [saldando, setSaldando] = useState(!!abrirEn?.saldar)
   const [importeSaldo, setImporteSaldo] = useState('')
   const [medioSaldo, setMedioSaldo] = useState('')
   const [guardandoSaldo, setGuardandoSaldo] = useState(false)
