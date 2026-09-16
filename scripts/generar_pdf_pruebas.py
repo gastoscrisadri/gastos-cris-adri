@@ -105,7 +105,7 @@ h += paso('Informes → Mes, arriba del todo.',
           'Ya NO están las tarjetitas de «Saldo actual de cuentas». Ese dato sigue en Ajustes → Cuentas.')
 
 h += seccion('NOVENO · El filtro De los dos / Lo mío', 'En la pestaña Mes, bajo «Qué gastos estás viendo».')
-h += paso('Mira los botones y en cuál arranca.', 'Hay DOS, «De los dos» y «Lo mío», y arranca en «De los dos». El antiguo «Todo» ya no está.')
+h += paso('Mira los botones y en cuál arranca.', 'Hay DOS, «De los dos» y «Lo mío», y arranca en «De los dos».')
 h += paso('Con «De los dos»: mira el alquiler en la lista de categorías.', 'Sale entero, 1.400,00 €.')
 h += paso('Pulsa «Lo mío» con la cuenta de Cris.', 'El alquiler pasa a SU PARTE, unos 466,67 €.',
           'Debajo de los botones sale la línea que lo explica.', critico=True)
@@ -146,17 +146,35 @@ h += paso('Pulsa «Solo mis apuntes personales (Excel)» y abre el archivo.', 'S
 h += paso('Abre los dos con LibreOffice y mira la columna del importe.',
           'Son .xlsx. Salen como 1.400,00 con punto de miles y DOS decimales siempre, aunque sean ,00. Y son números: selecciona la columna y abajo te da la suma.', critico=True)
 
+h += seccion('DECIMOCUARTO · Lo del 15 al 17 de septiembre',
+             'Todo esto es nuevo y NADIE lo ha probado en el móvil todavía.')
+h += paso('Apunta un gasto SIN escribir nada en Establecimiento.',
+          'Deja guardarlo. Ya no es obligatorio.')
+h += paso('En la pantalla de entrada, pulsa «He olvidado mi contraseña» y pon tu correo.',
+          'Sale el aviso verde, llega un correo con un enlace, y ese enlace abre una pantalla con una llave para poner la contraseña nueva.',
+          'MIRA EN SPAM. Si no llega, no es fallo del código: habría que ponerle un servicio de correo propio.', critico=True)
+h += paso('Informes → Nosotros, con la cuenta en paz: busca el botón verde «Cerrar la cuenta y empezar de cero».',
+          'Se ve bien y al pulsarlo sigue diciendo «Estáis en paz», pero ahora con «Desde el cierre del …» debajo.')
+h += paso('Con la cuenta ya cerrada, apunta un gasto de los dos de 100 € pagado por uno.',
+          'La cuenta dice que el otro le debe 50,00 €. Solo eso: no arrastra nada de antes.', critico=True)
+h += paso('Informes → Nosotros → despliega «Historial».',
+          'Salen los pagos entre vosotros y los cierres, en orden, del más nuevo al más viejo.')
+h += paso('Debajo del historial, pulsa «Deshacer el último cierre» y confirma.',
+          'La cuenta vuelve a contar desde antes, y NO se ha borrado ningún gasto.')
+h += paso('El día 1 del mes (o forzando la fecha): abre la app.',
+          'Sale la tarjeta del resumen del mes cerrado, con el botón del ojo para ver los importes, la cuenta de los dos y los botones de saldar y descargar la copia.')
+h += paso('Desde el ordenador, en la carpeta del proyecto: node pruebas/cuentas.mjs',
+          'Sale «28 pruebas pasadas, 0 fallos». Esto lo puede lanzar Toni en cualquier momento.')
+
 CT = ParagraphStyle('CT', fontName='Helvetica-Bold', fontSize=10, leading=13, textColor=AZUL, spaceAfter=4)
 CP = ParagraphStyle('CP', fontName='Helvetica', fontSize=8.4, leading=11.4, textColor=colors.black, spaceAfter=5)
 pend = [Paragraph('Lo que queda por hacer (esto es para mí, no hay que probarlo)', CT),
-    Paragraph('<b>1. Unificar la regla del reparto.</b> El cálculo de la deuda tiene su propia copia, aparte de '
-              'lib/reparto.js. Es el mismo tipo de duplicado que ya ha causado varios fallos: la regla estaba copiada en '
-              'cada pantalla, se arregló en Informes y la portada se quedó mal. Cuando estas pruebas estén pasadas y la '
-              'app estable, se unifica en un cambio pequeño y aislado.', CP),
-    Paragraph('<b>2. El manual</b> para Cris y Adri. Tiene que explicar las flechas ⌃⌄ del teclado del iPhone para saltar '
-              'de campo (el ✓ no sirve), y que nadie ve los gastos personales del otro.', CP),
+    Paragraph('<b>1. Vaciar las pruebas.</b> Cuando esté todo comprobado, pegar supabase-empezar-de-verdad.sql: borra '
+              'los apuntes, los eventos y los cierres, y deja intactas las categorías, las cuentas y el alquiler. Y que '
+              'cada uno ponga su contraseña definitiva.', CP),
+    Paragraph('<b>2. El manual</b> ya está escrito: Manual_Gastos_Cris_Adri.pdf, cuatro páginas. Falta que Toni lo repase.', CP),
     Paragraph('<b>3. El rediseño.</b> Las tres propuestas no convencieron, hay que dar otra vuelta.', CP),
-    Paragraph('<b>4. Vaciar los datos de prueba</b> antes de octubre, y que cada uno cambie su contraseña.', CP)]
+    Paragraph('<b>4. Pendientes de decidir:</b> modo sin conexión, presupuesto mensual por categoría, y si quitar la función de eventos (que quizá no usen).', CP)]
 caja = Table([[pend]], colWidths=[167*mm])
 caja.setStyle(TableStyle([('BOX',(0,0),(-1,-1),0.8,GRISCLARO), ('BACKGROUND',(0,0),(-1,-1),colors.HexColor('#f9fafb')),
     ('LEFTPADDING',(0,0),(-1,-1),8), ('RIGHTPADDING',(0,0),(-1,-1),8),
@@ -170,7 +188,7 @@ h += [Spacer(1,10), KeepTogether(caja)]
 
 def pie(c, d):
     c.saveState(); c.setFont('Helvetica',7); c.setFillColor(GRISCLARO)
-    c.drawString(20*mm, 12*mm, 'Gastos Cris y Adri · pruebas al 14 de septiembre de 2026')
+    c.drawString(20*mm, 12*mm, 'Gastos Cris y Adri · pruebas al 17 de septiembre de 2026')
     c.drawRightString(190*mm, 12*mm, 'Página %d' % d.page); c.restoreState()
 
 doc = BaseDocTemplate('Pruebas_app_gastos.pdf', pagesize=A4, leftMargin=20*mm, rightMargin=20*mm,
