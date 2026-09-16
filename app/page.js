@@ -42,6 +42,10 @@ export default function Home() {
   // y mirar tres sitios; ahora el cierre del mes te sale al paso.
   const [mostrarResumenMes, setMostrarResumenMes] = useState(false)
   const [abrirInformesEn, setAbrirInformesEn] = useState(null)
+  // La tarjeta del resumen tiene su propio interruptor de cifras. El de la app
+  // va por pantalla, y esta sale encima de "nuevo apunte", donde nunca se han
+  // destapado: salían todos los importes en puntitos y sin forma de verlos.
+  const [verCifrasResumen, setVerCifrasResumen] = useState(false)
   const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
   useEffect(() => { cargarCuentas().then(setCuentas) }, [])
   // Meses enteros desde la última copia. Con 2 o más el aviso cambia de tono:
@@ -678,12 +682,19 @@ export default function Home() {
           <div className="relative w-full max-w-lg bg-white rounded-t-3xl px-6 pt-6 pb-10 shadow-2xl animate-fade-in">
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Se ha cerrado el mes</p>
-            <h2 className="text-lg font-bold text-gray-900 text-center capitalize mb-4">{resumenMes.nombre}</h2>
+            <h2 className="text-lg font-bold text-gray-900 text-center capitalize mb-3">{resumenMes.nombre}</h2>
+
+            <div className="flex justify-center mb-3">
+              <button type="button" onClick={() => setVerCifrasResumen(v => !v)}
+                className="text-xs font-semibold text-white bg-emerald-500 rounded-xl px-3 py-1.5">
+                {verCifrasResumen ? '🙈 Ocultar importes' : '👁️ Ver importes'}
+              </button>
+            </div>
 
             <div className="bg-red-50 rounded-2xl px-4 py-3 text-center mb-3">
               <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Gastasteis entre los dos</p>
               <p className="text-2xl font-bold text-red-500 mt-0.5">
-                {ocultar(mostrarCifras, `${euros(resumenMes.total)} €`)}
+                {ocultar(verCifrasResumen, `${euros(resumenMes.total)} €`)}
               </p>
             </div>
 
@@ -692,7 +703,7 @@ export default function Home() {
                 <div key={quien} className="flex justify-between items-center px-4 py-2.5">
                   <span className="text-sm text-gray-500">Puso {quien}</span>
                   <span className="text-sm font-bold text-gray-800">
-                    {ocultar(mostrarCifras, `${euros(cuanto)} €`)}
+                    {ocultar(verCifrasResumen, `${euros(cuanto)} €`)}
                   </span>
                 </div>
               ))}
@@ -706,7 +717,7 @@ export default function Home() {
                 <div className="bg-[#0d1b2a] rounded-2xl px-4 py-3 text-center mb-4">
                   <p className="text-[10px] font-bold text-[#8fa6c9] uppercase tracking-widest">La cuenta de los dos</p>
                   <p className="text-base font-bold text-white mt-1 leading-snug">
-                    {deuda.deudor} le debe {ocultar(mostrarCifras, `${euros(deuda.importe)} €`)} a {deuda.acreedor}
+                    {deuda.deudor} le debe {ocultar(verCifrasResumen, `${euros(deuda.importe)} €`)} a {deuda.acreedor}
                   </p>
                 </div>
                 <button
