@@ -186,7 +186,7 @@ export default function Home() {
   const resumenMes = useMemo(() => {
     const d = new Date()
     d.setDate(1)                 // primero el día, o al restar un mes se va al mes que no es
-    // TEMPORAL (se revierte hoy): sin restar el mes, para poder verla hoy
+    d.setMonth(d.getMonth() - 1)
     const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
     const total = gastoDeLaCasaDelMes(transacciones, mes)
     if (total <= 0) return null  // un mes sin gastos de los dos no tiene nada que resumir
@@ -211,7 +211,7 @@ export default function Home() {
   // se abra encima: dos ventanas a la vez al abrir la app es insufrible.
   const resumenPendiente = !!resumenMes &&
     (typeof window !== 'undefined') &&
-    true   // TEMPORAL (se revierte hoy): sale siempre
+    localStorage.getItem('resumenMesVisto') !== resumenMes.mes
 
   useEffect(() => {
     if (!resumenPendiente) return
