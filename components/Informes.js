@@ -9,6 +9,10 @@ import { NOMBRES, nombreDe } from '@/lib/identidad'
 import { cargarCategorias } from '@/lib/categorias'
 import { hoy } from '@/lib/fechas'
 import { construirReparto } from '@/lib/reparto'
+// Las reglas de qué es cada apunte viven en lib/apuntes.js, no aquí: las usan
+// también la portada y lo que venga, y copiarlas es lo que ha causado que un
+// arreglo entrara en una pantalla y no en su gemela.
+import { esLiquidacion, sinAjustes, esDeLaCasa, soloComunes, soloMios, soloConjunto } from '@/lib/apuntes'
 
 const COLORES = [
   '#ef4444','#f97316','#eab308','#84cc16','#22c55e',
@@ -16,36 +20,6 @@ const COLORES = [
   '#0ea5e9','#a855f7','#10b981','#f59e0b','#6366f1',
   '#d946ef','#64748b',
 ]
-
-// Un pago de uno al otro para saldar cuentas. No es un gasto: ese dinero no
-// se gasta, cambia de bolsillo. Ajusta quién ha puesto cuánto, pero nunca
-// entra en "lo que hemos gastado este mes".
-const esLiquidacion = t => !!t.liquidacion_a
-// Quitar los ajustes de cuentas de una lista. Todo lo que sume gastos o
-// ingresos tiene que pasar por aquí: un pago de uno al otro no es un gasto,
-// el dinero solo cambia de bolsillo. La excepción son los saldos de las
-// cuentas, donde ese movimiento sí es real y sí cuenta.
-const sinAjustes = ts => ts.filter(t => !esLiquidacion(t))
-
-// Lo que enseña la pestaña Histórico. Los gastos, solo los de los dos: así
-// "Gastos 2026" significa lo mismo en los dos móviles. Los personales de cada
-// uno quedan fuera, que si no cada cual veía una cifra distinta y ninguna era
-// ni lo gastado en casa ni lo gastado por él. Los ingresos se dejan todos:
-// como son siempre de quien los cobra, son los tuyos.
-// Un gasto DE LA CASA: lo ven los dos y además es de los dos. Un apunte con
-// a_cargo_de lo ven los dos (lo pagó el otro) pero es de uno solo, así que no
-// entra en las cifras de "lo que gastamos entre los dos". Ojo: el cálculo de
-// la deuda sí lo incluye, porque ahí es donde tiene que generar la deuda.
-const esDeLaCasa = t => t.comun !== false && !t.a_cargo_de
-
-// Para la copia de seguridad: todo lo que ven los dos, incluidos los apuntes
-// a cargo de uno (los ven los dos porque el otro los pagó).
-const soloComunes = ts => ts.filter(t => t.comun !== false)
-// Lo personal que ve este móvil es, por fuerza, del que mira: la regla de
-// Supabase no deja ver lo personal del otro.
-const soloMios = ts => ts.filter(t => t.comun === false)
-
-const soloConjunto = ts => ts.filter(t => t.tipo === 'ingreso' || esDeLaCasa(t))
 
 const EMOJI_PERSONA = {
   'Cris': '👤',

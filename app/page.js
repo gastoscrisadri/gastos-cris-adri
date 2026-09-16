@@ -14,13 +14,13 @@ import { cargarCategorias } from '@/lib/categorias'
 import { construirReparto } from '@/lib/reparto'
 import { nombreDe } from '@/lib/identidad'
 import { hoy, mesDeHoy, mesesEntre } from '@/lib/fechas'
+import { esDeLaCasa, esLiquidacion, gastoDeLaCasaDelMes } from '@/lib/apuntes'
+import { cargarCuentas, personaDeMedioPago, CUENTAS_RESPALDO } from '@/lib/cuentas'
 
 export default function Home() {
-  // La app abre directamente en "nuevo apunte" con la cámara intentando
-  // dispararse sola (ver FormTransaccion). Solo la primera vez que carga —
-  // navegar por dentro de la app (Lista/Informes/Ajustes) no se ve afectado.
+  // La app abre directamente en "nuevo apunte", que es lo que más se hace.
+  // La foto del ticket se saca con el botón verde, a un toque.
   const [vista, setVista] = useState('nuevo')
-  const [autoAbrirCamara, setAutoAbrirCamara] = useState(true)
   // Cifras siempre ocultas al abrir, y cada pantalla (Lista/Informes/Ajustes)
   // recuerda su propia elección por separado — mostrar en una no las
   // destapa en las demás
@@ -36,6 +36,12 @@ export default function Home() {
   const [usuario, setUsuario] = useState(null)
   const [toast, setToast] = useState(null)
   const [mostrarRecordatorioCopia, setMostrarRecordatorioCopia] = useState(false)
+  // Resumen del mes que acaba de terminar. Sale una vez, al abrir la app por
+  // primera vez del mes nuevo. Antes había que acordarse de entrar en Informes
+  // y mirar tres sitios; ahora el cierre del mes te sale al paso.
+  const [mostrarResumenMes, setMostrarResumenMes] = useState(false)
+  const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
+  useEffect(() => { cargarCuentas().then(setCuentas) }, [])
   // Meses enteros desde la última copia. Con 2 o más el aviso cambia de tono:
   // una sugerencia que se cierra y se olvida no sirve para algo que, si falla,
   // se pierde y no se recupera.
@@ -51,12 +57,6 @@ export default function Home() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUsuario(user))
-  }, [])
-
-  // Solo el arranque cuenta como "apertura de la app": una vez montado,
-  // volver a entrar en "nuevo" (con el botón +) ya no dispara la cámara sola
-  useEffect(() => {
-    setAutoAbrirCamara(false)
   }, [])
 
   // Los apuntes se piden POR TANDAS, no de una vez.
@@ -175,16 +175,60 @@ export default function Home() {
     comprobarAlmacenamiento()
   }, [])
 
+  // Lo gastado entre los dos el mes pasado, y cuánto puso cada uno. La deuda
+  // NO se calcula aquí: vive en Informes y es el cálculo más delicado de la
+  // app. Desde esta tarjeta se va allí a verla, que ya sale bien.
+  const resumenMes = useMemo(() => {
+    const d = new Date()
+    d.setDate(1)                 // primero el día, o al restar un mes se va al mes que no es
+    d.setMonth(d.getMonth() - 1)
+    const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const total = gastoDeLaCasaDelMes(transacciones, mes)
+    if (total <= 0) return null  // un mes sin gastos de los dos no tiene nada que resumir
+
+    const puesto = {}
+    transacciones
+      .filter(t => t.fecha?.startsWith(mes) && t.tipo === 'gasto' && esDeLaCasa(t) && !esLiquidacion(t))
+      .forEach(t => {
+        const quien = personaDeMedioPago(t.medio_pago, cuentas)
+        puesto[quien] = (puesto[quien] || 0) + Number(t.importe)
+      })
+
+    return {
+      mes,
+      nombre: d.toLocaleString('es', { month: 'long', year: 'numeric' }),
+      total,
+      puesto: Object.entries(puesto).sort((a, b) => b[1] - a[1]),
+    }
+  }, [transacciones, cuentas])
+
+  // ¿Hay resumen por enseñar? Se mira aquí para que el recordatorio de copia no
+  // se abra encima: dos ventanas a la vez al abrir la app es insufrible.
+  const resumenPendiente = !!resumenMes &&
+    (typeof window !== 'undefined') &&
+    localStorage.getItem('resumenMesVisto') !== resumenMes.mes
+
+  useEffect(() => {
+    if (!resumenPendiente) return
+    const timer = setTimeout(() => setMostrarResumenMes(true), 1200)
+    return () => clearTimeout(timer)
+  }, [resumenPendiente])
+
+  function cerrarResumenMes() {
+    if (resumenMes) localStorage.setItem('resumenMesVisto', resumenMes.mes)
+    setMostrarResumenMes(false)
+  }
+
   // Recordatorio mensual de backup
   useEffect(() => {
     const mesActual = mesDeHoy()
     const copiaHecha = localStorage.getItem('copiaCsvHecha') // mes en que se descargó
-    if (copiaHecha !== mesActual) {
+    if (copiaHecha !== mesActual && !resumenPendiente) {
       setMesesSinCopia(mesesEntre(copiaHecha, mesActual))
       const timer = setTimeout(() => setMostrarRecordatorioCopia(true), 3000)
       return () => clearTimeout(timer)
     }
-  }, [])
+  }, [resumenPendiente])
 
   function posponerRecordatorio() {
     // No guarda nada: la próxima vez que entre volverá a aparecer
@@ -519,7 +563,6 @@ export default function Home() {
               usuario={usuario}
               transaccionEditar={transaccionEditar}
               eventoActivo={eventoActivo}
-              autoAbrirCamara={!transaccionEditar && autoAbrirCamara}
               onGuardado={() => {
                 setTransaccionEditar(null)
                 setTransaccionDetalle(null)
@@ -620,6 +663,47 @@ export default function Home() {
       )}
 
       {/* Recordatorio mensual de backup */}
+      {/* Resumen del mes que acaba de cerrarse. Sale una vez, la primera que
+          se abre la app en el mes nuevo, que es cuando tiene sentido mirar
+          atrás y, si hace falta, saldar. */}
+      {mostrarResumenMes && resumenMes && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={cerrarResumenMes} />
+          <div className="relative w-full max-w-lg bg-white rounded-t-3xl px-6 pt-6 pb-10 shadow-2xl animate-fade-in">
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Se ha cerrado el mes</p>
+            <h2 className="text-lg font-bold text-gray-900 text-center capitalize mb-4">{resumenMes.nombre}</h2>
+
+            <div className="bg-red-50 rounded-2xl px-4 py-3 text-center mb-3">
+              <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Gastasteis entre los dos</p>
+              <p className="text-2xl font-bold text-red-500 mt-0.5">
+                {ocultar(mostrarCifras, `${euros(resumenMes.total)} €`)}
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-2xl divide-y divide-gray-100 mb-5">
+              {resumenMes.puesto.map(([quien, cuanto]) => (
+                <div key={quien} className="flex justify-between items-center px-4 py-2.5">
+                  <span className="text-sm text-gray-500">Puso {quien}</span>
+                  <span className="text-sm font-bold text-gray-800">
+                    {ocultar(mostrarCifras, `${euros(cuanto)} €`)}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => { cerrarResumenMes(); setVista('informes') }}
+              className="w-full py-3.5 bg-[#0d1b2a] text-white font-bold rounded-2xl text-sm mb-3">
+              Ver la cuenta de los dos
+            </button>
+            <button onClick={cerrarResumenMes} className="w-full py-3 text-gray-400 font-medium text-sm">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
       {mostrarRecordatorioCopia && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={posponerRecordatorio} />
