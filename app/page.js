@@ -48,6 +48,13 @@ export default function Home() {
   const [verCifrasResumen, setVerCifrasResumen] = useState(false)
   const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
   useEffect(() => { cargarCuentas().then(setCuentas) }, [])
+  // El último cierre de la cuenta de los dos. Sin ninguno queda en null y todo
+  // se calcula desde el principio, como siempre.
+  const [ultimoCierre, setUltimoCierre] = useState(null)
+  useEffect(() => {
+    supabase.from('cierres').select('created_at').order('created_at', { ascending: false }).limit(1)
+      .then(({ data }) => setUltimoCierre(data?.[0] || null))
+  }, [])
   // Meses enteros desde la última copia. Con 2 o más el aviso cambia de tono:
   // una sugerencia que se cierra y se olvida no sirve para algo que, si falla,
   // se pierde y no se recupera.
@@ -339,7 +346,12 @@ export default function Home() {
 
   // La cuenta de los dos, del MISMO cálculo que usa Informes (lib/deuda.js).
   // No es una copia: es la misma función.
-  const deuda = useMemo(() => calcularDeuda(transacciones, cuentas, miParte), [transacciones, cuentas, miParte])
+  // Con el mismo cierre que usa Informes: si no, las dos pantallas dirían
+  // cosas distintas sobre el mismo dinero.
+  const deuda = useMemo(
+    () => calcularDeuda(transacciones, cuentas, miParte, ultimoCierre?.created_at || null),
+    [transacciones, cuentas, miParte, ultimoCierre]
+  )
 
   // Balance del mes actual, visto desde quien está mirando.
   const balanceMes = useMemo(() => {
@@ -720,7 +732,11 @@ export default function Home() {
                       las tres cifras hablan del mismo periodo. La misma
                       coletilla que lleva la tarjeta de Informes. */}
                   <p className="text-[10px] font-bold text-[#8fa6c9] uppercase tracking-widest">La cuenta de los dos</p>
-                  <p className="text-[10px] text-[#8fa6c9] mb-1">En total, desde el principio</p>
+                  <p className="text-[10px] text-[#8fa6c9] mb-1">
+                    {ultimoCierre
+                      ? `Desde el cierre del ${new Date(ultimoCierre.created_at).toLocaleDateString('es', { day: 'numeric', month: 'long' })}`
+                      : 'En total, desde el principio'}
+                  </p>
                   <p className="text-base font-bold text-white mt-1 leading-snug">
                     {deuda.deudor} le debe {ocultar(verCifrasResumen, `${euros(deuda.importe)} €`)} a {deuda.acreedor}
                   </p>
