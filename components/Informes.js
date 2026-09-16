@@ -535,10 +535,15 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
         </div>
         <div className="flex-1 bg-[#0d1b2a] rounded-2xl px-4 py-3">
           <p className="text-[10px] font-bold text-[#8fa6c9] uppercase tracking-widest">La cuenta de los dos</p>
+          {/* Desde cuándo se cuenta. Sin esto, la cifra sale sin contexto y no
+              se sabe si habla de este mes o de toda la historia. */}
+          <p className="text-[10px] text-[#8fa6c9]">
+            {ultimoCierre ? `Desde el ${fechaCorta(ultimoCierre.created_at)}` : 'Desde el principio'}
+          </p>
           {deuda.aRepartir <= 0 || deuda.importe < 0.01 ? (
-            <p className="text-sm font-bold text-white mt-1.5">Estáis en paz</p>
+            <p className="text-sm font-bold text-white mt-1">Estáis en paz</p>
           ) : (
-            <p className="text-sm font-bold text-white mt-1.5 leading-snug">
+            <p className="text-sm font-bold text-white mt-1 leading-snug">
               {deuda.deudor} le debe {ocultar(mostrarCifras, `${euros(deuda.importe)} €`)} a {deuda.acreedor}
             </p>
           )}
@@ -823,12 +828,12 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
           {/* Cerrar la cuenta. Solo aparece estando en paz: es lo que hace que
               no se pueda perder dinero de nadie al cerrar. */}
           {deuda.importe < 0.01 && (
-            <div className="space-y-1.5">
+            <div className="bg-teal-50 border-2 border-teal-200 rounded-2xl p-3 space-y-2">
               <button type="button" onClick={cerrarCuenta} disabled={cerrando}
-                className="w-full py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-2xl text-sm disabled:opacity-50">
+                className="w-full py-3.5 bg-teal-600 text-white font-bold rounded-2xl text-sm disabled:opacity-50 shadow-sm">
                 {cerrando ? 'Cerrando…' : '🔒 Cerrar la cuenta y empezar de cero'}
               </button>
-              <p className="text-xs text-gray-400 leading-snug">
+              <p className="text-xs text-teal-800 leading-snug">
                 Los gastos se quedan donde están; lo único que cambia es que la cuenta de los
                 dos empieza a contar desde hoy. Así se entiende mejor de dónde sale cada cifra.
               </p>
