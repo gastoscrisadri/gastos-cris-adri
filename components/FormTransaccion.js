@@ -23,7 +23,7 @@ const FORM_VACIO = {
   a_cargo_de: null,
 }
 
-export default function FormTransaccion({ usuario, onGuardado, onCancelar, transaccionEditar, onEliminar, eventoActivo, autoAbrirCamara }) {
+export default function FormTransaccion({ usuario, onGuardado, onCancelar, transaccionEditar, onEliminar, eventoActivo }) {
   const esEdicion = !!transaccionEditar
 
   const [form, setForm] = useState(() => {
@@ -89,24 +89,6 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   const subcategoriaRef = useRef()
   const medioPagoRef = useRef()
   const supabase = createClient()
-
-  // La app abre directamente aquí con la cámara intentando dispararse sola.
-  // Si iOS no deja hacerlo sin un toque explícito, no pasa nada — el botón
-  // verde de abajo sigue disponible para hacerlo con un toque.
-  useEffect(() => {
-    if (autoAbrirCamara) inputFotoRef.current?.click()
-  }, [])
-
-  // Si cancelas la cámara que se abrió sola (la X/Cancelar nativa de iOS),
-  // es que no querías registrar un gasto — te lleva a la lista igual que el
-  // botón "Cancelar" del formulario, en vez de dejarte en un formulario vacío
-  useEffect(() => {
-    const input = inputFotoRef.current
-    if (!autoAbrirCamara || !input) return
-    const alCancelar = () => onCancelar()
-    input.addEventListener('cancel', alCancelar)
-    return () => input.removeEventListener('cancel', alCancelar)
-  }, [autoAbrirCamara])
 
   useEffect(() => {
     cargarCategorias().then(setCategorias)
