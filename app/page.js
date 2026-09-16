@@ -715,7 +715,12 @@ export default function Home() {
             {deuda.importe >= 0.01 ? (
               <>
                 <div className="bg-[#0d1b2a] rounded-2xl px-4 py-3 text-center mb-4">
+                  {/* Lo de arriba es de este mes; esto NO. La deuda se cuenta
+                      desde el primer día, así que hay que decirlo o parece que
+                      las tres cifras hablan del mismo periodo. La misma
+                      coletilla que lleva la tarjeta de Informes. */}
                   <p className="text-[10px] font-bold text-[#8fa6c9] uppercase tracking-widest">La cuenta de los dos</p>
+                  <p className="text-[10px] text-[#8fa6c9] mb-1">En total, desde el principio</p>
                   <p className="text-base font-bold text-white mt-1 leading-snug">
                     {deuda.deudor} le debe {ocultar(verCifrasResumen, `${euros(deuda.importe)} €`)} a {deuda.acreedor}
                   </p>
