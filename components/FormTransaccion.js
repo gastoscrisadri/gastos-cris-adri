@@ -262,6 +262,9 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         if (!nuevo.importe) faltantes.push('importe')
         if (!nuevo.fecha) faltantes.push('fecha')
         if (!nuevo.categoria || data.confianza_categoria === 'baja') faltantes.push('categoría')
+        // El establecimiento ya no es obligatorio, pero si el ticket no lo ha
+        // sacado sigue mereciendo un vistazo: en una foto de un ticket casi
+        // siempre está, y que falte suele significar que se ha leído mal.
         if (!nuevo.establecimiento) faltantes.push('establecimiento')
         // El ticket no puede saber de quién es el gasto: eso lo dice la persona.
         if (nuevo.tipo !== 'ingreso' && form.comun !== true && form.comun !== false) faltantes.push('de quién es')
@@ -282,7 +285,12 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
   // ── Guardar ───────────────────────────────────────────────────────────
   async function guardar() {
-    const requeridos = { importe: 'Importe', categoria: 'Categoría', fecha: 'Fecha', establecimiento: 'Establecimiento', quien: '¿Quién?', medio_pago: 'Medio de pago' }
+    // El establecimiento ya NO es obligatorio. Para un café, un billete de
+    // metro o unas cañas era teclear un nombre que no aporta nada, cuando la
+    // categoría ya dice qué es. Era el único campo que obligaba a escribir:
+    // la fecha viene puesta, quién registra también, y el medio de pago se
+    // premarca solo. En la lista no se nota, que ya se apaña sin él.
+    const requeridos = { importe: 'Importe', categoria: 'Categoría', fecha: 'Fecha', quien: '¿Quién?', medio_pago: 'Medio de pago' }
     for (const [campo, etiqueta] of Object.entries(requeridos)) {
       if (!form[campo] || String(form[campo]).trim() === '') {
         setError(`El campo "${etiqueta}" es obligatorio.`)
@@ -545,7 +553,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
       {/* Establecimiento */}
       <div className="relative">
-        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Establecimiento / Pagador *</label>
+        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Establecimiento / Pagador (opcional)</label>
         <input ref={establecimientoRef} type="text" enterKeyHint="next" value={form.establecimiento} autoComplete="off"
           onChange={e => { set('establecimiento', e.target.value); filtrarSugerencias(e.target.value, historialEstablecimientos, setSugerenciasEstablecimiento) }}
           onBlur={() => setTimeout(() => setSugerenciasEstablecimiento([]), 150)}
