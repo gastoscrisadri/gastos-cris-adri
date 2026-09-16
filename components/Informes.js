@@ -208,10 +208,14 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
   // hay ninguno, queda en null y todo se calcula como siempre, desde el
   // principio.
   const [ultimoCierre, setUltimoCierre] = useState(null)
+  // Se traen todos, no solo el último: hacen falta para el historial. El
+  // último es el que manda en el cálculo.
+  const [cierres, setCierres] = useState([])
   const cargarCierres = useCallback(async () => {
     const { data } = await createClient()
-      .from('cierres').select('created_at, quien')
-      .order('created_at', { ascending: false }).limit(1)
+      .from('cierres').select('id, created_at, quien')
+      .order('created_at', { ascending: false })
+    setCierres(data || [])
     setUltimoCierre(data?.[0] || null)
   }, [])
   useEffect(() => { cargarCierres() }, [cargarCierres])
@@ -305,6 +309,39 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
     await cargarCierres()
     onCambio?.()
   }
+
+  // Deshacer el último cierre. Al quitarlo, la cuenta vuelve a contar desde el
+  // cierre anterior (o desde el principio si no había otro): no se pierde
+  // nada, los apuntes siguen todos ahí. Es la red de seguridad por si alguien
+  // pulsa "cerrar" sin querer.
+  const [confirmandoDeshacer, setConfirmandoDeshacer] = useState(false)
+  async function deshacerCierre() {
+    if (!ultimoCierre) return
+    await createClient().from('cierres').delete().eq('id', ultimoCierre.id)
+    setConfirmandoDeshacer(false)
+    await cargarCierres()
+    onCambio?.()
+  }
+
+  // Pagos entre ellos y cierres, mezclados en una sola línea de tiempo: es
+  // como se entiende la historia ("saldamos, saldamos, cerramos, y desde ahí").
+  const historial = useMemo(() => {
+    const pagos = transacciones.filter(esLiquidacion).map(t => ({
+      clave: `p${t.id}`,
+      cuando: t.created_at || `${t.fecha}T00:00:00Z`,
+      tipo: 'pago',
+      texto: `${t.quien} pagó ${euros(Number(t.importe))} € a ${t.liquidacion_a}`,
+    }))
+    const marcas = cierres.map(c => ({
+      clave: `c${c.id}`,
+      cuando: c.created_at,
+      tipo: 'cierre',
+      texto: c.quien ? `Cuenta cerrada por ${c.quien}` : 'Cuenta cerrada',
+    }))
+    return [...pagos, ...marcas].sort((a, b) => String(b.cuando).localeCompare(String(a.cuando)))
+  }, [transacciones, cierres])
+
+  const [historialAbierto, setHistorialAbierto] = useState(false)
 
   async function anotarPago() {
     const importe = parseFloat(String(importeSaldo).replace(',', '.'))
@@ -891,6 +928,70 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
             )
           )}
           <p className="text-xs text-gray-400">Cuenta acumulada de todos los meses, no solo del que estás viendo. Solo entra lo marcado «de los dos»: los gastos personales no cuentan.</p>
+        </div>
+      )}
+
+      {/* Historial de ajustes y cierres. Los pagos ya se podían ver filtrando
+          la lista por la categoría "Ajuste de cuentas", pero los cierres no se
+          veían en ningún sitio, y ahora mandan sobre lo que cuenta la cuenta. */}
+      {historial.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Historial</p>
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <button type="button" onClick={() => setHistorialAbierto(v => !v)}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-gray-50">
+              <span className="text-xl w-8 text-center shrink-0">🧾</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800">Pagos entre vosotros y cierres</p>
+                <p className="text-xs text-gray-400">{historial.length} {historial.length === 1 ? 'apunte' : 'apuntes'}</p>
+              </div>
+              <span className="text-gray-400 text-xs">{historialAbierto ? '▲' : '▼'}</span>
+            </button>
+
+            {historialAbierto && (
+              <div className="border-t border-gray-50 divide-y divide-gray-50">
+                {historial.map(h => (
+                  <div key={h.clave} className="flex items-center gap-2 px-3 py-2.5 bg-gray-50/50">
+                    <span className="text-xs text-gray-400 w-14 shrink-0">
+                      {new Date(h.cuando).toLocaleDateString('es', { day: 'numeric', month: 'short' })}
+                    </span>
+                    <span className="text-sm shrink-0">{h.tipo === 'cierre' ? '🔒' : '🤝'}</span>
+                    <span className={`flex-1 text-xs ${h.tipo === 'cierre' ? 'font-semibold text-gray-700' : 'text-gray-600'}`}>
+                      {ocultar(mostrarCifras, h.texto)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Deshacer el último cierre: la red de seguridad. No se pierde nada,
+              la cuenta vuelve a contar desde el cierre anterior. */}
+          {ultimoCierre && (
+            confirmandoDeshacer ? (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
+                <p className="text-xs text-amber-900 leading-snug">
+                  Si deshaces el cierre del {fechaCorta(ultimoCierre.created_at)}, la cuenta volverá a
+                  contar desde antes. No se borra ningún gasto.
+                </p>
+                <div className="flex gap-2">
+                  <button type="button" onClick={deshacerCierre}
+                    className="flex-1 py-2.5 bg-amber-600 text-white text-xs font-bold rounded-xl">
+                    Sí, deshacerlo
+                  </button>
+                  <button type="button" onClick={() => setConfirmandoDeshacer(false)}
+                    className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-500 text-xs font-semibold rounded-xl">
+                    No
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button type="button" onClick={() => setConfirmandoDeshacer(true)}
+                className="text-xs text-gray-400 underline">
+                Deshacer el último cierre
+              </button>
+            )
+          )}
         </div>
       )}
 
