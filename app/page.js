@@ -13,6 +13,7 @@ import { ocultar, euros, euros0 } from '@/lib/cifras'
 import { cargarCategorias } from '@/lib/categorias'
 import { construirReparto } from '@/lib/reparto'
 import { nombreDe } from '@/lib/identidad'
+import { apuntarme } from '@/lib/personas'
 import { hoy, mesDeHoy, mesesEntre } from '@/lib/fechas'
 import { esDeLaCasa, esLiquidacion, gastoDeLaCasaDelMes } from '@/lib/apuntes'
 import { cargarCuentas, personaDeMedioPago, CUENTAS_RESPALDO } from '@/lib/cuentas'
@@ -69,7 +70,14 @@ export default function Home() {
   const supabase = createClient()
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => setUsuario(user))
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUsuario(user)
+      // Al entrar, cada uno se apunta en la tabla "personas": nombre + cuenta.
+      // Hace falta para poder guardar un gasto privado A NOMBRE DE SU DUEÑO
+      // cuando lo teclea el otro. Si esto falla no se nota nada: la app
+      // funciona igual y se reintentará la próxima vez que se abra.
+      apuntarme(user, nombreDe(user))
+    })
   }, [])
 
   // Los apuntes se piden POR TANDAS, no de una vez.

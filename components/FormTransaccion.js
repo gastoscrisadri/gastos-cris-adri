@@ -6,6 +6,8 @@ import { cargarCategorias, principalesPorTipo, subcategoriasDeCategoria } from '
 import { cargarCuentas, ordenarPara, personaDeMedioPago, CUENTAS_RESPALDO } from '@/lib/cuentas'
 import { NOMBRES, nombreDe, guardarNombre } from '@/lib/identidad'
 import { hoy } from '@/lib/fechas'
+import { comunYCargo } from '@/lib/dequien'
+import { cargarPersonas, idDe } from '@/lib/personas'
 
 
 const FORM_VACIO = {
@@ -17,10 +19,14 @@ const FORM_VACIO = {
   descripcion: '',
   medio_pago: '',
   quien: '',
+  // De quién es el gasto: 'dos' | 'mio' | 'otro'.
+  //
   // Nada marcado a propósito: si viniera "De los dos" por defecto, un descuido
   // grabaría como común un gasto que es de uno solo. Hay que elegir.
-  comun: null,
-  a_cargo_de: null,
+  //
+  // Lo que se guarda (comun, a_cargo_de y a nombre de quién) se calcula al
+  // vuelo con lib/dequien.js, a partir de esto y de quién pone el dinero.
+  deQuien: null,
 }
 
 export default function FormTransaccion({ usuario, onGuardado, onCancelar, transaccionEditar, onEliminar, eventoActivo }) {
@@ -38,8 +44,24 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         descripcion: transaccionEditar.descripcion || '',
         medio_pago: transaccionEditar.medio_pago || '',
         quien: transaccionEditar.quien || '',
-        comun: transaccionEditar.comun !== false,
-        a_cargo_de: transaccionEditar.a_cargo_de || null,
+        // Al editar hay que deducir de quién es a partir de lo guardado.
+        //
+        // Con a_cargo_de es directo: dice el dueño con nombre y apellidos.
+        //
+        // Sin a_cargo_de y con comun = false es un gasto PRIVADO, y ahí no hay
+        // ningún campo que diga el dueño... pero no hace falta: un gasto
+        // privado solo lo ve su dueño, así que quien lo tiene abierto ES el
+        // dueño. Deducirlo de "quien" sería un fallo: si Cris apuntó un gasto
+        // privado de Adri, el apunte lleva quien = "Cris" y solo lo ve Adri;
+        // al abrirlo Adri saldría marcado "Solo mío" queriendo decir Cris, y
+        // al guardar cambiaría de dueño.
+        deQuien: (() => {
+          const yo = nombreDe(usuario)
+          const dueno = transaccionEditar.a_cargo_de
+            || (transaccionEditar.comun === false ? yo : null)
+          if (!dueno) return 'dos'
+          return dueno === (transaccionEditar.quien || yo) ? 'mio' : 'otro'
+        })(),
         evento_id: transaccionEditar.evento_id || null,
       }
     }
@@ -76,6 +98,11 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   const [usoCategorias, setUsoCategorias] = useState({})
   const [usoSubcategorias, setUsoSubcategorias] = useState({})
   const [porEstablecimiento, setPorEstablecimiento] = useState({})
+  // Quién es quién, para poder guardar un gasto privado del otro a SU nombre.
+  // Si todavía no está apuntado, se verá más abajo lo que pasa: se guarda
+  // visible para los dos, nunca al revés.
+  const [personas, setPersonas] = useState([])
+  useEffect(() => { cargarPersonas().then(setPersonas) }, [])
 
   const inputFotoRef = useRef()
   const inputGaleriaRef = useRef()
@@ -171,17 +198,15 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
     else if (activo === notasRef.current) medioPagoRef.current?.focus()
   }
 
-  // Un gasto personal pagado con la tarjeta del otro: ese dinero lo ha puesto
-  // él y, al ser personal, no entra en la cuenta de los dos ni él puede verlo.
-  // No se prohíbe (el apunte es real), pero hay que decirlo: si no, el dinero
-  // desaparece en silencio.
   const duenoDelMedio = useMemo(() => personaDeMedioPago(form.medio_pago, cuentas), [form.medio_pago, cuentas])
-  const personalConTarjetaAjena =
-    form.tipo !== 'ingreso' &&
-    form.comun === false &&
-    NOMBRES.includes(duenoDelMedio) &&
-    !!form.quien &&
-    duenoDelMedio !== form.quien
+  const elOtro = NOMBRES.find(n => n !== form.quien) || ''
+  const quienPaga = NOMBRES.includes(duenoDelMedio) ? duenoDelMedio : null
+
+  // La regla de quién ve qué y quién carga con qué vive en lib/dequien.js: la
+  // decide el dinero, no la pantalla, y así se puede probar sola.
+  const { comun: comunAGuardar, a_cargo_de: aCargoDeAGuardar, duenoDelGasto } =
+    comunYCargo(form.deQuien, form.quien, duenoDelMedio, form.tipo)
+  const esPrivado = !!duenoDelGasto
 
   // Sigue a quien registra el apunte, no al dueño del móvil: si se edita un
   // apunte antiguo del otro, sus medios de pago pasan a ir primero.
@@ -266,8 +291,11 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         // sacado sigue mereciendo un vistazo: en una foto de un ticket casi
         // siempre está, y que falte suele significar que se ha leído mal.
         if (!nuevo.establecimiento) faltantes.push('establecimiento')
-        // El ticket no puede saber de quién es el gasto: eso lo dice la persona.
-        if (nuevo.tipo !== 'ingreso' && form.comun !== true && form.comun !== false) faltantes.push('de quién es')
+        // "De quién es" NO se cuenta aquí a propósito. Un ticket no puede
+        // saberlo nunca, así que ponerlo entre lo que falta hacía que TODA
+        // foto saliera con aviso, incluso las leídas perfectamente. Se elige
+        // en la propia pantalla de revisar y guardar, que es donde están los
+        // tres botones, y ahí sí es obligatorio antes de guardar.
 
         setCamposFaltantes(faltantes)
         setEstadoOCR(faltantes.length === 0 ? 'exito' : 'duda')
@@ -299,7 +327,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
     }
     // De quién es solo se pregunta en los gastos: un ingreso es siempre de
     // quien lo cobra y se guarda como personal más abajo.
-    if (form.tipo !== 'ingreso' && form.comun !== true && form.comun !== false) {
+    if (form.tipo !== 'ingreso' && !form.deQuien) {
       setError('Di de quién es el gasto: «De los dos» o «Solo mío».')
       return
     }
@@ -339,8 +367,8 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       // Los ingresos no se reparten: cada nómina es de quien la cobra, así que
       // van siempre como personales y solo los ve su dueño. El botón "De los
       // dos" ni siquiera se enseña cuando el tipo es ingreso.
-      comun: form.tipo === 'ingreso' ? false : (personalConTarjetaAjena ? true : form.comun === true),
-      a_cargo_de: personalConTarjetaAjena ? form.quien : null,
+      comun: comunAGuardar,
+      a_cargo_de: aCargoDeAGuardar,
       imagen_url,
       evento_id: form.evento_id || null,
     }
@@ -352,11 +380,24 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       const { error } = await supabase.from('transacciones').update(datos).eq('id', transaccionEditar.id)
       errDB = error
     } else {
-      // Se guarda quién lo crea. Hoy no cambia nada de lo que se ve; hace
-      // falta para que más adelante cada uno pueda tener gastos personales
-      // que el otro no vea. Si por lo que sea no hubiera usuario, se guarda
-      // igual sin él: nunca se bloquea el guardado por esto.
-      const { error } = await supabase.from('transacciones').insert([{ ...datos, user_id: usuario?.id || null }])
+      // user_id es lo que usa la regla de privacidad de Supabase para decidir
+      // quién ve un apunte privado. Por eso se guarda a nombre de SU DUEÑO, no
+      // de quien lo teclea: si Cris apunta un gasto de Adri pagado por Adri,
+      // ese apunte es de Adri y Cris deja de verlo, que es lo acordado.
+      //
+      // Si el dueño todavía no se ha apuntado en "personas" --porque no ha
+      // abierto la app ni una vez--, se guarda con el de siempre. Eso lo deja
+      // visible para los dos, que es el lado seguro: nunca se esconde algo a
+      // quien tiene derecho a verlo.
+      const idDelDueno = duenoDelGasto && duenoDelGasto !== form.quien
+        ? idDe(personas, duenoDelGasto)
+        : usuario?.id || null
+      const aNombreDe = idDelDueno || usuario?.id || null
+      const guardarComun = idDelDueno ? datos.comun : (duenoDelGasto && duenoDelGasto !== form.quien ? true : datos.comun)
+
+      const { error } = await supabase
+        .from('transacciones')
+        .insert([{ ...datos, comun: guardarComun, user_id: aNombreDe }])
       errDB = error
     }
 
@@ -617,14 +658,14 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
       {/* Quién — si tu cuenta ya lleva tu nombre, solo se muestra; si no,
           salen los botones para que nunca se quede sin rellenar */}
-      {movilConfigurado && form.quien ? (
-        <p className="text-xs text-gray-400 text-center">
-          Registra: <span className="font-semibold text-gray-500">{form.quien}</span>
-          {' · '}
-          <button type="button" onClick={() => setMovilConfigurado(false)}
-            className="underline text-gray-400">cambiar</button>
-        </p>
-      ) : (
+      {/* Cuando la cuenta ya lleva tu nombre no se enseña nada: ya sabes quién
+          eres. Antes ponía "Registra: Cris · cambiar", y ese "cambiar" no
+          cambiaba el apunte sino EL NOMBRE DE LA CUENTA: dos toques para dejar
+          la contabilidad diciendo cosas falsas. Eso se hace en Ajustes → Yo
+          soy, que es una pantalla a la que se entra queriendo.
+          Los botones de abajo sí se quedan: hacen falta la primera vez, o el
+          apunte se quedaría sin dueño. */}
+      {movilConfigurado && form.quien ? null : (
         <div>
           <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">¿Quién lo registra? *</label>
           <div className="flex gap-2">
@@ -675,30 +716,51 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         <>
         <div>
           <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">¿De quién es este gasto? *</label>
-          <div className="flex gap-2">
-            <button type="button" onClick={() => set('comun', true)}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun === true ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-400 border-gray-200'}`}>
-              De los dos
-            </button>
-            <button type="button" onClick={() => set('comun', false)}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.comun === false ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
+
+          {/* "De los dos" al doble de alto: es lo normal y así se pulsa sin
+              pensar. Las dos excepciones, debajo y más pequeñas. No hay
+              ninguna línea explicando que hay que elegir: si se te olvida, te
+              lo dice al guardar, que es cuando importa. */}
+          <button type="button" onClick={() => set('deQuien', 'dos')}
+            className={`w-full py-5 rounded-2xl text-base font-bold border-2 transition-colors ${form.deQuien === 'dos' ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-400 border-gray-200'}`}>
+            De los dos
+          </button>
+
+          <div className="flex gap-2 mt-2">
+            <button type="button" onClick={() => set('deQuien', 'mio')}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.deQuien === 'mio' ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
               Solo mío
             </button>
+            <button type="button" onClick={() => set('deQuien', 'otro')} disabled={!elOtro}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors disabled:opacity-40 ${form.deQuien === 'otro' ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
+              Gasto de {elOtro || '…'}
+            </button>
           </div>
-          {form.comun === false && !personalConTarjetaAjena && (
+
+          {/* El aviso dice lo que va a pasar DE VERDAD con este gasto y con
+              este medio de pago. Es el único sitio donde la app avisa, antes
+              de guardar, de qué va a hacer con el dinero: si aquí pone algo
+              que no es, es peor que no poner nada. */}
+          {form.deQuien === 'mio' && esPrivado && (
             <p className="text-xs text-gray-400 mt-1.5">Este gasto solo lo verás tú, y no entra en la cuenta de los dos.</p>
           )}
-          {personalConTarjetaAjena && (
+
+          {form.deQuien === 'mio' && !esPrivado && (
             <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-2.5 mt-1.5 leading-snug">
-              Lo pagas con «{form.medio_pago}», que es de {duenoDelMedio}. Si lo guardas así:
-              <br />· El gasto sigue siendo <b>tuyo entero</b>, no se reparte ni cuenta como gasto de los dos.
-              <br />· <b>{duenoDelMedio} verá este apunte</b>, porque lo ha pagado.
-              <br />· Y quedará que <b>le debes {form.importe ? form.importe + ' €' : 'ese importe'}</b>.
-              <br />Si te has equivocado de tarjeta, cámbiala.
+              {quienPaga
+                ? <>Lo pagas con «{form.medio_pago}», que es de {quienPaga}. El gasto sigue siendo <b>tuyo entero</b>, <b>{quienPaga} verá este apunte</b> porque ha puesto el dinero, y quedará que <b>se lo debes</b>. Si te has equivocado de tarjeta, cámbiala.</>
+                : <>Lo pagas con «{form.medio_pago}», que es una cuenta común. El gasto sigue siendo <b>tuyo entero</b>, lo veréis los dos, y quedará que <b>lo debes</b>.</>}
             </p>
           )}
-          {form.comun == null && (
-            <p className="text-xs text-gray-400 mt-1.5">Elige una de las dos: no se puede guardar sin decirlo.</p>
+
+          {form.deQuien === 'otro' && (
+            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-2.5 mt-1.5 leading-snug">
+              {esPrivado
+                ? <>Es un gasto de {elOtro} y lo paga {elOtro}: <b>no genera deuda</b>. Lo guardas a su nombre, así que <b>tú dejarás de verlo</b> — lo verá solo {elOtro}.</>
+                : quienPaga
+                  ? <>Es un gasto de {elOtro} y lo pagas tú. <b>{elOtro} verá este apunte</b> —tiene que poder ver qué se le carga— y quedará que <b>te debe {form.importe ? form.importe + ' €' : 'ese importe'}</b>.</>
+                  : <>Es un gasto de {elOtro}, pagado con una cuenta común. Lo veréis los dos y quedará <b>a su cargo</b>.</>}
+            </p>
           )}
         </div>
         </>

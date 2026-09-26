@@ -22,7 +22,7 @@ mkdirSync(join(tmp, 'supabase'), { recursive: true })
 writeFileSync(join(tmp, 'supabase', 'client.mjs'),
   'export const createClient = () => ({ auth: { updateUser: async () => ({ error: null }) } })\n')
 
-for (const nombre of ['identidad', 'cuentas', 'apuntes', 'reparto', 'deuda']) {
+for (const nombre of ['identidad', 'cuentas', 'apuntes', 'reparto', 'deuda', 'dequien']) {
   const texto = readFileSync(join(raiz, 'lib', nombre + '.js'), 'utf8')
     .replace(/@\/lib\/supabase\/client/g, './supabase/client.mjs')
     .replace(/@\/lib\/([a-z]+)/g, './$1.mjs')
@@ -33,6 +33,7 @@ const { construirReparto } = await import(join(tmp, 'reparto.mjs'))
 const { calcularDeuda } = await import(join(tmp, 'deuda.mjs'))
 const { esDeLaCasa, esLiquidacion, sinAjustes, soloComunes, soloMios, gastoDeLaCasaDelMes } =
   await import(join(tmp, 'apuntes.mjs'))
+const { comunYCargo } = await import(join(tmp, 'dequien.mjs'))
 
 // ---------------------------------------------------------------- utilidades
 
@@ -118,6 +119,44 @@ comprobar('solo cuentan los gastos posteriores', deuda([alquiler, pago, trasCier
 comprobar('un pago anterior al cierre no sigue contando', deuda([pago], CIERRE), 'en paz')
 const tardio = { created_at: '2026-09-19T23:00:00Z', fecha: '2026-09-10', tipo: 'gasto', importe: 100, categoria: 'Ocio', medio_pago: 'Banco Adri', comun: true }
 comprobar('un gasto viejo apuntado DESPUÉS del cierre sí cuenta', deuda([alquiler, pago, tardio], CIERRE), 'Cris debe 50.00 a Adri')
+
+seccion('DE QUIÉN ES EL GASTO, Y QUIÉN LO VE')
+//
+// La regla: ves todo MENOS lo que es del otro Y lo paga el otro.
+//
+// Las nueve combinaciones de (de quién es) × (de quién es el medio de pago),
+// mirándolo siempre desde Cris, que es quien lo está apuntando. Se resume cada
+// resultado en un texto para que la prueba se lea de un tirón.
+const resumen = (deQuien, medio) => {
+  const { comun, a_cargo_de, duenoDelGasto } = comunYCargo(deQuien, 'Cris', medio)
+  return [comun ? 'lo ven los dos' : 'privado',
+          a_cargo_de ? 'a cargo de ' + a_cargo_de : 'se reparte',
+          duenoDelGasto ? 'guardado a nombre de ' + duenoDelGasto : 'a mi nombre'].join(' · ')
+}
+
+// De los dos: nunca es privado y nunca se carga a nadie, pague quien pague.
+comprobar('de los dos, con tarjeta de Cris', resumen('dos', 'Cris'), 'lo ven los dos · se reparte · a mi nombre')
+comprobar('de los dos, con tarjeta de Adri', resumen('dos', 'Adri'), 'lo ven los dos · se reparte · a mi nombre')
+comprobar('de los dos, con cuenta común', resumen('dos', 'Común'), 'lo ven los dos · se reparte · a mi nombre')
+
+// Solo mío (soy Cris). Privado solo si además lo pago yo.
+comprobar('mío y lo pago yo: solo lo veo yo', resumen('mio', 'Cris'), 'privado · se reparte · guardado a nombre de Cris')
+comprobar('mío pero lo paga Adri: lo vemos los dos y me lo cargan', resumen('mio', 'Adri'), 'lo ven los dos · a cargo de Cris · a mi nombre')
+comprobar('mío pero sale de la común: lo vemos los dos', resumen('mio', 'Común'), 'lo ven los dos · a cargo de Cris · a mi nombre')
+
+// Gasto de Adri, apuntado por Cris. Aquí está lo nuevo: si lo paga Adri, deja
+// de verlo Cris aunque sea Cris quien lo teclea.
+comprobar('de Adri y lo paga Adri: lo apunto y deja de ser mío', resumen('otro', 'Adri'), 'privado · se reparte · guardado a nombre de Adri')
+comprobar('de Adri pero lo pago yo: lo vemos los dos y se lo cargan', resumen('otro', 'Cris'), 'lo ven los dos · a cargo de Adri · a mi nombre')
+comprobar('de Adri pero sale de la común: lo vemos los dos', resumen('otro', 'Común'), 'lo ven los dos · a cargo de Adri · a mi nombre')
+
+// Un medio de pago sin dueño no puede volver privado nada.
+comprobar('mío con medio sin asignar: no es privado', resumen('mio', 'Sin asignar'), 'lo ven los dos · a cargo de Cris · a mi nombre')
+
+// Un ingreso no pregunta de quién es: es de quien lo cobra, y nunca común.
+comprobar('un ingreso es siempre de quien lo cobra',
+  JSON.stringify(comunYCargo('dos', 'Cris', 'Común', 'ingreso')),
+  JSON.stringify({ comun: false, a_cargo_de: null, duenoDelGasto: 'Cris' }))
 
 seccion('LAS COPIAS DE SEGURIDAD')
 const todos = [alquiler, compra, cena, ropaCris, zapas, nomina, pago]
