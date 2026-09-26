@@ -748,14 +748,23 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
 
           {/* Lo que le queda a quien mira. No es ingresos menos gastos a secas:
               de los gastos de los dos solo cuenta su parte, si no le restaría
-              el alquiler entero cuando solo le toca un trozo. */}
+              el alquiler entero cuando solo le toca un trozo.
+
+              Un solo color: el de LA CIFRA, que es lo que cambia de
+              significado según sobre o falte. El rótulo y el pie van en tinta
+              clara, no en color: tres colores en una tarjeta de tres líneas
+              se pelean entre ellos.
+
+              El pie estaba en 3,5 de contraste sobre estos fondos, por debajo
+              del mínimo de 4,5. Al subir los fondos de los recuadros no se
+              volvió a medir lo que iba encima; ahora está en 5,7. */}
           {miBalanceMes ? (
             <div className={`rounded-xl p-3 text-center ${miBalanceMes.queda >= 0 ? 'bg-[var(--info-fondo)]' : 'bg-[var(--aviso-fondo)]'}`}>
-              <p className={`text-xs font-medium ${miBalanceMes.queda >= 0 ? 'text-[var(--acento)]' : 'text-[var(--aviso)]'}`}>Lo que te queda a ti este mes</p>
-              <p className={`text-xl font-bold ${miBalanceMes.queda >= 0 ? 'text-[var(--info)]' : 'text-[var(--aviso)]'}`}>
+              <p className="text-xs font-medium text-[#C9CDE6]">Lo que te queda a ti este mes</p>
+              <p className={`text-2xl font-black tracking-tight mt-0.5 ${miBalanceMes.queda >= 0 ? 'text-[var(--info)]' : 'text-[var(--aviso)]'}`}>
                 {ocultar(mostrarCifras, `${miBalanceMes.queda >= 0 ? '+' : ''}${euros(miBalanceMes.queda)} €`)}
               </p>
-              <p className="text-[10px] text-[var(--tinta-4)] mt-1">
+              <p className="text-[10px] text-[#C9CDE6] mt-1 opacity-80">
                 Tus ingresos {ocultar(mostrarCifras, euros(miBalanceMes.ingresos))} € menos tu parte de los gastos {ocultar(mostrarCifras, euros(miBalanceMes.gastos))} €
               </p>
             </div>
@@ -792,7 +801,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                     </div>
                     <div className="text-right shrink-0 mr-1">
                       {tabActiva === 'gasto' && m.gasto > 0 && (
-                        <p className="text-sm font-bold text-[var(--gasto)]">{ocultar(mostrarCifras, `−${euros(m.gasto)} €`)}</p>
+                        <p className="text-sm font-bold text-[#FF9393]">{ocultar(mostrarCifras, `−${euros(m.gasto)} €`)}</p>
                       )}
                       {tabActiva === 'ingreso' && m.ingreso > 0 && (
                         <p className="text-sm font-bold text-[var(--ingreso)]">{ocultar(mostrarCifras, `+${euros(m.ingreso)} €`)}</p>
@@ -1041,8 +1050,8 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                       </div>
                     </div>
                     <div className="text-right shrink-0 mr-1">
-                      <p className="text-sm font-bold text-[var(--gasto)]">{ocultar(mostrarCifras, `${euros(p.puesto)} €`)}</p>
-                      <p className="text-xs text-[var(--tinta-5)]">{pctPersona}%</p>
+                      <p className="text-sm font-bold text-[#FF9393]">{ocultar(mostrarCifras, `${euros(p.puesto)} €`)}</p>
+                      <p className="text-xs text-[var(--tinta-3)]">{pctPersona}%</p>
                     </div>
                     <span className="text-[var(--tinta-4)] text-xs">{abierto ? '▲' : '▼'}</span>
                   </button>
@@ -1107,7 +1116,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
           <span className="text-xs font-semibold text-[var(--info)]">
             ⚖️ Comparando con {new Date(mesComparacion.split('-')[0], parseInt(mesComparacion.split('-')[1]) - 1).toLocaleString('es', { month: 'long', year: 'numeric' })}
           </span>
-          <button onClick={() => setMesComparacion(null)} className="text-[var(--adri)] text-sm font-bold">✕</button>
+          <button onClick={() => setMesComparacion(null)} className="text-[#BFE3FA] text-sm font-bold">✕</button>
         </div>
       )}
 
@@ -1157,7 +1166,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                   <span className="text-xs text-[var(--tinta-3)] col-span-1 truncate">{cat}</span>
                   <span className="text-xs font-semibold text-[var(--tinta)] text-right">{actual > 0 ? ocultar(mostrarCifras, `${euros0(actual)}€`) : '—'}</span>
                   <span className="text-xs text-[var(--tinta-4)] text-right">{comp > 0 ? ocultar(mostrarCifras, `${euros0(comp)}€`) : '—'}</span>
-                  <span className={`text-xs font-semibold text-right ${dif === 0 ? 'text-[var(--tinta-5)]' : esAlerta ? 'text-[var(--gasto)]' : 'text-[var(--ingreso)]'}`}>
+                  <span className={`text-xs font-semibold text-right ${dif === 0 ? 'text-[var(--tinta-4)]' : esAlerta ? 'text-[var(--gasto)]' : 'text-[var(--ingreso)]'}`}>
                     {dif === 0 ? '—' : ocultar(mostrarCifras, `${dif > 0 ? '+' : ''}${euros0(dif)}€`)}
                   </span>
                 </div>
@@ -1292,7 +1301,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
           className="w-full py-2.5 bg-[var(--comun-fondo)] border border-[var(--comun)] text-[var(--comun)] font-semibold rounded-xl active:bg-[var(--comun-fondo)] disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
           <span>📥</span> Copia de los gastos de los dos (Excel)
         </button>
-        <p className="text-[11px] text-[var(--tinta-4)] -mt-0.5">
+        <p className="text-[11px] text-[#CFEBE0] -mt-0.5">
           Sin gastos particulares de nadie. Es la que vale como copia de seguridad y se puede pasar al otro.
         </p>
         <button onClick={() => exportarExcel(soloMios(transacciones), `mis_gastos_${hoy()}.xlsx`)}

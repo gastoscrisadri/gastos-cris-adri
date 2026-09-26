@@ -177,7 +177,7 @@ export default function ListaTransacciones({ transacciones, cargando, onSeleccio
                         </span>
                       )}
                       {t.evento_id && <span className="text-[10px] shrink-0">🎯</span>}
-                      {t.imagen_url && <span className="text-[10px] text-[var(--tinta-5)] shrink-0">📎</span>}
+                      {t.imagen_url && <span className="text-[10px] text-[#CFEBE0] shrink-0">📎</span>}
                     </div>
                   </div>
 

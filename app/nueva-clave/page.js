@@ -83,7 +83,7 @@ export default function NuevaClavePage() {
 
         {estado === 'sinEnlace' && (
           <div className="text-center space-y-4">
-            <p className="text-sm text-[var(--tinta-3)] bg-[var(--aviso-fondo)] border border-[var(--aviso-linea)] rounded-2xl p-4 leading-snug">
+            <p className="text-sm text-[#EFE2C7] bg-[var(--aviso-fondo)] border border-[var(--aviso-linea)] rounded-2xl p-4 leading-snug">
               Este enlace no vale o ha caducado. Los enlaces duran poco rato a propósito.
               Vuelve a pedir uno desde la pantalla de entrada.
             </p>
@@ -111,7 +111,7 @@ export default function NuevaClavePage() {
                 placeholder="••••••••" />
             </div>
 
-            {error && <p className="text-[var(--gasto)] text-sm text-center bg-[#6B3E4C] py-2 rounded-xl">{error}</p>}
+            {error && <p className="text-[#FFBAC8] text-sm text-center bg-[#6B3E4C] py-2 rounded-xl">{error}</p>}
 
             <button type="submit" disabled={guardando}
               className="w-full py-4 bg-[var(--acento)] text-[var(--acento-tinta)] rounded-2xl text-base font-bold disabled:opacity-50 shadow-md mt-2">

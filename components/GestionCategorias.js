@@ -34,7 +34,7 @@ function EditorReparto({ item, esSub, onGuardar, onQuitar }) {
           onChange={e => setTexto(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); guardar() } }}
           className={`w-20 px-2 py-1 border rounded-lg text-sm text-center ${valido ? 'border-[var(--linea)]' : 'border-[#7A4657] bg-[#6B3E4C]'}`} />
-        <span className="text-xs text-[var(--tinta-3)]">%</span>
+        <span className="text-xs text-[#F0DCE1]">%</span>
         <button type="button" onClick={guardar} disabled={!valido || !cambiado}
           className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[var(--dinero)] text-[var(--dinero-tinta)] disabled:bg-[var(--superficie-4)] disabled:text-[var(--tinta-4)]">
           Guardar
@@ -187,7 +187,7 @@ export default function GestionCategorias() {
         </button>
       </div>
 
-      {error && <p className="text-[var(--gasto)] text-sm bg-[#6B3E4C] rounded-xl p-3">{error}</p>}
+      {error && <p className="text-[#FFBAC8] text-sm bg-[#6B3E4C] rounded-xl p-3">{error}</p>}
 
       {/* Lista de categorías */}
       <div className="space-y-2">
@@ -216,7 +216,7 @@ export default function GestionCategorias() {
                       className="text-xs text-[var(--tinta-5)] hover:text-[var(--gasto)] px-1.5 py-1">🗑️</button>
                     <button onClick={() => setRepartoAbierto(repartoAbierto === cat.id ? null : cat.id)}
                       title="Cómo se reparte entre los dos"
-                      className={`text-[10px] px-1.5 py-1 rounded-lg font-semibold ${cat.porcentaje_primero != null ? 'text-[var(--dinero)] bg-[var(--comun-fondo)]' : 'text-[var(--tinta-5)] hover:text-[var(--dinero)]'}`}>
+                      className={`text-[10px] px-1.5 py-1 rounded-lg font-semibold ${cat.porcentaje_primero != null ? 'text-[var(--comun)] bg-[var(--comun-fondo)]' : 'text-[#CFEBE0] hover:text-[var(--comun)]'}`}>
                       {cat.porcentaje_primero != null ? `${corto(cat.porcentaje_primero)}/${corto(100 - cat.porcentaje_primero)}` : '50/50'}
                     </button>
                     {/* Siempre visible, aunque no haya subcategorías: si no,
@@ -231,7 +231,7 @@ export default function GestionCategorias() {
 
               {repartoAbierto === cat.id && (
                 <div className="px-4 py-3 bg-[var(--comun-fondo)]/60 border-t border-[var(--comun)] space-y-2">
-                  <p className="text-xs text-[var(--tinta-3)]">
+                  <p className="text-xs text-[#CFEBE0]">
                     Cómo se reparte <b>{cat.nombre}</b> entre los dos. Afecta a «La cuenta de los dos» de Informes.
                   </p>
                   <EditorReparto item={cat}
@@ -245,7 +245,7 @@ export default function GestionCategorias() {
                 <>
                   {subs.map(sub => (
                     <div key={sub.id} className="flex items-center flex-wrap gap-2 px-4 py-2 bg-[var(--superficie-2)] border-t border-[var(--linea-2)]">
-                      <span className="text-[var(--tinta-5)] text-xs">↳</span>
+                      <span className="text-[var(--tinta-4)] text-xs">↳</span>
                       {editando === sub.id ? (
                         <>
                           <input autoFocus value={nombreEdicion} onChange={e => setNombreEdicion(e.target.value)}
@@ -263,7 +263,7 @@ export default function GestionCategorias() {
                             className="text-xs text-[var(--tinta-5)] hover:text-[var(--gasto)] px-1">🗑️</button>
                           <button onClick={() => setRepartoAbierto(repartoAbierto === sub.id ? null : sub.id)}
                             title="Cómo se reparte entre los dos"
-                            className={`text-[10px] px-1.5 py-0.5 rounded-lg font-semibold ${sub.porcentaje_primero != null ? 'text-[var(--dinero)] bg-[var(--comun-fondo)]' : 'text-[var(--tinta-5)] hover:text-[var(--dinero)]'}`}>
+                            className={`text-[10px] px-1.5 py-0.5 rounded-lg font-semibold ${sub.porcentaje_primero != null ? 'text-[var(--comun)] bg-[var(--comun-fondo)]' : 'text-[#CFEBE0] hover:text-[var(--comun)]'}`}>
                             {sub.porcentaje_primero != null ? `${corto(sub.porcentaje_primero)}/${corto(100 - sub.porcentaje_primero)}` : '—'}
                           </button>
                         </>

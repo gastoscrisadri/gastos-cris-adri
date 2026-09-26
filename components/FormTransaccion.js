@@ -721,7 +721,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
               <p className="text-xs font-semibold text-[var(--aviso)]">
                 {form.evento_id ? (eventoActivo?.nombre || 'Evento') : 'Sin evento'}
               </p>
-              <p className="text-xs text-[var(--tinta-4)]">{form.evento_id ? 'Apunte asignado a este evento' : ''}</p>
+              <p className="text-xs text-[#EFE2C7]">{form.evento_id ? 'Apunte asignado a este evento' : ''}</p>
             </div>
           </div>
           {form.evento_id ? (
@@ -797,7 +797,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         </>
       )}
 
-      {error && <p className="text-[var(--gasto)] text-sm bg-[#6B3E4C] rounded-xl p-3">{error}</p>}
+      {error && <p className="text-[#FFBAC8] text-sm bg-[#6B3E4C] rounded-xl p-3">{error}</p>}
 
       {/* Guardar — Cancelar ya está arriba, junto a la foto */}
       <div className="pt-1">
@@ -811,13 +811,13 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       {esEdicion && (
         !confirmando ? (
           <button type="button" onClick={() => setConfirmando(true)}
-            className="w-full py-2.5 bg-[#6B3E4C] border border-[#7A4657] text-[var(--gasto)] rounded-xl text-sm font-semibold">
+            className="w-full py-2.5 bg-[#6B3E4C] border border-[#7A4657] text-[#FFBAC8] rounded-xl text-sm font-semibold">
             🗑️ Eliminar apunte
           </button>
         ) : (
           <div className="flex gap-3">
             <button type="button" onClick={() => setConfirmando(false)}
-              className="flex-1 py-2.5 border border-[var(--linea)] rounded-xl text-sm text-[var(--tinta-3)] font-medium">No, cancelar</button>
+              className="flex-1 py-2.5 border border-[var(--linea)] rounded-xl text-sm text-[#F0DCE1] font-medium">No, cancelar</button>
             <button type="button" onClick={() => onEliminar?.(transaccionEditar)}
               className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold">Sí, eliminar</button>
           </div>
