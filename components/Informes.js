@@ -9,7 +9,7 @@ import { NOMBRES, nombreDe } from '@/lib/identidad'
 import { cargarCategorias } from '@/lib/categorias'
 import { hoy } from '@/lib/fechas'
 import { construirReparto } from '@/lib/reparto'
-import { calcularDeuda } from '@/lib/deuda'
+import { calcularDeuda, gastosComunesDesde } from '@/lib/deuda'
 // Las reglas de qué es cada apunte viven en lib/apuntes.js, no aquí: las usan
 // también la portada y lo que venga, y copiarlas es lo que ha causado que un
 // arreglo entrara en una pantalla y no en su gemela.
@@ -191,7 +191,17 @@ function calcularDatos(lista, cuentas) {
     return { totalGastos, totalIngresos, balance: totalIngresos - totalGastos, categorias, medios, personas }
 }
 
-export default function Informes({ transacciones, mostrarCifras, onCambio, onCopiaDescargada, abrirEn }) {
+// `seccion` dice cuál de las dos pantallas se está pintando:
+//
+//   'informes' — en qué se ha ido el dinero este mes (y, desplegable al final,
+//                la comparación con otros meses y el año).
+//   'balance'  — la cuenta de los dos: quién debe a quién, saldar, cerrar.
+//
+// Las dos viven en el mismo archivo a propósito. Comparten el cálculo de la
+// deuda, las cuentas, el reparto y el historial; partirlo en dos componentes
+// obligaría a pasar quince cosas de una a otra, y cada una de esas quince es
+// un sitio donde equivocarse. Lo que cambia es qué se pinta, no qué se calcula.
+export default function Informes({ transacciones, mostrarCifras, onCambio, onCopiaDescargada, abrirEn, seccion = 'informes' }) {
   // Se cargan antes que nada: de ellas salen los emojis, los saldos y
   // el reparto de "quién puso el dinero".
   const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
@@ -234,7 +244,10 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
   // sitio: el mes corriente, la cuenta entre los dos, y el histórico.
   // abrirEn deja que la portada mande abrir esta pantalla en un sitio concreto:
   // el resumen del mes cerrado lleva directo a saldar la cuenta.
-  const [vista, setVista] = useState(abrirEn?.vista || 'mes')
+  // El Histórico ya no es una pestaña hermana de las demás: es un "quiero
+  // profundizar" que se despliega al final de Informes. Se guarda si está
+  // abierto o cerrado, nada más.
+  const [verHistorico, setVerHistorico] = useState(abrirEn?.vista === 'historico')
   // De quién son los apuntes que se enseñan en "Mes": todo, los de los dos,
   // o los particulares de quien mira. Arranca en los de los dos.
   const [deQuien, setDeQuien] = useState('comunes')  // 'comunes' | 'mios'
@@ -271,11 +284,6 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
   // El mismo mes, pero como lo cuenta el Histórico
   const datosHist = useMemo(() => calcularDatos(soloConjunto(transaccionesMes), cuentas), [transaccionesMes, cuentas])
 
-  // Quién puso el dinero DE LOS GASTOS DE LOS DOS. Solo comunes: así el total
-  // cuadra con la cuenta de los dos, que está justo encima en la misma pestaña.
-  const transaccionesComunesMes = useMemo(() => sinAjustes(transaccionesMes.filter(esDeLaCasa)), [transaccionesMes])
-  const datosComunes = useMemo(() => calcularDatos(transaccionesComunesMes, cuentas), [transaccionesComunesMes, cuentas])
-
   // Lo que han gastado entre los dos este mes. No depende del filtro: es la
   // cifra de la tarjeta de arriba, y tiene que salir igual en los dos móviles.
   const gastoConjuntoMes = useMemo(() =>
@@ -293,6 +301,26 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
     () => calcularDeuda(transacciones, cuentas, miParte, ultimoCierre?.created_at || null),
     [transacciones, cuentas, miParte, ultimoCierre]
   )
+
+  // Quién ha puesto el dinero de los dos DESDE EL ÚLTIMO CIERRE.
+  //
+  // Antes esta tarjeta era del mes y vivía debajo de una cuenta que es
+  // acumulada: el total de arriba y el de abajo hablaban de periodos
+  // distintos. Ahora las dos miran lo mismo.
+  //
+  // Los importes NO se vuelven a sumar aquí: salen de deuda.pagado, que es la
+  // cifra ya verificada que usa la propia cuenta. Lo único que se calcula es
+  // la lista de apuntes que hay detrás de cada cifra, y sale del mismo filtro
+  // (gastosComunesDesde), así que la lista y el total no pueden separarse.
+  const comunesAcumulados = useMemo(
+    () => gastosComunesDesde(transacciones, ultimoCierre?.created_at || null),
+    [transacciones, ultimoCierre]
+  )
+  const quienPuso = useMemo(() => {
+    const puestos = NOMBRES.map(n => ({ nombre: n, puesto: deuda.pagado[n] || 0 }))
+    const total = puestos.reduce((s, p) => s + p.puesto, 0)
+    return { lista: puestos.filter(p => p.puesto > 0), total }
+  }, [deuda])
 
   // Cerrar la cuenta: a partir de ahora se empieza de cero.
   //
@@ -536,8 +564,11 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
   return (
     <div className="pb-24 space-y-4">
 
-      {/* Mes y resumen: se ven igual en las tres pestañas */}
-      {/* Navegación de mes */}
+      {/* El mes y su resumen son de Informes. En Balance no pintan nada: esa
+          pantalla enseña un saldo acumulado, no un mes, y tener arriba un
+          selector que no afecta a la cifra de abajo era justo lo que
+          confundía cuando esto era una pestaña más. */}
+      {seccion === 'informes' && (<>
       <div className="flex items-center justify-between pt-1">
         <button
           onClick={() => idxMes < meses.length - 1 && setMesSeleccionado(meses[idxMes + 1])}
@@ -587,18 +618,10 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
         </div>
       </div>
 
-      {/* Las tres pestañas */}
-      <div className="flex gap-1.5 bg-[#0d1b2a] rounded-2xl p-1.5 shadow-sm">
-        {[['mes', 'Mes'], ['nosotros', 'Nosotros'], ['historico', 'Histórico']].map(([id, label]) => (
-          <button key={id} type="button" onClick={() => setVista(id)}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors ${vista === id ? 'bg-white text-[#0d1b2a] shadow' : 'text-white/60'}`}>
-            {label}
-          </button>
-        ))}
-      </div>
+      </>)}
 
       {/* MES — en qué se ha ido el dinero este mes */}
-      {vista === 'mes' && (
+      {seccion === 'informes' && (
         <>
       {/* De quién son los apuntes que se enseñan debajo. Aquí es donde cada
           uno ve sus gastos particulares desglosados. */}
@@ -808,7 +831,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
       )}
 
       {/* NOSOTROS — quién debe a quién y quién ha puesto el dinero */}
-      {vista === 'nosotros' && (
+      {seccion === 'balance' && (
         <>
       {/* La cuenta de los dos — solo con los gastos comunes */}
       {deuda.aRepartir > 0 && (
@@ -996,19 +1019,22 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
       )}
 
       {/* Resumen por persona — expandible */}
-      {datosComunes.personas.length > 0 && (
+      {quienPuso.lista.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Quién puso el dinero de los dos</p>
+          <p className="text-xs text-gray-400 -mt-1">
+            {ultimoCierre ? `Desde el cierre del ${fechaCorta(ultimoCierre.created_at)}` : 'Desde el principio'}
+          </p>
           <div className="space-y-1.5">
-            {datosComunes.personas.map((p) => {
+            {quienPuso.lista.map((p) => {
               const emoji = EMOJI_PERSONA[p.nombre] || '👤'
-              const pctPersona = datosComunes.totalGastos > 0 ? Math.round((p.gasto / datosComunes.totalGastos) * 100) : 0
+              const pctPersona = quienPuso.total > 0 ? Math.round((p.puesto / quienPuso.total) * 100) : 0
               const abierto = personaAbierta === p.nombre
-              // La lista sale de la MISMA lista que el total. Antes el total
-              // quitaba los ajustes de cuentas y la lista no, así que se veía
-              // un apunte que no estaba sumado y las cuentas no cuadraban.
-              const apuntesPersona = transaccionesComunesMes
-                .filter(t => personaDeMedioPago(t.medio_pago, cuentas) === p.nombre && t.tipo === tabActiva)
+              // La lista sale del MISMO filtro que el total (gastosComunesDesde):
+              // si se filtrara aquí a mano, acabaría enseñando apuntes que la
+              // cifra de al lado no ha sumado. Ya pasó una vez.
+              const apuntesPersona = comunesAcumulados
+                .filter(t => personaDeMedioPago(t.medio_pago, cuentas) === p.nombre)
                 .sort((a, b) => b.fecha.localeCompare(a.fecha))
               return (
                 <div key={p.nombre} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
@@ -1024,12 +1050,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                       </div>
                     </div>
                     <div className="text-right shrink-0 mr-1">
-                      {tabActiva === 'gasto' && p.gasto > 0 && (
-                        <p className="text-sm font-bold text-red-500">{ocultar(mostrarCifras, `−${euros(p.gasto)} €`)}</p>
-                      )}
-                      {tabActiva === 'ingreso' && p.ingreso > 0 && (
-                        <p className="text-sm font-bold text-emerald-500">{ocultar(mostrarCifras, `+${euros(p.ingreso)} €`)}</p>
-                      )}
+                      <p className="text-sm font-bold text-red-500">{ocultar(mostrarCifras, `${euros(p.puesto)} €`)}</p>
                       <p className="text-xs text-gray-300">{pctPersona}%</p>
                     </div>
                     <span className="text-gray-400 text-xs">{abierto ? '▲' : '▼'}</span>
@@ -1038,7 +1059,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                   {abierto && (
                     <div className="border-t border-gray-50 divide-y divide-gray-50">
                       {apuntesPersona.length === 0 ? (
-                        <p className="text-xs text-gray-400 text-center py-3">Sin apuntes de {tabActiva === 'gasto' ? 'gastos' : 'ingresos'} de esta persona</p>
+                        <p className="text-xs text-gray-400 text-center py-3">Sin apuntes de esta persona</p>
                       ) : apuntesPersona.map(t => (
                         <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras} yo={yo}
                           extra={<span className="text-[10px] text-gray-400 shrink-0">{t.categoria}</span>} />
@@ -1052,14 +1073,26 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
         </div>
       )}
 
-      {deuda.aRepartir <= 0 && datosComunes.personas.length === 0 && (
+      {deuda.aRepartir <= 0 && quienPuso.lista.length === 0 && (
         <p className="text-gray-400 text-sm text-center mt-8">Todavía no hay gastos de los dos que repartir</p>
       )}
         </>
       )}
 
-      {/* HISTÓRICO — comparar con otros meses, el año y exportar */}
-      {vista === 'historico' && (
+      {/* HISTÓRICO — comparar con otros meses, el año y exportar.
+          Va al final y plegado porque no es una pantalla hermana de las otras:
+          necesita que antes hayas elegido un mes ahí arriba. Todo lo de aquí
+          abajo (la comparación, el año, el gráfico) se calcula a partir de ese
+          mes, así que ponerlo como pestaña al lado contaba una mentira sobre
+          cómo funciona. */}
+      {seccion === 'informes' && (
+        <button type="button" onClick={() => setVerHistorico(v => !v)}
+          className="w-full py-3.5 rounded-2xl text-sm font-bold bg-[#0d1b2a] text-white shadow-sm">
+          {verHistorico ? '▲ Cerrar la comparación' : '📈 Comparar con otro mes y ver el año'}
+        </button>
+      )}
+
+      {seccion === 'informes' && verHistorico && (
         <>
       {barraTipos(datosHist)}
 
@@ -1068,7 +1101,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
         <div className="flex justify-end">
           <select
             value=""
-            onChange={e => { if (e.target.value) { setMesComparacion(e.target.value); setVista('historico') } }}
+            onChange={e => { if (e.target.value) setMesComparacion(e.target.value) }}
             className="text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-xl px-3 py-1.5 focus:outline-none">
             <option value="">⚖️ Comparar con...</option>
             {meses.filter(m => m !== mesSeleccionado).map(m => {

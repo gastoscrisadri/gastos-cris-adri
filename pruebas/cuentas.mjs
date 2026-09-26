@@ -30,7 +30,7 @@ for (const nombre of ['identidad', 'cuentas', 'apuntes', 'reparto', 'deuda', 'de
 }
 
 const { construirReparto } = await import(join(tmp, 'reparto.mjs'))
-const { calcularDeuda } = await import(join(tmp, 'deuda.mjs'))
+const { calcularDeuda, gastosComunesDesde, desdeElCierre } = await import(join(tmp, 'deuda.mjs'))
 const { esDeLaCasa, esLiquidacion, sinAjustes, soloComunes, soloMios, gastoDeLaCasaDelMes } =
   await import(join(tmp, 'apuntes.mjs'))
 const { comunYCargo } = await import(join(tmp, 'dequien.mjs'))
@@ -119,6 +119,34 @@ comprobar('solo cuentan los gastos posteriores', deuda([alquiler, pago, trasCier
 comprobar('un pago anterior al cierre no sigue contando', deuda([pago], CIERRE), 'en paz')
 const tardio = { created_at: '2026-09-19T23:00:00Z', fecha: '2026-09-10', tipo: 'gasto', importe: 100, categoria: 'Ocio', medio_pago: 'Banco Adri', comun: true }
 comprobar('un gasto viejo apuntado DESPUÉS del cierre sí cuenta', deuda([alquiler, pago, tardio], CIERRE), 'Cris debe 50.00 a Adri')
+
+seccion('QUÉ ENTRA EN LA CUENTA DE LOS DOS')
+//
+// Este filtro lo usan dos sitios: el cálculo de la deuda (el total) y la
+// tarjeta de "quién puso el dinero" (la lista). Si se separaran, el total y
+// la lista dirían cosas distintas — ya pasó una vez.
+const gastoComun = { created_at: '2026-09-18T10:00:00Z', tipo: 'gasto', importe: 100, comun: true, medio_pago: 'Tarjeta Cris' }
+const gastoPrivado = { created_at: '2026-09-18T10:00:00Z', tipo: 'gasto', importe: 50, comun: false, medio_pago: 'Tarjeta Cris' }
+const gastoACargo = { created_at: '2026-09-18T10:00:00Z', tipo: 'gasto', importe: 70, comun: true, a_cargo_de: 'Adri', medio_pago: 'Tarjeta Cris' }
+const unaLiquidacion = { created_at: '2026-09-18T10:00:00Z', tipo: 'gasto', importe: 30, comun: true, liquidacion_a: 'Adri', quien: 'Cris', medio_pago: 'Tarjeta Cris' }
+const unIngreso = { created_at: '2026-09-18T10:00:00Z', tipo: 'ingreso', importe: 900, comun: true, medio_pago: 'Banco Cris' }
+const viejo = { created_at: '2026-09-01T10:00:00Z', tipo: 'gasto', importe: 11, comun: true, medio_pago: 'Tarjeta Cris' }
+const todosLosCasos = [gastoComun, gastoPrivado, gastoACargo, unaLiquidacion, unIngreso, viejo]
+
+const importes = ts => ts.map(t => t.importe).sort((a, b) => a - b).join(',')
+
+comprobar('sin cierre entra todo lo que mueve la cuenta', importes(gastosComunesDesde(todosLosCasos)), '11,70,100')
+comprobar('un gasto privado no entra', gastosComunesDesde([gastoPrivado]).length, 0)
+comprobar('un gasto a cargo de uno SÍ entra: alguien puso ese dinero', gastosComunesDesde([gastoACargo]).length, 1)
+comprobar('una liquidación no es un gasto', gastosComunesDesde([unaLiquidacion]).length, 0)
+comprobar('un ingreso no entra', gastosComunesDesde([unIngreso]).length, 0)
+comprobar('con cierre solo entra lo posterior', importes(gastosComunesDesde(todosLosCasos, '2026-09-17T23:00:00Z')), '70,100')
+
+// Y lo que de verdad importa: que la lista sume exactamente lo que dice la
+// cuenta. Si esto falla, la tarjeta y el total se han separado otra vez.
+const sumaLista = gastosComunesDesde(todosLosCasos).reduce((s, t) => s + t.importe, 0)
+comprobar('la lista suma lo mismo que el total de la cuenta',
+  sumaLista, calcularDeuda(todosLosCasos, cuentas, miParte).totalComun)
 
 seccion('DE QUIÉN ES EL GASTO, Y QUIÉN LO VE')
 //

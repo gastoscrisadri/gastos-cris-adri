@@ -446,8 +446,11 @@ export default function Home() {
     if (nuevaVista !== 'ajustes') cargarEventoActivo()
   }
 
+  // El botón de "+" se cuela entre el primero y el segundo, así que Balance
+  // queda a la derecha del "+", que es donde lo pidió Antonio.
   const navItems = [
     { id: 'lista', emoji: '🧾', label: 'Lista' },
+    { id: 'balance', emoji: '⚖️', label: 'Balance' },
     { id: 'informes', emoji: '📊', label: 'Informes' },
     { id: 'ajustes', emoji: '⚙️', label: 'Ajustes' },
   ]
@@ -633,8 +636,15 @@ export default function Home() {
             />
           </div>
         )}
+        {/* Balance e Informes son el mismo componente enseñando partes
+            distintas: comparten el cálculo de la deuda, las cuentas y el
+            reparto, y separarlos en dos archivos obligaría a pasarse quince
+            cosas de uno a otro. */}
+        {vista === 'balance' && !mostrarFormulario && (
+          <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} onCopiaDescargada={marcarCopiaHecha} abrirEn={abrirInformesEn} seccion="balance" />
+        )}
         {vista === 'informes' && !mostrarFormulario && (
-          <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} onCopiaDescargada={marcarCopiaHecha} abrirEn={abrirInformesEn} />
+          <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} onCopiaDescargada={marcarCopiaHecha} abrirEn={abrirInformesEn} seccion="informes" />
         )}
         {vista === 'ajustes' && !mostrarFormulario && (
           <Ajustes usuario={usuario} transacciones={transacciones} onVerDetalleEvento={ev => setEventoDetalle(ev)} mostrarCifras={mostrarCifras} onCerrarSesion={cerrarSesion} />
@@ -771,7 +781,7 @@ export default function Home() {
                   </p>
                 </div>
                 <button
-                  onClick={() => { cerrarResumenMes(); setAbrirInformesEn({ vista: 'nosotros', saldar: true }); setVista('informes') }}
+                  onClick={() => { cerrarResumenMes(); setAbrirInformesEn({ saldar: true }); setVista('balance') }}
                   className="w-full py-3.5 bg-teal-600 text-white font-bold rounded-2xl text-sm mb-2.5">
                   🤝 Saldar cuentas
                 </button>
@@ -817,7 +827,7 @@ export default function Home() {
                   : <>Descarga tus datos una vez al mes para tenerlos a salvo si algo falla con el servidor.</>}
             </p>
             <button
-              onClick={() => { setMostrarRecordatorioCopia(false); setVista('informes') }}
+              onClick={() => { setMostrarRecordatorioCopia(false); setAbrirInformesEn({ vista: 'historico' }); setVista('informes') }}
               className={`w-full py-3.5 text-white font-bold rounded-2xl text-sm mb-3 ${mesesSinCopia >= 2 ? 'bg-red-600' : 'bg-[#0d1b2a]'}`}>
               📥 Ir a Informes y descargar
             </button>
