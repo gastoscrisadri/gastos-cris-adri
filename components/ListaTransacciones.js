@@ -144,7 +144,7 @@ export default function ListaTransacciones({ transacciones, cargando, onSeleccio
                       {t.quien && (
                         <>
                           <span className="text-gray-200 text-xs">·</span>
-                          <span className={`text-xs font-semibold ${t.quien === 'Cris' ? 'text-blue-400' : t.quien === 'Adri' ? 'text-pink-400' : 'text-emerald-500'}`}>
+                          <span className={`text-xs font-semibold ${t.quien === 'Cris' ? 'text-pink-400' : t.quien === 'Adri' ? 'text-blue-400' : 'text-emerald-500'}`}>
                             {t.quien}
                           </span>
                         </>
