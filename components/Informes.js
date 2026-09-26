@@ -201,7 +201,7 @@ function calcularDatos(lista, cuentas) {
 // deuda, las cuentas, el reparto y el historial; partirlo en dos componentes
 // obligaría a pasar quince cosas de una a otra, y cada una de esas quince es
 // un sitio donde equivocarse. Lo que cambia es qué se pinta, no qué se calcula.
-export default function Informes({ transacciones, mostrarCifras, onCambio, onCopiaDescargada, abrirEn, seccion = 'informes' }) {
+export default function Informes({ transacciones, mostrarCifras, onCambio, onCopiaDescargada, abrirEn, seccion = 'informes', onSaldar }) {
   // Se cargan antes que nada: de ellas salen los emojis, los saldos y
   // el reparto de "quién puso el dinero".
   const [cuentas, setCuentas] = useState(CUENTAS_RESPALDO)
@@ -601,8 +601,18 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
           </p>
           <p className="text-[10px] text-red-300 mt-0.5">Lo de los dos, sin los gastos particulares</p>
         </div>
-        <div className="flex-1 bg-[#0d1b2a] rounded-2xl px-4 py-3">
-          <p className="text-[10px] font-bold text-[#8fa6c9] uppercase tracking-widest">La cuenta de los dos</p>
+        {/* Pulsando esta tarjeta se va a Balance. Si hay deuda, además abre
+            directamente el formulario de "ya le he pagado": es lo que se
+            quiere hacer justo después de leer que debes dinero, y antes
+            había que ir a buscarlo a otra pantalla.
+            Es un <button> de verdad, no un div con onClick: así se puede
+            pulsar también con el teclado y el móvil lo anuncia como botón. */}
+        <button type="button" onClick={onSaldar}
+          className="flex-1 bg-[#0d1b2a] rounded-2xl px-4 py-3 text-left active:opacity-80">
+          <div className="flex items-center justify-between gap-1">
+            <p className="text-[10px] font-bold text-[#8fa6c9] uppercase tracking-widest">La cuenta de los dos</p>
+            <span className="text-[#8fa6c9] text-xs shrink-0">›</span>
+          </div>
           {/* Desde cuándo se cuenta. Sin esto, la cifra sale sin contexto y no
               se sabe si habla de este mes o de toda la historia. */}
           <p className="text-[10px] text-[#8fa6c9]">
@@ -615,7 +625,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
               {deuda.deudor} le debe {ocultar(mostrarCifras, `${euros(deuda.importe)} €`)} a {deuda.acreedor}
             </p>
           )}
-        </div>
+        </button>
       </div>
 
       </>)}

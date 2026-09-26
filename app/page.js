@@ -644,7 +644,8 @@ export default function Home() {
           <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} onCopiaDescargada={marcarCopiaHecha} abrirEn={abrirInformesEn} seccion="balance" />
         )}
         {vista === 'informes' && !mostrarFormulario && (
-          <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} onCopiaDescargada={marcarCopiaHecha} abrirEn={abrirInformesEn} seccion="informes" />
+          <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} onCopiaDescargada={marcarCopiaHecha} abrirEn={abrirInformesEn} seccion="informes"
+            onSaldar={() => { setAbrirInformesEn({ saldar: true }); setVista('balance') }} />
         )}
         {vista === 'ajustes' && !mostrarFormulario && (
           <Ajustes usuario={usuario} transacciones={transacciones} onVerDetalleEvento={ev => setEventoDetalle(ev)} mostrarCifras={mostrarCifras} onCerrarSesion={cerrarSesion} />
