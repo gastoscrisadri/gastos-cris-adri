@@ -78,7 +78,7 @@ export default function GestionEventos({ onVerDetalle, mostrarCifras }) {
         </div>
         <button
           onClick={() => setFormulario('nuevo')}
-          className="px-4 py-2 bg-[var(--superficie)] text-white text-sm font-semibold rounded-xl">
+          className="px-4 py-2 bg-[var(--acento)] text-[var(--acento-tinta)] text-sm font-bold rounded-xl">
           + Nuevo
         </button>
       </div>
@@ -116,7 +116,7 @@ export default function GestionEventos({ onVerDetalle, mostrarCifras }) {
             <div>
               <button
                 onClick={() => setMostrarArchivados(v => !v)}
-                className="text-xs text-[var(--tinta-4)] font-medium flex items-center gap-1 py-1">
+                className="underline underline-offset-2 decoration-[var(--tinta-5)] text-xs text-[var(--tinta-4)] font-medium flex items-center gap-1 py-1">
                 <span>{mostrarArchivados ? '▾' : '▸'}</span>
                 <span>Archivados ({archivados.length})</span>
               </button>

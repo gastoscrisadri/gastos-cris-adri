@@ -96,7 +96,7 @@ export default function GestionRecurrentes({ mostrarCifras }) {
         </div>
         <button
           onClick={() => setFormulario('nuevo')}
-          className="px-4 py-2 bg-[var(--superficie)] text-white text-sm font-semibold rounded-xl">
+          className="px-4 py-2 bg-[var(--acento)] text-[var(--acento-tinta)] text-sm font-bold rounded-xl">
           + Nuevo
         </button>
       </div>

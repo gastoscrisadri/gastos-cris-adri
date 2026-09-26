@@ -211,9 +211,9 @@ export default function GestionCategorias() {
                   <>
                     <span className="flex-1 font-semibold text-[var(--tinta)] text-sm">{cat.nombre}</span>
                     <button onClick={() => { setEditando(cat.id); setNombreEdicion(cat.nombre) }}
-                      className="text-xs text-[var(--tinta-5)] hover:text-[var(--acento)] px-1.5 py-1">✏️</button>
+                      className="underline underline-offset-2 decoration-[var(--tinta-5)] text-xs text-[var(--tinta-5)] hover:text-[var(--acento)] px-1.5 py-1">✏️</button>
                     <button onClick={() => quitar(cat)} aria-label={`Quitar ${cat.nombre}`}
-                      className="text-xs text-[var(--tinta-5)] hover:text-[var(--gasto)] px-1.5 py-1">🗑️</button>
+                      className="underline underline-offset-2 decoration-[var(--tinta-5)] text-xs text-[var(--tinta-5)] hover:text-[var(--gasto)] px-1.5 py-1">🗑️</button>
                     <button onClick={() => setRepartoAbierto(repartoAbierto === cat.id ? null : cat.id)}
                       title="Cómo se reparte entre los dos"
                       className={`text-[10px] px-1.5 py-1 rounded-lg font-semibold ${cat.porcentaje_primero != null ? 'text-[var(--comun)] bg-[var(--comun-fondo)]' : 'text-[#CFEBE0] hover:text-[var(--comun)]'}`}>
@@ -258,9 +258,9 @@ export default function GestionCategorias() {
                         <>
                           <span className="flex-1 text-sm text-[var(--tinta-3)]">{sub.nombre}</span>
                           <button onClick={() => { setEditando(sub.id); setNombreEdicion(sub.nombre) }}
-                            className="text-xs text-[var(--tinta-5)] hover:text-[var(--acento)]">✏️</button>
+                            className="underline underline-offset-2 decoration-[var(--tinta-5)] text-xs text-[var(--tinta-5)] hover:text-[var(--acento)]">✏️</button>
                           <button onClick={() => quitar(sub)} aria-label={`Quitar ${sub.nombre}`}
-                            className="text-xs text-[var(--tinta-5)] hover:text-[var(--gasto)] px-1">🗑️</button>
+                            className="underline underline-offset-2 decoration-[var(--tinta-5)] text-xs text-[var(--tinta-5)] hover:text-[var(--gasto)] px-1">🗑️</button>
                           <button onClick={() => setRepartoAbierto(repartoAbierto === sub.id ? null : sub.id)}
                             title="Cómo se reparte entre los dos"
                             className={`text-[10px] px-1.5 py-0.5 rounded-lg font-semibold ${sub.porcentaje_primero != null ? 'text-[var(--comun)] bg-[var(--comun-fondo)]' : 'text-[#CFEBE0] hover:text-[var(--comun)]'}`}>

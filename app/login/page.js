@@ -129,7 +129,7 @@ export default function LoginPage() {
               {cargando ? 'Enviando...' : 'Enviarme el enlace'}
             </button>
             <button type="button" onClick={() => { setModo('entrar'); setError('') }}
-              className="w-full py-2 text-sm text-[var(--tinta-4)] font-semibold">
+              className="underline underline-offset-2 decoration-[var(--tinta-5)] w-full py-2 text-sm text-[var(--tinta-4)] font-semibold">
               Volver a la entrada
             </button>
           </form>

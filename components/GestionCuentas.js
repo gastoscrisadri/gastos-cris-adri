@@ -161,9 +161,9 @@ export default function GestionCuentas({ transacciones, mostrarCifras, usuario }
                     <div className="flex items-center gap-1">
                       <p className="text-sm font-semibold text-[var(--tinta)] truncate">{cuenta.nombre}</p>
                       <button onClick={() => { setEditando(cuenta.id); setNombreEdicion(cuenta.nombre) }}
-                        className="text-xs text-[var(--tinta-5)] hover:text-[var(--acento)] px-1">✏️</button>
+                        className="underline underline-offset-2 decoration-[var(--tinta-5)] text-xs text-[var(--tinta-5)] hover:text-[var(--acento)] px-1">✏️</button>
                       <button onClick={() => quitar(cuenta)} aria-label={`Quitar ${cuenta.nombre}`}
-                        className="text-xs text-[var(--tinta-5)] hover:text-[var(--gasto)] px-1">🗑️</button>
+                        className="underline underline-offset-2 decoration-[var(--tinta-5)] text-xs text-[var(--tinta-5)] hover:text-[var(--gasto)] px-1">🗑️</button>
                     </div>
                   )}
                   <div className="flex gap-2 text-xs text-[var(--tinta-4)] mt-0.5">
