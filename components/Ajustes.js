@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { NOMBRES, nombreDe, nombreEsDeLaCuenta, guardarNombre } from '@/lib/identidad'
 import GestionRecurrentes from './GestionRecurrentes'
@@ -26,6 +26,17 @@ export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mo
   useEffect(() => {
     setDuenoMovil(nombreDe(usuario))
   }, [usuario])
+
+  // ¿He apuntado yo algo ya con esta cuenta?
+  //
+  // Se mira por user_id, NO por el nombre. Si se mirara por el nombre, quien
+  // se hubiera equivocado al elegirlo vería los apuntes del otro y se
+  // quedaría bloqueado justo en el caso que esto pretende rescatar.
+  const heApuntadoAlgo = useMemo(
+    () => !!usuario?.id && (transacciones || []).some(t => t.user_id === usuario.id),
+    [transacciones, usuario]
+  )
+  const nombreCerrado = nombreEsDeLaCuenta(usuario) && heApuntadoAlgo
 
   async function elegirDueno(nombre) {
     setDuenoMovil(nombre)
@@ -60,27 +71,54 @@ export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mo
 
   return (
     <div className="pb-24">
-      {/* De quién es este móvil */}
+      {/* Quién eres.
+          Se elige al principio y se cierra en cuanto apuntas tu primer gasto.
+          No es por capricho:
+          de este nombre cuelga qué significa "solo mío" al apuntar un gasto, y
+          por tanto a nombre de quién se guarda un gasto privado. Poder
+          cambiarlo en dos toques era poder dejar la contabilidad diciendo
+          cosas falsas — es el mismo motivo por el que se quitó el "cambiar"
+          de la pantalla de nuevo apunte.
+          Pero no se bloquea desde el primer segundo: mientras no hayas apuntado
+          nada, se puede corregir. Así, quien le dé al botón equivocado el día
+          que instala la app lo arregla él mismo, sin tener que pedir que le
+          toquen la base de datos. */}
       <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Yo soy</p>
-        <p className="text-xs text-gray-400 mb-2.5">
-          Va unido a tu cuenta, no a este móvil: entres desde donde entres, eres tú.
-        </p>
-        <div className="flex gap-2">
-          {NOMBRES.map(nombre => (
-            <button key={nombre} type="button" onClick={() => elegirDueno(nombre)}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${duenoMovil === nombre ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
-              {nombre}
-            </button>
-          ))}
-        </div>
-        {!duenoMovil && (
-          <p className="text-xs text-amber-600 mt-2">Sin elegir: al crear un apunte se preguntará cada vez.</p>
+
+        {nombreCerrado ? (
+          <>
+            <p className="text-lg font-bold text-[#0d1b2a]">{duenoMovil}</p>
+            <p className="text-xs text-gray-400 mt-1 leading-snug">
+              Va unido a tu cuenta, no a este móvil: entres desde donde entres, eres tú.
+              Ya no se puede cambiar, porque tus apuntes cuelgan de este nombre.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-xs text-gray-400 mb-2.5">
+              Queda unido a tu cuenta: entres desde donde entres, eres tú.
+              {nombreEsDeLaCuenta(usuario)
+                ? ' Todavía puedes corregirlo, pero en cuanto apuntes tu primer gasto se quedará fijo.'
+                : ' Elígelo antes de empezar: en cuanto apuntes tu primer gasto se quedará fijo.'}
+            </p>
+            <div className="flex gap-2">
+              {NOMBRES.map(nombre => (
+                <button key={nombre} type="button" onClick={() => elegirDueno(nombre)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${duenoMovil === nombre ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
+                  {nombre}
+                </button>
+              ))}
+            </div>
+            {!duenoMovil && (
+              <p className="text-xs text-amber-600 mt-2">Sin elegir: al crear un apunte se preguntará cada vez.</p>
+            )}
+            {duenoMovil && !nombreEsDeLaCuenta(usuario) && (
+              <p className="text-xs text-gray-400 mt-2">Toca tu nombre para dejarlo guardado en tu cuenta.</p>
+            )}
+          </>
         )}
         {avisoNombre && <p className="text-xs text-amber-600 mt-2">{avisoNombre}</p>}
-        {duenoMovil && !nombreEsDeLaCuenta(usuario) && (
-          <p className="text-xs text-gray-400 mt-2">Toca tu nombre para dejarlo guardado en tu cuenta.</p>
-        )}
       </div>
 
       {/* Mi contraseña */}
