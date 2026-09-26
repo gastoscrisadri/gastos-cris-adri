@@ -530,17 +530,17 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           ve, así que la salida rápida tiene que estar a la vista. */}
       <div className="flex gap-1.5">
         <button type="button" onClick={() => inputFotoRef.current?.click()}
-          className="basis-[38%] py-3.5 rounded-xl bg-emerald-500 text-white text-xs font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm">
+          className="basis-[38%] py-3.5 rounded-xl bg-[var(--acento)] text-[var(--acento-tinta)] text-xs font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm">
           <span className="text-lg leading-none">📷</span>
           {foto ? 'Cambiar' : 'Cámara'}
         </button>
         <button type="button" onClick={() => inputGaleriaRef.current?.click()}
-          className="basis-[34%] py-3.5 rounded-xl bg-emerald-700 text-white text-xs font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm">
+          className="basis-[34%] py-3.5 rounded-xl bg-[var(--info)] text-[#07203A] text-xs font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm">
           <span className="text-lg leading-none">🖼️</span>
           Mis fotos
         </button>
         <button type="button" onClick={onCancelar}
-          className="basis-[28%] py-3.5 rounded-xl bg-red-500 text-white text-xs font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm">
+          className="basis-[28%] py-3.5 rounded-xl bg-[var(--superficie-3)] text-[var(--tinta-3)] text-xs font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm">
           <span className="text-lg leading-none">✕</span>
           Cancelar
         </button>
@@ -555,12 +555,14 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
       {/* Tipo */}
       <div className="flex rounded-xl overflow-hidden border border-[var(--linea)]">
+        {/* Sin elegir, cada uno lleva ya su color apagado: así se ve de qué
+            va cada botón antes de pulsarlo, y no solo después. */}
         <button type="button" onClick={() => { set('tipo', 'gasto'); set('categoria', '') }}
-          className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${form.tipo === 'gasto' ? 'bg-red-500 text-white' : 'bg-[var(--superficie)] text-[var(--tinta-4)]'}`}>
+          className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${form.tipo === 'gasto' ? 'bg-[var(--gasto)] text-[#2A0E12]' : 'bg-[#6B3E4C] text-[#FFBAC8]'}`}>
           💸 Gasto
         </button>
         <button type="button" onClick={() => { set('tipo', 'ingreso'); set('categoria', '') }}
-          className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${form.tipo === 'ingreso' ? 'bg-emerald-500 text-white' : 'bg-[var(--superficie)] text-[var(--tinta-4)]'}`}>
+          className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${form.tipo === 'ingreso' ? 'bg-[var(--ingreso)] text-[#04241A]' : 'bg-[var(--comun-fondo)] text-[var(--comun)]'}`}>
           💰 Ingreso
         </button>
       </div>
@@ -795,7 +797,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         </>
       )}
 
-      {error && <p className="text-[var(--gasto)] text-sm bg-[#3A2230] rounded-xl p-3">{error}</p>}
+      {error && <p className="text-[var(--gasto)] text-sm bg-[#6B3E4C] rounded-xl p-3">{error}</p>}
 
       {/* Guardar — Cancelar ya está arriba, junto a la foto */}
       <div className="pt-1">
@@ -809,7 +811,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       {esEdicion && (
         !confirmando ? (
           <button type="button" onClick={() => setConfirmando(true)}
-            className="w-full py-2.5 bg-[#3A2230] border border-[#5A2C3C] text-[var(--gasto)] rounded-xl text-sm font-semibold">
+            className="w-full py-2.5 bg-[#6B3E4C] border border-[#7A4657] text-[var(--gasto)] rounded-xl text-sm font-semibold">
             🗑️ Eliminar apunte
           </button>
         ) : (

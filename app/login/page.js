@@ -81,7 +81,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p className="text-[var(--gasto)] text-sm text-center bg-[#3A2230] py-2 rounded-xl">{error}</p>
+            <p className="text-[var(--gasto)] text-sm text-center bg-[#6B3E4C] py-2 rounded-xl">{error}</p>
           )}
 
           <button
@@ -122,7 +122,7 @@ export default function LoginPage() {
                 placeholder="tu@email.com" />
             </div>
 
-            {error && <p className="text-[var(--gasto)] text-sm text-center bg-[#3A2230] py-2 rounded-xl">{error}</p>}
+            {error && <p className="text-[var(--gasto)] text-sm text-center bg-[#6B3E4C] py-2 rounded-xl">{error}</p>}
 
             <button type="submit" disabled={cargando}
               className="w-full py-4 bg-[var(--acento)] text-[var(--acento-tinta)] rounded-2xl text-base font-bold disabled:opacity-50 shadow-md mt-2">

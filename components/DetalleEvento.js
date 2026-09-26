@@ -104,7 +104,7 @@ export default function DetalleEvento({ evento, onCerrar, mostrarCifras }) {
                 <p className="text-xs text-white/70">de {ocultar(mostrarCifras, `${presupuesto.toLocaleString('es-ES')} €`)} presupuestados</p>
               </div>
               <div className="text-right">
-                <p className={`text-lg font-bold ${restante < 0 ? 'text-[#E08A9E]' : 'text-white'}`}>
+                <p className={`text-lg font-bold ${restante < 0 ? 'text-[#FFBAC8]' : 'text-white'}`}>
                   {ocultar(mostrarCifras, restante >= 0 ? `${euros0(restante)} €` : `+${euros0(Math.abs(restante))} €`)}
                 </p>
                 <p className="text-xs text-white/70">{restante >= 0 ? 'disponible' : 'excedido'}</p>

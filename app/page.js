@@ -553,7 +553,7 @@ export default function Home() {
           {/* Balance */}
           <div className="mb-3">
             <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Balance {mesNombre}</p>
-            <p className={`text-3xl font-black tracking-tight ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#E08A9E]'}`}>
+            <p className={`text-3xl font-black tracking-tight ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#FFBAC8]'}`}>
               {ocultar(mostrarCifras, `${balanceMes.balance >= 0 ? '+' : ''}${euros(balanceMes.balance)} €`)}
             </p>
           </div>
@@ -566,7 +566,7 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-1.5 bg-white/8 rounded-xl px-2.5 py-1">
               <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
-              <span className="text-xs text-[#E08A9E] font-semibold">↓ {ocultar(mostrarCifras, `${euros(balanceMes.gastos)} €`)}</span>
+              <span className="text-xs text-[#FFBAC8] font-semibold">↓ {ocultar(mostrarCifras, `${euros(balanceMes.gastos)} €`)}</span>
             </div>
           </div>
         </header>
@@ -665,7 +665,7 @@ export default function Home() {
 
                   {filtrosActivos > 0 && (
                     <button onClick={() => setFiltros({ categoria: '', quien: '', medio_pago: '' })}
-                      className="w-full py-2 text-sm text-[var(--gasto)] font-semibold border border-[#5A2C3C] rounded-xl bg-[#3A2230]">
+                      className="w-full py-2 text-sm text-[var(--gasto)] font-semibold border border-[#7A4657] rounded-xl bg-[#6B3E4C]">
                       Limpiar filtros
                     </button>
                   )}
@@ -831,7 +831,7 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="bg-[#3A2230] rounded-2xl px-4 py-3 text-center mb-3">
+            <div className="bg-[#6B3E4C] rounded-2xl px-4 py-3 text-center mb-3">
               <p className="text-[10px] font-bold text-[var(--gasto)] uppercase tracking-widest">Gastasteis entre los dos</p>
               <p className="text-2xl font-bold text-[var(--gasto)] mt-0.5">
                 {ocultar(verCifrasResumen, `${euros(resumenMes.total)} €`)}
