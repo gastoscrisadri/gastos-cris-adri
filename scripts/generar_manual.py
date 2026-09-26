@@ -69,7 +69,8 @@ h += [Paragraph('Cómo funciona vuestra app. Cuatro páginas, y os podéis salta
 h += [Spacer(1, 6)]
 h += [Paragraph('Lo esencial, en cinco líneas', H2)]
 h += [punto('La app se abre directamente en <b>Nuevo apunte</b>, que es lo que más vais a hacer.')]
-h += [punto('Cada gasto es <b>de los dos</b> o <b>solo tuyo</b>. Hay que elegirlo, no viene marcado.')]
+h += [punto('Cada gasto es <b>de los dos</b>, <b>solo tuyo</b> o <b>del otro</b> (cuando pagas algo '
+            'que es suyo, o él paga algo tuyo). Hay que elegirlo, no viene marcado.')]
 h += [punto('<b>Nadie ve los gastos personales del otro.</b> Ni en la lista, ni en los totales.')]
 h += [punto('La app lleva la cuenta de <b>quién le debe cuánto a quién</b>, y sabe que el alquiler '
             'no va a medias.')]
@@ -135,7 +136,7 @@ h += [PageBreak()]
 # ------------------------------------------------------- LA CUENTA DE LOS DOS
 h += [Paragraph('2. La cuenta de los dos', H2)]
 
-h += [Paragraph('Está en <b>Informes → Nosotros</b>. Es la tarjeta oscura que dice quién le debe '
+h += [Paragraph('Está en <b>Balance</b>, la pestaña de abajo. Es la tarjeta oscura que dice quién le debe '
                 'cuánto a quién.', P)]
 
 h += [Paragraph('De dónde sale ese número', H3)]
@@ -171,16 +172,26 @@ h += [PageBreak()]
 h += [Paragraph('3. Dos cosas importantes', H2)]
 
 h += [Paragraph('La copia de seguridad', H3)]
-h += [Paragraph('<b>No hay copias automáticas</b>, y es a propósito: una copia completa dejaría ver '
-                'los gastos personales del otro. Así que las copias las hacéis vosotros, en '
-                '<b>Informes → Histórico</b>, abajo del todo.', P)]
-h += [punto('<b>Copia de los gastos de los dos</b> — es la que vale como copia de seguridad. No lleva '
-            'nada personal de nadie, así que os la podéis pasar el uno al otro sin problema.')]
+h += [aviso('<b>Esta copia es lo único que os protege. No hay ninguna otra.</b><br/>'
+            'Vuestros gastos viven en un servidor gratuito. Ahí <b>nadie guarda una copia por '
+            'vosotros</b>: ni el servidor, ni Antonio, ni nadie. Si ese servidor se estropea, se '
+            'borra o se cierra, <b>se pierde todo lo que no esté en una copia vuestra</b>, y no hay '
+            'forma de recuperarlo. Ni parcialmente, ni pagando, ni pidiéndolo. Nada.')]
+h += [Paragraph('No es un descuido: una copia automática y completa tendría que llevar dentro los '
+                'gastos personales de los dos, y eso es justo lo que la app evita. Por eso la copia '
+                'la hace cada uno, a mano.', P)]
+h += [Paragraph('<b>Dónde está:</b> en <b>Informes</b>, abajo del todo, el botón oscuro '
+                '<b>«Comparar con otro mes y ver el año»</b>. Se abre y al final están los dos '
+                'botones de descarga.', P)]
+h += [punto('<b>Copia de los gastos de los dos</b> — <b>es la que vale como copia de seguridad.</b> No '
+            'lleva nada personal de nadie, así que os la podéis pasar el uno al otro sin problema.')]
 h += [punto('<b>Solo mis apuntes personales</b> — esa es tuya y de nadie más.')]
 h += [Spacer(1, 4)]
-h += [Paragraph('La app os lo recuerda una vez al mes. Si pasan dos meses sin hacerla, el aviso se '
-                'pone rojo. Hacedle caso: si algo le pasara al servidor, lo único que habría para '
-                'recuperar es esa copia.', P)]
+h += [Paragraph('<b>Hacedla una vez al mes, los dos.</b> La app os lo recuerda, y si pasan dos meses '
+                'sin hacerla el aviso se pone rojo. Hacedle caso el mismo día: es un minuto.', P)]
+h += [Paragraph('<b>Y guardadla fuera del móvil.</b> Una copia que solo está en el teléfono no sirve '
+                'de nada el día que se pierda el teléfono. Mandádsela por correo a vosotros mismos, '
+                'o dejadla en Google Drive o iCloud. Con eso ya estáis a salvo.', P)]
 
 h += [Paragraph('Si olvidáis la contraseña', H3)]
 h += [Paragraph('En la pantalla de entrada hay un <b>He olvidado mi contraseña</b>. Pone tu correo, te '
