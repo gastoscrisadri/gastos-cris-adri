@@ -2,6 +2,7 @@
 
 import { ocultar, euros } from '@/lib/cifras'
 import { nombreDe } from '@/lib/identidad'
+import { personaDeMedioPago } from '@/lib/cuentas'
 
 const ICONOS = {
   'Alimentación': { emoji: '🛒', bg: '#fef3c7' },
@@ -31,7 +32,13 @@ const ICONOS = {
 
 const DEFAULT_ICONO = { emoji: '📝', bg: '#f1f5f9' }
 
-export default function ListaTransacciones({ transacciones, cargando, onSeleccionar, mostrarCifras, usuario }) {
+// El color de cada persona. Rosa Cris, azul Adri, verde los automáticos.
+// Vive aquí arriba y no suelto dentro de la fila para que no acabe habiendo
+// dos versiones distintas del mismo color en la misma pantalla.
+const COLOR_PUNTO = { Cris: 'bg-pink-400', Adri: 'bg-blue-400' }
+const COLOR_AUTO = 'bg-emerald-500'
+
+export default function ListaTransacciones({ transacciones, cargando, onSeleccionar, mostrarCifras, usuario, cuentas }) {
   // Un ajuste de cuentas se lee al revés según quién mire: el que paga ve que
   // sale dinero, el que cobra ve que entra. Es el mismo apunte.
   const yo = nombreDe(usuario)
@@ -90,6 +97,17 @@ export default function ListaTransacciones({ transacciones, cargando, onSeleccio
               const signo = esGastoNormal ? '−' : '+'
               // El texto del ajuste, contado desde quien mira. Sin saber quién
               // es, se deja el que trae guardado el apunte.
+              // El día a secas: la lista ya va agrupada por meses con su
+              // título encima, así que repetir el mes y el año en cada apunte
+              // sobra. Antes salía la fecha en crudo ("2026-09-26"), que
+              // además no es el formato de toda la app.
+              const dia = parseInt(t.fecha.slice(8), 10)
+              // Quién puso el dinero. Puede ser una cuenta común, y puede no
+              // saberse si el medio de pago no tiene dueño asignado: en ese
+              // caso no se enseña nada, mejor que inventarse un nombre.
+              const duenoMedio = personaDeMedioPago(t.medio_pago, cuentas)
+              const pagador = duenoMedio && duenoMedio !== 'Sin asignar' ? duenoMedio : null
+
               const titulo = t.liquidacion_a && yo
                 ? (loCobroYo ? `${t.quien} te pagó` : `Le pagaste a ${t.liquidacion_a}`)
                 : (t.descripcion || t.establecimiento || t.subcategoria || t.categoria)
@@ -106,61 +124,77 @@ export default function ListaTransacciones({ transacciones, cargando, onSeleccio
                     {icono.emoji}
                   </div>
 
-                  {/* Info */}
+                  {/* Info.
+                      Antes esta parte era una sola cadena de trozos de largo
+                      variable —establecimiento · fecha · etiqueta · nombre—
+                      pegados uno detrás de otro. Como cada trozo medía
+                      distinto en cada apunte, el nombre caía en un sitio
+                      distinto en cada fila, y cuando no cabía se partía en dos
+                      líneas. De ahí que la lista se viera desordenada.
+                      Ahora hay sitios fijos: el punto de color y el título
+                      arriba, y la fecha y quien pagó en la columna de la
+                      derecha, que tiene ancho fijo. */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 text-sm truncate">
-                      {titulo}
-                    </p>
-                    <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className="flex items-center gap-1.5">
+                      {/* Quién lo apuntó, en un punto de color. Va como punto y
+                          no coloreando el título porque el rosa y el azul sobre
+                          blanco tienen un contraste de 2,6 —el mínimo para leer
+                          es 4,5— y el título es lo primero que se lee de cada
+                          apunte. Así queda negro y legible. */}
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${COLOR_PUNTO[t.quien] || COLOR_AUTO}`} />
+                      <p className="font-semibold text-gray-900 text-sm truncate">
+                        {titulo}
+                      </p>
+                    </div>
+                    {/* Esta línea NO puede partirse: si no cabe, se corta. Es
+                        lo que hace que todas las filas midan lo mismo. */}
+                    <div className="flex items-center gap-1.5 mt-0.5 min-w-0 overflow-hidden">
                       {t.descripcion && t.establecimiento && (
                         <>
                           <span className="text-xs text-gray-400 truncate">{t.establecimiento}</span>
-                          <span className="text-gray-200 text-xs">·</span>
+                          <span className="text-gray-200 text-xs shrink-0">·</span>
                         </>
                       )}
-                      <span className="text-xs text-gray-300">{t.fecha}</span>
                       {/* Siempre se dice de quién es el gasto: si solo se
                           marcara lo personal, no se sabría si lo demás es
                           común o es que falta el dato. Un pago entre ellos
                           no es ninguna de las dos cosas y se marca aparte. */}
-                      <span className="text-gray-200 text-xs">·</span>
                       {t.liquidacion_a ? (
-                        <span className="text-[10px] font-semibold text-teal-700 bg-teal-100 px-1.5 py-0.5 rounded">
+                        <span className="text-[10px] font-semibold text-teal-700 bg-teal-100 px-1.5 py-0.5 rounded shrink-0">
                           ajuste de cuentas
                         </span>
                       ) : t.a_cargo_de ? (
-                        <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">
+                        <span className="text-[10px] font-semibold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded shrink-0">
                           {t.a_cargo_de === yo ? 'tuyo, lo pagó el otro' : `de ${t.a_cargo_de}, lo pagaste tú`}
                         </span>
                       ) : t.comun === false ? (
-                        <span className="text-[10px] font-semibold text-violet-700 bg-violet-100 px-1.5 py-0.5 rounded">
+                        <span className="text-[10px] font-semibold text-violet-700 bg-violet-100 px-1.5 py-0.5 rounded shrink-0">
                           personal
                         </span>
                       ) : (
-                        <span className="text-[10px] font-semibold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded">
+                        <span className="text-[10px] font-semibold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded shrink-0">
                           de los dos
                         </span>
                       )}
-                      {t.quien && (
-                        <>
-                          <span className="text-gray-200 text-xs">·</span>
-                          <span className={`text-xs font-semibold ${t.quien === 'Cris' ? 'text-pink-400' : t.quien === 'Adri' ? 'text-blue-400' : 'text-emerald-500'}`}>
-                            {t.quien}
-                          </span>
-                        </>
-                      )}
+                      {t.evento_id && <span className="text-[10px] shrink-0">🎯</span>}
+                      {t.imagen_url && <span className="text-[10px] text-gray-300 shrink-0">📎</span>}
                     </div>
                   </div>
 
-                  {/* Importe */}
-                  <div className="text-right shrink-0">
+                  {/* Columna de la derecha, de ancho FIJO. Es lo que hace que
+                      el importe, el día y quien pagó caigan siempre en la misma
+                      vertical en todas las filas.
+                      Debajo del importe va QUIEN PAGÓ, no quien lo apuntó: este
+                      hueco está pegado al dinero y ahí un nombre se lee como
+                      "este dinero lo puso ese". Quien lo apuntó es el punto de
+                      color de la izquierda. */}
+                  <div className="w-[76px] shrink-0 text-right">
                     <p className={`font-bold text-sm ${colorImporte}`}>
                       {ocultar(mostrarCifras, `${signo}${euros(Math.abs(importe))} €`)}
                     </p>
-                    <div className="flex justify-end gap-1 mt-0.5">
-                      {t.evento_id && <span className="text-[10px]">🎯</span>}
-                      {t.imagen_url && <span className="text-[10px] text-gray-300">📎</span>}
-                    </div>
+                    <p className="text-[11px] text-gray-400 truncate">
+                      {dia}{pagador ? ` · ${pagador}` : ''}
+                    </p>
                   </div>
                 </button>
               )
