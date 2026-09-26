@@ -196,6 +196,13 @@ export default function ListaTransacciones({ transacciones, cargando, onSeleccio
                       {dia}{pagador ? ` · ${pagador}` : ''}
                     </p>
                   </div>
+
+                  {/* La flecha dice que la fila se puede abrir. Es lo que usa
+                      iOS y lo que espera cualquiera: una fila no necesita
+                      color para parecer pulsable, necesita esto. Cuesta 10px
+                      del ancho del concepto, que ya se cortaba de todos
+                      modos cuando era largo. */}
+                  <span className="text-[var(--tinta-5)] text-sm shrink-0 -ml-0.5">›</span>
                 </button>
               )
             })}

@@ -827,7 +827,7 @@ export default function Home() {
               <button
                 onClick={() => cambiarVista(item.id)}
                 className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${vista === item.id && !mostrarFormulario ? 'text-[var(--acento)]' : 'text-[var(--tinta-5)]'}`}>
-                <span className="text-xl">{item.emoji}</span>
+                <span className="underline underline-offset-2 decoration-[var(--tinta-5)] text-xl">{item.emoji}</span>
                 {item.label}
               </button>
             </React.Fragment>
@@ -918,7 +918,7 @@ export default function Home() {
               className="w-full py-3.5 bg-[var(--superficie)] text-white font-bold rounded-2xl text-sm mb-2.5">
               📥 Descargar la copia
             </button>
-            <button onClick={cerrarResumenMes} className="w-full py-3 text-[var(--tinta-4)] font-medium text-sm">
+            <button onClick={cerrarResumenMes} className="underline underline-offset-2 decoration-[var(--tinta-5)] w-full py-3 text-[var(--tinta-4)] font-medium text-sm">
               Ahora no
             </button>
           </div>
@@ -952,7 +952,7 @@ export default function Home() {
             </button>
             <button
               onClick={posponerRecordatorio}
-              className="w-full py-3 text-[var(--tinta-4)] font-medium text-sm">
+              className="underline underline-offset-2 decoration-[var(--tinta-5)] w-full py-3 text-[var(--tinta-4)] font-medium text-sm">
               {mesesSinCopia >= 2 ? 'Ahora no puedo' : 'Recordar la próxima vez que entre'}
             </button>
           </div>
