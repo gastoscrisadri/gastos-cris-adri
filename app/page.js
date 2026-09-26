@@ -23,14 +23,35 @@ export default function Home() {
   // La app abre directamente en "nuevo apunte", que es lo que más se hace.
   // La foto del ticket se saca con el botón verde, a un toque.
   const [vista, setVista] = useState('nuevo')
-  // Cifras siempre ocultas al abrir, y cada pantalla (Lista/Informes/Ajustes)
-  // recuerda su propia elección por separado — mostrar en una no las
-  // destapa en las demás
-  const [cifrasVisibles, setCifrasVisibles] = useState({})
-  const mostrarCifras = !!cifrasVisibles[vista]
+  // Las cifras empiezan siempre tapadas, y el botón las destapa TODAS a la vez.
+  // Antes cada pantalla recordaba lo suyo por separado: destapar la lista no
+  // destapaba informes, así que para ver lo mismo había que pulsar el botón
+  // en cada sitio. Una sola memoria en vez de cuatro.
+  const [mostrarCifras, setMostrarCifras] = useState(false)
   function alternarCifras() {
-    setCifrasVisibles(v => ({ ...v, [vista]: !v[vista] }))
+    setMostrarCifras(v => !v)
   }
+
+  // Y se vuelven a tapar solas en cuanto la app deja de verse: cambias a otra
+  // aplicación, bloqueas el móvil o la dejas en segundo plano. Al volver están
+  // tapadas otra vez.
+  //
+  // Se descartó un temporizador de dos minutos a propósito: un reloj no sabe
+  // si estás mirando, y te taparía las cifras en la cara mientras repasas la
+  // lista con calma. Esto no se equivoca nunca en ese sentido — mientras estás
+  // delante no pasa nada, dure lo que dure — y acierta con el peligro de
+  // verdad, que no es que te miren por encima del hombro, sino que alguien
+  // coja el móvil desbloqueado un rato después.
+  //
+  // Moverse entre Lista, Informes y Ajustes NO las tapa: sigues dentro de la
+  // app, y taparlas ahí obligaría a pulsar Mostrar veinte veces al día.
+  useEffect(() => {
+    function alDejarDeVerse() {
+      if (document.visibilityState === 'hidden') setMostrarCifras(false)
+    }
+    document.addEventListener('visibilitychange', alDejarDeVerse)
+    return () => document.removeEventListener('visibilitychange', alDejarDeVerse)
+  }, [])
   const [transaccionDetalle, setTransaccionDetalle] = useState(null)
   const [transaccionEditar, setTransaccionEditar] = useState(null)
   const [transacciones, setTransacciones] = useState([])
