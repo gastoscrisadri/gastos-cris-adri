@@ -444,11 +444,11 @@ export default function Home() {
               <p className="text-[10px] text-white/40 uppercase tracking-widest font-medium">Control de gastos</p>
               <h1 className="text-base font-bold text-white leading-tight">Cris y Adri</h1>
             </div>
+            {/* Aquí estaba "Salir", pegado al botón de ocultar cifras. Se ha
+                ido a Ajustes: ocultar se pulsa todos los días y salir de la
+                cuenta, nunca, y un dedazo entre los dos te dejaba fuera de la
+                app teniendo que escribir el correo y la contraseña otra vez. */}
             <div className="flex flex-col items-end gap-1.5">
-              <button onClick={cerrarSesion}
-                className="text-xs text-white/30 hover:text-white/60 border border-white/10 rounded-xl px-3 py-1.5">
-                Salir
-              </button>
               <button onClick={alternarCifras}
                 className="text-xs font-semibold text-white bg-emerald-500 rounded-xl px-3 py-1.5 whitespace-nowrap">
                 {mostrarCifras ? '🙈 Ocultar' : '👁️ Mostrar'}
@@ -616,7 +616,7 @@ export default function Home() {
           <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} onCopiaDescargada={marcarCopiaHecha} abrirEn={abrirInformesEn} />
         )}
         {vista === 'ajustes' && !mostrarFormulario && (
-          <Ajustes usuario={usuario} transacciones={transacciones} onVerDetalleEvento={ev => setEventoDetalle(ev)} mostrarCifras={mostrarCifras} />
+          <Ajustes usuario={usuario} transacciones={transacciones} onVerDetalleEvento={ev => setEventoDetalle(ev)} mostrarCifras={mostrarCifras} onCerrarSesion={cerrarSesion} />
         )}
       </main>
 

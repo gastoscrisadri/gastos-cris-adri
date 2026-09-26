@@ -15,7 +15,7 @@ const SECCIONES = [
   { id: 'eventos', emoji: '🎯', label: 'Eventos' },
 ]
 
-export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mostrarCifras }) {
+export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mostrarCifras, onCerrarSesion }) {
   const [seccion, setSeccion] = useState('recurrentes')
   const [duenoMovil, setDuenoMovil] = useState('')
 
@@ -146,6 +146,23 @@ export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mo
       {seccion === 'cuentas' && <GestionCuentas transacciones={transacciones} mostrarCifras={mostrarCifras} usuario={usuario} />}
       {seccion === 'categorias' && <GestionCategorias />}
       {seccion === 'eventos' && <GestionEventos onVerDetalle={onVerDetalleEvento} mostrarCifras={mostrarCifras} />}
+
+      {/* Salir de la cuenta, lo último de todo.
+          Antes estaba en la esquina de la portada, al lado del botón de
+          ocultar las cifras. Aquí abajo hay que venir a propósito, que es lo
+          que toca para algo que te obliga a volver a escribir la contraseña. */}
+      {onCerrarSesion && (
+        <div className="mt-8 pt-5 border-t border-gray-100">
+          <button type="button" onClick={onCerrarSesion}
+            className="w-full py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-400">
+            Salir de la cuenta
+          </button>
+          <p className="text-[11px] text-gray-400 mt-2 text-center leading-snug">
+            Solo hace falta si vais a entrar con la otra cuenta en este móvil.
+            Para volver a entrar tendrás que escribir tu correo y tu contraseña.
+          </p>
+        </div>
+      )}
     </div>
   )
 }
