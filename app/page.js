@@ -550,24 +550,55 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Balance */}
-          <div className="mb-3">
-            <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Balance {mesNombre}</p>
-            <p className={`text-3xl font-black tracking-tight ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#FFBAC8]'}`}>
-              {ocultar(mostrarCifras, `${balanceMes.balance >= 0 ? '+' : ''}${euros(balanceMes.balance)} €`)}
-            </p>
-          </div>
+          {/* Balance a la izquierda, la cuenta de los dos a la derecha.
+              La deuda estaba escondida en Informes, que es una pantalla a la
+              que se entra a mirar cosas. Pero "quién le debe a quién" es la
+              pregunta por la que existe esta app, así que va arriba del todo,
+              donde se ve sin buscarla.
+              No se duplica: se ha quitado de Informes al traerla aquí. En
+              Balance sigue estando la versión completa —saldar, cerrar,
+              historial— y por eso ahí esta no se enseña. */}
+          <div className="flex gap-3 items-stretch">
 
-          {/* Chips ingresos / gastos */}
-          <div className="flex gap-2">
-            <div className="flex items-center gap-1.5 bg-white/8 rounded-xl px-2.5 py-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-              <span className="text-xs text-[var(--ingreso)] font-semibold">↑ {ocultar(mostrarCifras, `${euros(balanceMes.ingresos)} €`)}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Balance {mesNombre}</p>
+              <p className={`text-3xl font-black tracking-tight ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#FFBAC8]'}`}>
+                {ocultar(mostrarCifras, `${balanceMes.balance >= 0 ? '+' : ''}${euros(balanceMes.balance)} €`)}
+              </p>
+              <div className="flex gap-2 mt-2">
+                <div className="flex items-center gap-1.5 bg-white/8 rounded-xl px-2.5 py-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                  <span className="text-xs text-[var(--ingreso)] font-semibold">↑ {ocultar(mostrarCifras, `${euros(balanceMes.ingresos)} €`)}</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-white/8 rounded-xl px-2.5 py-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
+                  <span className="text-xs text-[#FFBAC8] font-semibold">↓ {ocultar(mostrarCifras, `${euros(balanceMes.gastos)} €`)}</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 bg-white/8 rounded-xl px-2.5 py-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
-              <span className="text-xs text-[#FFBAC8] font-semibold">↓ {ocultar(mostrarCifras, `${euros(balanceMes.gastos)} €`)}</span>
-            </div>
+
+            {vista !== 'balance' && (
+              <button type="button"
+                onClick={() => { setAbrirInformesEn({ saldar: true }); setVista('balance') }}
+                className="w-[38%] shrink-0 bg-white/8 rounded-2xl px-3 py-2.5 text-left active:opacity-70">
+                <div className="flex items-center justify-between gap-1">
+                  <p className="text-[9px] text-white/40 uppercase tracking-wider font-semibold">La cuenta</p>
+                  <span className="text-white/30 text-xs shrink-0">›</span>
+                </div>
+                {deuda.aRepartir <= 0 || deuda.importe < 0.01 ? (
+                  <p className="text-sm font-bold text-white mt-1.5 leading-tight">Estáis<br />en paz</p>
+                ) : (
+                  <>
+                    <p className="text-lg font-black text-[var(--acento)] leading-none mt-1.5">
+                      {ocultar(mostrarCifras, `${euros(deuda.importe)} €`)}
+                    </p>
+                    <p className="text-[10px] text-white/50 leading-tight mt-1">
+                      {deuda.deudor} → {deuda.acreedor}
+                    </p>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </header>
       )}
@@ -729,8 +760,7 @@ export default function Home() {
           <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} onCopiaDescargada={marcarCopiaHecha} abrirEn={abrirInformesEn} seccion="balance" />
         )}
         {vista === 'informes' && !mostrarFormulario && (
-          <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} onCopiaDescargada={marcarCopiaHecha} abrirEn={abrirInformesEn} seccion="informes"
-            onSaldar={() => { setAbrirInformesEn({ saldar: true }); setVista('balance') }} />
+          <Informes transacciones={transacciones} mostrarCifras={mostrarCifras} onCambio={cargarTransacciones} onCopiaDescargada={marcarCopiaHecha} abrirEn={abrirInformesEn} seccion="informes" />
         )}
         {vista === 'ajustes' && !mostrarFormulario && (
           <Ajustes usuario={usuario} transacciones={transacciones} onVerDetalleEvento={ev => setEventoDetalle(ev)} mostrarCifras={mostrarCifras} onCerrarSesion={cerrarSesion} />
