@@ -193,6 +193,17 @@ h += [Paragraph('<b>Y guardadla fuera del móvil.</b> Una copia que solo está e
                 'de nada el día que se pierda el teléfono. Mandádsela por correo a vosotros mismos, '
                 'o dejadla en Google Drive o iCloud. Con eso ya estáis a salvo.', P)]
 
+h += [Paragraph('Vuestro nombre se elige una vez', H3)]
+h += [Paragraph('La primera vez que entréis, en <b>Ajustes</b> hay que decir si sois Cris o Adri. '
+                'Elegidlo con cuidado: <b>en cuanto apuntéis vuestro primer gasto ya no se puede '
+                'cambiar</b>, porque todos vuestros apuntes cuelgan de ese nombre. Va unido a la '
+                'cuenta, no al móvil: si cambiáis de teléfono, vuestro nombre va con vosotros.', P)]
+
+h += [Paragraph('Las cifras se tapan solas', H3)]
+h += [Paragraph('El botón <b>Mostrar / Ocultar</b> de arriba destapa los importes de toda la app de una '
+                'vez. Y se vuelven a tapar solos en cuanto salís a otra aplicación o bloqueáis el '
+                'móvil, así que si alguien lo coge un rato después no ve nada.', P)]
+
 h += [Paragraph('Si olvidáis la contraseña', H3)]
 h += [Paragraph('En la pantalla de entrada hay un <b>He olvidado mi contraseña</b>. Pone tu correo, te '
                 'llega un enlace y pones una nueva. <b>Mirad en la carpeta de spam</b>, que suele caer '
@@ -213,9 +224,12 @@ h += [Paragraph('El lector que usa la app lo retirarán algún día, como pasa c
                 'roto, está caducado</b>: avisad y se cambia en cinco minutos.', P)]
 
 h += [Paragraph('Aviso de que se llena el almacén de fotos', H3)]
-h += [Paragraph('Caben unas 2.000 fotos de tickets, o sea dos o tres años. La app avisa mucho antes de '
+h += [Paragraph('Caben unas 5.000 fotos de tickets, o sea bastantes años. La app avisa mucho antes de '
                 'llenarse. Entonces hay que decidir: pagar el plan o borrar las fotos de los años '
                 'viejos. <b>Los apuntes se quedan siempre</b>, solo desaparecería la foto.', P)]
+h += [Paragraph('Si alguna vez guardáis un gasto y sale <b>«la foto no se ha podido subir»</b>, el gasto '
+                'está guardado: lo único que falta es la foto. Suele ser la cobertura. Volved a hacerla '
+                'desde el apunte cuando tengáis buena conexión.', P)]
 
 h += [Spacer(1, 14)]
 h += [caja(Paragraph('<b>Y lo más importante:</b> si algo no os cuadra —un número raro, algo que '
