@@ -18,6 +18,7 @@ import { hoy, mesDeHoy, mesesEntre } from '@/lib/fechas'
 import { esDeLaCasa, esLiquidacion, gastoDeLaCasaDelMes } from '@/lib/apuntes'
 import { cargarCuentas, personaDeMedioPago, CUENTAS_RESPALDO } from '@/lib/cuentas'
 import { calcularDeuda } from '@/lib/deuda'
+import { borrarApunte } from '@/lib/fotos'
 
 export default function Home() {
   // La app abre directamente en "nuevo apunte", que es lo que más se hace.
@@ -627,7 +628,7 @@ export default function Home() {
                 setVista('lista')
               }}
               onEliminar={async t => {
-                await supabase.from('transacciones').delete().eq('id', t.id)
+                await borrarApunte(supabase, t)
                 setTransaccionEditar(null)
                 setTransaccionDetalle(null)
                 setVista('lista')
@@ -862,7 +863,7 @@ export default function Home() {
             mostrarToast('✅ Apunte guardado')
           }}
           onEliminar={async t => {
-            await supabase.from('transacciones').delete().eq('id', t.id)
+            await borrarApunte(supabase, t)
             setTransaccionDetalle(null)
             cargarTransacciones()
           }}
