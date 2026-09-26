@@ -580,20 +580,20 @@ export default function Home() {
             {vista !== 'balance' && (
               <button type="button"
                 onClick={() => { setAbrirInformesEn({ saldar: true }); setVista('balance') }}
-                className="w-[38%] shrink-0 bg-white/8 rounded-2xl px-3 py-2.5 text-left active:opacity-70">
+                className="w-[44%] shrink-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3.5 py-3 text-left active:opacity-80 flex flex-col justify-between">
                 <div className="flex items-center justify-between gap-1">
-                  <p className="text-[9px] text-white/40 uppercase tracking-wider font-semibold">La cuenta</p>
-                  <span className="text-white/30 text-xs shrink-0">›</span>
+                  <p className="text-[9px] text-[var(--tinta-2)] uppercase tracking-wider font-bold">La cuenta de los dos</p>
+                  <span className="text-[var(--tinta-5)] text-xs shrink-0">›</span>
                 </div>
                 {deuda.aRepartir <= 0 || deuda.importe < 0.01 ? (
-                  <p className="text-sm font-bold text-white mt-1.5 leading-tight">Estáis<br />en paz</p>
+                  <p className="text-base font-bold text-[var(--ingreso)] mt-2 leading-tight">Estáis en paz</p>
                 ) : (
                   <>
-                    <p className="text-lg font-black text-[var(--acento)] leading-none mt-1.5">
+                    <p className="text-2xl font-black text-[var(--acento)] leading-none mt-2 tracking-tight">
                       {ocultar(mostrarCifras, `${euros(deuda.importe)} €`)}
                     </p>
-                    <p className="text-[10px] text-white/50 leading-tight mt-1">
-                      {deuda.deudor} → {deuda.acreedor}
+                    <p className="text-[11px] text-[var(--tinta-3)] leading-tight mt-1.5">
+                      <b className="font-semibold text-[var(--tinta-2)]">{deuda.deudor}</b> le debe a {deuda.acreedor}
                     </p>
                   </>
                 )}
