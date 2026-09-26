@@ -171,6 +171,15 @@ function FormRecurrente({ inicial, onGuardado, onCancelar }) {
     const importeNormalizado = normalizarImporte(form.importe)
     if (!form.importe || isNaN(parseFloat(importeNormalizado))) { setError('El importe es obligatorio.'); return }
     if (!form.categoria) { setError('La categoría es obligatoria.'); return }
+    // El medio de pago es OBLIGATORIO, igual que en el formulario de nuevo
+    // apunte. No es un campo más: es lo único que dice quién puso el dinero.
+    //
+    // Sin él, el apunte que se genere cada mes sale en el total del mes pero
+    // NO entra en la cuenta de los dos: el cálculo lo trata como dinero que no
+    // ha puesto ninguno y lo descuenta de lo que hay que repartir. Un alquiler
+    // de 1.400 € que aparece en los informes y no mueve la deuda, cada mes,
+    // sin que nada lo avise. Por eso aquí se corta.
+    if (!form.medio_pago) { setError('Di con qué se paga: es lo que dice quién pone el dinero.'); return }
 
     setGuardando(true)
     setError('')
@@ -284,11 +293,11 @@ function FormRecurrente({ inicial, onGuardado, onCancelar }) {
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Medio de pago (opcional)</label>
+        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Medio de pago *</label>
         <div className="grid grid-cols-2 gap-1.5">
           {mediosPago.map(m => (
             <button key={m.nombre} type="button"
-              onClick={() => set('medio_pago', form.medio_pago === m.nombre ? '' : m.nombre)}
+              onClick={() => set('medio_pago', m.nombre)}
               className={`py-2 px-2 rounded-xl text-xs font-semibold border transition-colors flex items-center gap-1.5 ${form.medio_pago === m.nombre ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-400 border-gray-200'}`}>
               <span>{m.emoji}</span>
               <span className="truncate">{m.nombre}</span>
