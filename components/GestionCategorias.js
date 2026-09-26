@@ -27,27 +27,27 @@ function EditorReparto({ item, esSub, onGuardar, onQuitar }) {
   const corto = n => Number(n).toLocaleString('es-ES', { maximumFractionDigits: 4 })
 
   return (
-    <div className={esSub ? 'w-full mt-2 pt-2 border-t border-gray-100 space-y-2' : 'space-y-2'}>
+    <div className={esSub ? 'w-full mt-2 pt-2 border-t border-[var(--linea-2)] space-y-2' : 'space-y-2'}>
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs text-gray-500 shrink-0">{NOMBRES[0]} paga el</span>
+        <span className="text-xs text-[var(--tinta-3)] shrink-0">{NOMBRES[0]} paga el</span>
         <input type="text" inputMode="decimal" value={texto}
           onChange={e => setTexto(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); guardar() } }}
-          className={`w-20 px-2 py-1 border rounded-lg text-sm text-center ${valido ? 'border-gray-200' : 'border-red-300 bg-red-50'}`} />
-        <span className="text-xs text-gray-500">%</span>
+          className={`w-20 px-2 py-1 border rounded-lg text-sm text-center ${valido ? 'border-[var(--linea)]' : 'border-[#5A2C3C] bg-[#3A2230]'}`} />
+        <span className="text-xs text-[var(--tinta-3)]">%</span>
         <button type="button" onClick={guardar} disabled={!valido || !cambiado}
-          className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-teal-600 text-white disabled:bg-gray-200 disabled:text-gray-400">
+          className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[var(--dinero)] text-[var(--dinero-tinta)] disabled:bg-[var(--superficie-4)] disabled:text-[var(--tinta-4)]">
           Guardar
         </button>
-        {guardado && <span className="text-xs font-semibold text-teal-600">Guardado ✓</span>}
+        {guardado && <span className="text-xs font-semibold text-[var(--dinero)]">Guardado ✓</span>}
       </div>
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-[var(--tinta-4)]">
         {valido
           ? `A ${NOMBRES[1]} le toca el ${corto(100 - num)} %. Se puede escribir con coma: 66,6667`
           : 'Pon un número entre 0 y 100.'}
       </p>
       {item.porcentaje_primero != null && (
-        <button type="button" onClick={onQuitar} className="text-xs text-gray-400 underline">
+        <button type="button" onClick={onQuitar} className="text-xs text-[var(--tinta-4)] underline">
           {esSub ? 'como la categoría' : 'Volver a medias'}
         </button>
       )}
@@ -176,18 +176,18 @@ export default function GestionCategorias() {
   return (
     <div className="pb-24 space-y-4">
       {/* Filtro tipo */}
-      <div className="flex rounded-2xl overflow-hidden border border-gray-200">
+      <div className="flex rounded-2xl overflow-hidden border border-[var(--linea)]">
         <button onClick={() => setVistaFiltro('gasto')}
-          className={`flex-1 py-2.5 text-sm font-semibold ${vistaFiltro === 'gasto' ? 'bg-red-500 text-white' : 'bg-white text-gray-400'}`}>
+          className={`flex-1 py-2.5 text-sm font-semibold ${vistaFiltro === 'gasto' ? 'bg-red-500 text-white' : 'bg-[var(--superficie)] text-[var(--tinta-4)]'}`}>
           Gastos
         </button>
         <button onClick={() => setVistaFiltro('ingreso')}
-          className={`flex-1 py-2.5 text-sm font-semibold ${vistaFiltro === 'ingreso' ? 'bg-emerald-500 text-white' : 'bg-white text-gray-400'}`}>
+          className={`flex-1 py-2.5 text-sm font-semibold ${vistaFiltro === 'ingreso' ? 'bg-emerald-500 text-white' : 'bg-[var(--superficie)] text-[var(--tinta-4)]'}`}>
           Ingresos
         </button>
       </div>
 
-      {error && <p className="text-red-500 text-sm bg-red-50 rounded-xl p-3">{error}</p>}
+      {error && <p className="text-[var(--gasto)] text-sm bg-[#3A2230] rounded-xl p-3">{error}</p>}
 
       {/* Lista de categorías */}
       <div className="space-y-2">
@@ -196,33 +196,33 @@ export default function GestionCategorias() {
           const estaAbierto = abiertos.has(cat.id)
 
           return (
-            <div key={cat.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div key={cat.id} className="bg-[var(--superficie)] rounded-2xl border border-[var(--linea-2)] shadow-sm overflow-hidden">
               {/* Categoría principal */}
               <div className="flex items-center gap-2 px-4 py-3">
                 {editando === cat.id ? (
                   <>
                     <input autoFocus value={nombreEdicion} onChange={e => setNombreEdicion(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && guardarEdicion(cat.id)}
-                      className="flex-1 px-3 py-1.5 border border-blue-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
-                    <button onClick={() => guardarEdicion(cat.id)} className="text-blue-600 text-sm font-semibold">Guardar</button>
-                    <button onClick={() => setEditando(null)} className="text-gray-400 text-sm">✕</button>
+                      className="flex-1 px-3 py-1.5 border border-[var(--info-linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
+                    <button onClick={() => guardarEdicion(cat.id)} className="text-[var(--acento)] text-sm font-semibold">Guardar</button>
+                    <button onClick={() => setEditando(null)} className="text-[var(--tinta-4)] text-sm">✕</button>
                   </>
                 ) : (
                   <>
-                    <span className="flex-1 font-semibold text-gray-800 text-sm">{cat.nombre}</span>
+                    <span className="flex-1 font-semibold text-[var(--tinta)] text-sm">{cat.nombre}</span>
                     <button onClick={() => { setEditando(cat.id); setNombreEdicion(cat.nombre) }}
-                      className="text-xs text-gray-300 hover:text-blue-500 px-1.5 py-1">✏️</button>
+                      className="text-xs text-[var(--tinta-5)] hover:text-[var(--acento)] px-1.5 py-1">✏️</button>
                     <button onClick={() => quitar(cat)} aria-label={`Quitar ${cat.nombre}`}
-                      className="text-xs text-gray-300 hover:text-red-500 px-1.5 py-1">🗑️</button>
+                      className="text-xs text-[var(--tinta-5)] hover:text-[var(--gasto)] px-1.5 py-1">🗑️</button>
                     <button onClick={() => setRepartoAbierto(repartoAbierto === cat.id ? null : cat.id)}
                       title="Cómo se reparte entre los dos"
-                      className={`text-[10px] px-1.5 py-1 rounded-lg font-semibold ${cat.porcentaje_primero != null ? 'text-teal-600 bg-teal-50' : 'text-gray-300 hover:text-teal-600'}`}>
+                      className={`text-[10px] px-1.5 py-1 rounded-lg font-semibold ${cat.porcentaje_primero != null ? 'text-[var(--dinero)] bg-[var(--comun-fondo)]' : 'text-[var(--tinta-5)] hover:text-[var(--dinero)]'}`}>
                       {cat.porcentaje_primero != null ? `${corto(cat.porcentaje_primero)}/${corto(100 - cat.porcentaje_primero)}` : '50/50'}
                     </button>
                     {/* Siempre visible, aunque no haya subcategorías: si no,
                         una categoría nueva nunca podría recibir la primera. */}
                     <button onClick={() => toggleAbierto(cat.id)}
-                      className="text-xs text-gray-400 font-semibold px-2 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 flex items-center gap-1">
+                      className="text-xs text-[var(--tinta-4)] font-semibold px-2 py-1 rounded-lg bg-[var(--superficie-2)] hover:bg-[var(--superficie-3)] flex items-center gap-1">
                       {subs.length > 0 ? subs.length : '+'} {estaAbierto ? '▲' : '▼'}
                     </button>
                   </>
@@ -230,8 +230,8 @@ export default function GestionCategorias() {
               </div>
 
               {repartoAbierto === cat.id && (
-                <div className="px-4 py-3 bg-teal-50/60 border-t border-teal-100 space-y-2">
-                  <p className="text-xs text-gray-500">
+                <div className="px-4 py-3 bg-[var(--comun-fondo)]/60 border-t border-[var(--comun)] space-y-2">
+                  <p className="text-xs text-[var(--tinta-3)]">
                     Cómo se reparte <b>{cat.nombre}</b> entre los dos. Afecta a «La cuenta de los dos» de Informes.
                   </p>
                   <EditorReparto item={cat}
@@ -244,26 +244,26 @@ export default function GestionCategorias() {
               {estaAbierto && (
                 <>
                   {subs.map(sub => (
-                    <div key={sub.id} className="flex items-center flex-wrap gap-2 px-4 py-2 bg-gray-50 border-t border-gray-100">
-                      <span className="text-gray-300 text-xs">↳</span>
+                    <div key={sub.id} className="flex items-center flex-wrap gap-2 px-4 py-2 bg-[var(--superficie-2)] border-t border-[var(--linea-2)]">
+                      <span className="text-[var(--tinta-5)] text-xs">↳</span>
                       {editando === sub.id ? (
                         <>
                           <input autoFocus value={nombreEdicion} onChange={e => setNombreEdicion(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && guardarEdicion(sub.id)}
-                            className="flex-1 px-3 py-1 border border-blue-300 rounded-xl text-sm focus:outline-none" />
-                          <button onClick={() => guardarEdicion(sub.id)} className="text-blue-600 text-xs font-semibold">Guardar</button>
-                          <button onClick={() => setEditando(null)} className="text-gray-400 text-xs">✕</button>
+                            className="flex-1 px-3 py-1 border border-[var(--info-linea)] rounded-xl text-sm focus:outline-none" />
+                          <button onClick={() => guardarEdicion(sub.id)} className="text-[var(--acento)] text-xs font-semibold">Guardar</button>
+                          <button onClick={() => setEditando(null)} className="text-[var(--tinta-4)] text-xs">✕</button>
                         </>
                       ) : (
                         <>
-                          <span className="flex-1 text-sm text-gray-600">{sub.nombre}</span>
+                          <span className="flex-1 text-sm text-[var(--tinta-3)]">{sub.nombre}</span>
                           <button onClick={() => { setEditando(sub.id); setNombreEdicion(sub.nombre) }}
-                            className="text-xs text-gray-300 hover:text-blue-500">✏️</button>
+                            className="text-xs text-[var(--tinta-5)] hover:text-[var(--acento)]">✏️</button>
                           <button onClick={() => quitar(sub)} aria-label={`Quitar ${sub.nombre}`}
-                            className="text-xs text-gray-300 hover:text-red-500 px-1">🗑️</button>
+                            className="text-xs text-[var(--tinta-5)] hover:text-[var(--gasto)] px-1">🗑️</button>
                           <button onClick={() => setRepartoAbierto(repartoAbierto === sub.id ? null : sub.id)}
                             title="Cómo se reparte entre los dos"
-                            className={`text-[10px] px-1.5 py-0.5 rounded-lg font-semibold ${sub.porcentaje_primero != null ? 'text-teal-600 bg-teal-50' : 'text-gray-300 hover:text-teal-600'}`}>
+                            className={`text-[10px] px-1.5 py-0.5 rounded-lg font-semibold ${sub.porcentaje_primero != null ? 'text-[var(--dinero)] bg-[var(--comun-fondo)]' : 'text-[var(--tinta-5)] hover:text-[var(--dinero)]'}`}>
                             {sub.porcentaje_primero != null ? `${corto(sub.porcentaje_primero)}/${corto(100 - sub.porcentaje_primero)}` : '—'}
                           </button>
                         </>
@@ -278,20 +278,20 @@ export default function GestionCategorias() {
 
                   {/* Añadir subcategoría */}
                   {nuevaSubcategoria.padreId === cat.id ? (
-                    <div className="flex gap-2 px-4 py-2 bg-blue-50 border-t border-blue-100">
+                    <div className="flex gap-2 px-4 py-2 bg-[var(--info-fondo)] border-t border-[var(--info-linea)]">
                       <input autoFocus value={nuevaSubcategoria.nombre}
                         onChange={e => setNuevaSubcategoria({ nombre: e.target.value, padreId: cat.id })}
                         onKeyDown={e => e.key === 'Enter' && agregarSubcategoria(cat.id)}
                         placeholder="Nombre de subcategoría..."
-                        className="flex-1 px-3 py-1.5 border border-blue-200 rounded-xl text-sm focus:outline-none" />
+                        className="flex-1 px-3 py-1.5 border border-[var(--info-linea)] rounded-xl text-sm focus:outline-none" />
                       <button onClick={() => agregarSubcategoria(cat.id)}
-                        className="text-blue-600 text-sm font-semibold px-2">Añadir</button>
+                        className="text-[var(--acento)] text-sm font-semibold px-2">Añadir</button>
                       <button onClick={() => setNuevaSubcategoria({ nombre: '', padreId: null })}
-                        className="text-gray-400 text-sm px-1">✕</button>
+                        className="text-[var(--tinta-4)] text-sm px-1">✕</button>
                     </div>
                   ) : (
                     <button onClick={() => setNuevaSubcategoria({ nombre: '', padreId: cat.id })}
-                      className="w-full text-xs text-gray-400 hover:text-blue-500 py-2 border-t border-gray-100 flex items-center justify-center gap-1">
+                      className="w-full text-xs text-[var(--tinta-4)] hover:text-[var(--acento)] py-2 border-t border-[var(--linea-2)] flex items-center justify-center gap-1">
                       <span>+</span> Añadir subcategoría
                     </button>
                   )}
@@ -303,15 +303,15 @@ export default function GestionCategorias() {
       </div>
 
       {/* Nueva categoría principal */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-2">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Nueva categoría</p>
+      <div className="bg-[var(--superficie)] rounded-2xl border border-[var(--linea)] p-4 space-y-2">
+        <p className="text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide">Nueva categoría</p>
         <div className="flex gap-2">
           <input value={nuevaCategoria} onChange={e => setNuevaCategoria(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && agregarCategoria()}
             placeholder="Nombre de la categoría..."
-            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            className="flex-1 px-4 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
           <button onClick={agregarCategoria}
-            className="px-4 py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm shadow-sm">
+            className="px-4 py-2.5 bg-[var(--acento)] text-[var(--acento-tinta)] rounded-xl font-semibold text-sm shadow-sm">
             Añadir
           </button>
         </div>

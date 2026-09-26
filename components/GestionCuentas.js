@@ -122,20 +122,20 @@ export default function GestionCuentas({ transacciones, mostrarCifras, usuario }
 
   if (cargando) return (
     <div className="flex justify-center mt-10">
-      <div className="w-6 h-6 border-2 border-[#0d1b2a] border-t-transparent rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-[var(--acento)] border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
   return (
     <div className="space-y-4 pb-24">
       <div>
-        <h2 className="text-base font-bold text-gray-900">Cuentas</h2>
-        <p className="text-xs text-gray-400 mt-0.5">
+        <h2 className="text-base font-bold text-[var(--tinta)]">Cuentas</h2>
+        <p className="text-xs text-[var(--tinta-4)] mt-0.5">
           Estas son las formas de pago que aparecen al crear un apunte. Pon el saldo inicial de cada una y el saldo actual se calcula solo. «El dinero es de» decide el reparto del informe «Quién puso el dinero».
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+      <div className="bg-[var(--superficie)] rounded-2xl overflow-hidden shadow-sm border border-[var(--linea-2)]">
         {cuentas.map((cuenta, idx) => {
           const mov = movimientos[cuenta.nombre] || { ingresos: 0, gastos: 0 }
           const saldoActual = cuenta.saldo_inicial + mov.ingresos - mov.gastos
@@ -144,7 +144,7 @@ export default function GestionCuentas({ transacciones, mostrarCifras, usuario }
 
           return (
             <div key={cuenta.id}
-              className={`px-4 py-3 ${idx > 0 ? 'border-t border-gray-50' : ''}`}>
+              className={`px-4 py-3 ${idx > 0 ? 'border-t border-[var(--linea-3)]' : ''}`}>
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-xl">{cuenta.emoji}</span>
                 <div className="flex-1 min-w-0">
@@ -152,24 +152,24 @@ export default function GestionCuentas({ transacciones, mostrarCifras, usuario }
                     <div className="flex items-center gap-1.5">
                       <input autoFocus value={nombreEdicion} onChange={e => setNombreEdicion(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') { renombrar(cuenta, nombreEdicion); setEditando(null) } }}
-                        className="flex-1 min-w-0 px-2 py-1 border border-blue-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                        className="flex-1 min-w-0 px-2 py-1 border border-[var(--info-linea)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
                       <button onClick={() => { renombrar(cuenta, nombreEdicion); setEditando(null) }}
-                        className="text-blue-600 text-xs font-semibold shrink-0">Guardar</button>
-                      <button onClick={() => setEditando(null)} className="text-gray-400 text-xs shrink-0">✕</button>
+                        className="text-[var(--acento)] text-xs font-semibold shrink-0">Guardar</button>
+                      <button onClick={() => setEditando(null)} className="text-[var(--tinta-4)] text-xs shrink-0">✕</button>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1">
-                      <p className="text-sm font-semibold text-gray-800 truncate">{cuenta.nombre}</p>
+                      <p className="text-sm font-semibold text-[var(--tinta)] truncate">{cuenta.nombre}</p>
                       <button onClick={() => { setEditando(cuenta.id); setNombreEdicion(cuenta.nombre) }}
-                        className="text-xs text-gray-300 hover:text-blue-500 px-1">✏️</button>
+                        className="text-xs text-[var(--tinta-5)] hover:text-[var(--acento)] px-1">✏️</button>
                       <button onClick={() => quitar(cuenta)} aria-label={`Quitar ${cuenta.nombre}`}
-                        className="text-xs text-gray-300 hover:text-red-500 px-1">🗑️</button>
+                        className="text-xs text-[var(--tinta-5)] hover:text-[var(--gasto)] px-1">🗑️</button>
                     </div>
                   )}
-                  <div className="flex gap-2 text-xs text-gray-400 mt-0.5">
+                  <div className="flex gap-2 text-xs text-[var(--tinta-4)] mt-0.5">
                     {esDelOtro ? <span>Cuenta de {cuenta.persona}</span> : <>
-                      {mov.ingresos > 0 && <span className="text-emerald-500">↑ {ocultar(mostrarCifras, `${euros(mov.ingresos)} €`)}</span>}
-                      {mov.gastos > 0 && <span className="text-red-400">↓ {ocultar(mostrarCifras, `${euros(mov.gastos)} €`)}</span>}
+                      {mov.ingresos > 0 && <span className="text-[var(--ingreso)]">↑ {ocultar(mostrarCifras, `${euros(mov.ingresos)} €`)}</span>}
+                      {mov.gastos > 0 && <span className="text-[var(--gasto)]">↓ {ocultar(mostrarCifras, `${euros(mov.gastos)} €`)}</span>}
                       {!mov.ingresos && !mov.gastos && <span>Sin movimientos</span>}
                     </>}
                   </div>
@@ -177,34 +177,34 @@ export default function GestionCuentas({ transacciones, mostrarCifras, usuario }
                 <div className="text-right">
                   {esDelOtro ? (
                     <>
-                      <p className="text-base font-bold text-gray-300">—</p>
-                      <p className="text-[10px] text-gray-300 max-w-[90px] leading-tight">no se puede calcular desde aquí</p>
+                      <p className="text-base font-bold text-[var(--tinta-5)]">—</p>
+                      <p className="text-[10px] text-[var(--tinta-5)] max-w-[90px] leading-tight">no se puede calcular desde aquí</p>
                     </>
                   ) : (
                     <>
-                      <p className={`text-base font-bold ${esPositivo ? 'text-emerald-500' : 'text-red-500'}`}>
+                      <p className={`text-base font-bold ${esPositivo ? 'text-[var(--ingreso)]' : 'text-[var(--gasto)]'}`}>
                         {ocultar(mostrarCifras, `${esPositivo ? '+' : ''}${euros(saldoActual)} €`)}
                       </p>
-                      <p className="text-[10px] text-gray-300">saldo actual</p>
+                      <p className="text-[10px] text-[var(--tinta-5)]">saldo actual</p>
                     </>
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400 shrink-0">Saldo inicial:</span>
+                <span className="text-xs text-[var(--tinta-4)] shrink-0">Saldo inicial:</span>
                 <SaldoEditor valor={cuenta.saldo_inicial} onGuardar={v => actualizarSaldo(cuenta, v)} mostrarCifras={mostrarCifras} />
               </div>
 
               {/* De quién es este dinero — decide el reparto en Informes */}
               <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs text-gray-400 shrink-0">El dinero es de:</span>
+                <span className="text-xs text-[var(--tinta-4)] shrink-0">El dinero es de:</span>
                 <div className="flex gap-1">
                   {['Cris', 'Adri', 'Común'].map(p => (
                     <button key={p} type="button" onClick={() => cambiarPersona(cuenta, p)}
                       className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors ${
                         (cuenta.persona || 'Común') === p
-                          ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]'
-                          : 'bg-white text-gray-400 border-gray-200'
+                          ? 'bg-[var(--superficie)] text-white border-[var(--acento)]'
+                          : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'
                       }`}>
                       {p}
                     </button>
@@ -217,33 +217,33 @@ export default function GestionCuentas({ transacciones, mostrarCifras, usuario }
       </div>
 
       {error && (
-        <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-xl px-3 py-2">{error}</p>
+        <p className="text-xs text-[var(--gasto)] bg-[#3A2230] border border-[#5A2C3C] rounded-xl px-3 py-2">{error}</p>
       )}
 
       {/* Añadir cuenta */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Añadir cuenta</p>
+      <div className="bg-[var(--superficie)] rounded-2xl shadow-sm border border-[var(--linea-2)] p-4 space-y-3">
+        <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-wide">Añadir cuenta</p>
 
         <div className="flex gap-2">
           <input value={nuevaCuenta.emoji} maxLength={2}
             onChange={e => setNuevaCuenta(c => ({ ...c, emoji: e.target.value }))}
             aria-label="Icono de la cuenta"
-            className="w-14 text-center px-2 py-2 border border-gray-200 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            className="w-14 text-center px-2 py-2 border border-[var(--linea)] rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
           <input value={nuevaCuenta.nombre} placeholder="Nombre (p. ej. Tarjeta Cris)"
             onChange={e => setNuevaCuenta(c => ({ ...c, nombre: e.target.value }))}
             onKeyDown={e => e.key === 'Enter' && crear()}
-            className="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            className="flex-1 min-w-0 px-3 py-2 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400 shrink-0">El dinero es de:</span>
+          <span className="text-xs text-[var(--tinta-4)] shrink-0">El dinero es de:</span>
           <div className="flex gap-1">
             {['Cris', 'Adri', 'Común'].map(p => (
               <button key={p} type="button" onClick={() => setNuevaCuenta(c => ({ ...c, persona: p }))}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors ${
                   nuevaCuenta.persona === p
-                    ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]'
-                    : 'bg-white text-gray-400 border-gray-200'
+                    ? 'bg-[var(--superficie)] text-white border-[var(--acento)]'
+                    : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'
                 }`}>
                 {p}
               </button>
@@ -252,7 +252,7 @@ export default function GestionCuentas({ transacciones, mostrarCifras, usuario }
         </div>
 
         <button onClick={crear} disabled={!nuevaCuenta.nombre.trim()}
-          className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+          className="w-full py-2.5 bg-[var(--acento)] text-[var(--acento-tinta)] rounded-xl text-sm font-bold disabled:bg-[var(--superficie-4)] disabled:text-[var(--tinta-4)]">
           Añadir
         </button>
       </div>
@@ -279,8 +279,8 @@ function SaldoEditor({ valor, onGuardar, mostrarCifras }) {
   if (!editando) {
     return (
       <button onClick={() => setEditando(true)}
-        className="flex items-center gap-1.5 text-xs text-blue-500 font-semibold border border-blue-200 rounded-lg px-2.5 py-1 bg-blue-50">
-        {ocultar(mostrarCifras, `${euros(valor)} €`)} <span className="text-blue-300">✏️</span>
+        className="flex items-center gap-1.5 text-xs text-[var(--acento)] font-semibold border border-[var(--info-linea)] rounded-lg px-2.5 py-1 bg-[var(--info-fondo)]">
+        {ocultar(mostrarCifras, `${euros(valor)} €`)} <span className="text-[var(--adri)]">✏️</span>
       </button>
     )
   }
@@ -290,13 +290,13 @@ function SaldoEditor({ valor, onGuardar, mostrarCifras }) {
       <input type="text" inputMode="decimal" value={temp} autoFocus
         onChange={e => setTemp(e.target.value.replace(',', '.'))}
         onKeyDown={e => e.key === 'Enter' && guardar()}
-        className="flex-1 px-2 py-1 border border-blue-300 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-400" />
+        className="flex-1 px-2 py-1 border border-[var(--info-linea)] rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-[var(--acento)]" />
       <button onClick={guardar} disabled={guardando}
-        className="px-2.5 py-1 bg-blue-600 text-white text-xs rounded-lg font-semibold disabled:opacity-50">
+        className="px-2.5 py-1 bg-[var(--acento)] text-[var(--acento-tinta)] text-xs rounded-lg font-semibold disabled:opacity-50">
         {guardando ? '...' : '✓'}
       </button>
       <button onClick={() => setEditando(false)}
-        className="px-2.5 py-1 bg-gray-100 text-gray-500 text-xs rounded-lg">✕</button>
+        className="px-2.5 py-1 bg-[var(--superficie-3)] text-[var(--tinta-3)] text-xs rounded-lg">✕</button>
     </div>
   )
 }

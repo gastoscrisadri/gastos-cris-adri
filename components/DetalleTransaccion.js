@@ -60,8 +60,8 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
   // Modo edición en el mismo overlay
   if (editando) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col bg-white">
-        <div className="bg-[#0d1b2a] px-4 pt-10 pb-5">
+      <div className="fixed inset-0 z-50 flex flex-col bg-[var(--superficie)]">
+        <div className="bg-[var(--superficie)] px-4 pt-10 pb-5">
           <button onClick={() => setEditando(false)}
             className="text-white/60 text-sm mb-3 flex items-center gap-1">
             ← Volver al detalle
@@ -83,7 +83,7 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
   const importe = Number(t.importe)
   const esDevolucion = t.tipo === 'gasto' && importe < 0
   const esGastoNormal = t.tipo === 'gasto' && importe >= 0
-  const colorImporte = esGastoNormal ? 'text-red-500' : 'text-emerald-500'
+  const colorImporte = esGastoNormal ? 'text-[var(--gasto)]' : 'text-[var(--ingreso)]'
   const signo = esGastoNormal ? '-' : '+'
 
   const [anio, mesNum, dia] = t.fecha.split('-')
@@ -92,36 +92,36 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
   })
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[var(--superficie)]">
       {/* Cabecera */}
-      <div className="flex items-center gap-3 px-4 pt-6 pb-4 border-b border-gray-100">
+      <div className="flex items-center gap-3 px-4 pt-6 pb-4 border-b border-[var(--linea-2)]">
         <button
           onClick={onCerrar}
-          className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 text-lg font-bold"
+          className="w-9 h-9 flex items-center justify-center rounded-full bg-[var(--superficie-3)] text-[var(--tinta-3)] text-lg font-bold"
         >
           ←
         </button>
-        <h2 className="text-lg font-bold text-gray-900 flex-1">Detalle</h2>
+        <h2 className="text-lg font-bold text-[var(--tinta)] flex-1">Detalle</h2>
         {!confirmando ? (
           <>
             <button onClick={() => setEditando(true)}
-              className="px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl">
+              className="px-3 py-2 bg-[var(--acento)] text-[var(--acento-tinta)] text-sm font-semibold rounded-xl">
               Editar
             </button>
             <button onClick={() => setConfirmando(true)}
-              className="px-3 py-2 bg-red-50 text-red-500 text-sm font-semibold rounded-xl">
+              className="px-3 py-2 bg-[#3A2230] text-[var(--gasto)] text-sm font-semibold rounded-xl">
               Eliminar
             </button>
           </>
         ) : (
           <div className="flex gap-2 items-center">
-            <span className="text-sm text-gray-500">¿Seguro?</span>
+            <span className="text-sm text-[var(--tinta-3)]">¿Seguro?</span>
             <button onClick={() => onEliminar?.(t)}
               className="px-3 py-2 bg-red-500 text-white text-sm font-semibold rounded-xl">
               Sí, borrar
             </button>
             <button onClick={() => setConfirmando(false)}
-              className="px-3 py-2 bg-gray-100 text-gray-500 text-sm font-semibold rounded-xl">
+              className="px-3 py-2 bg-[var(--superficie-3)] text-[var(--tinta-3)] text-sm font-semibold rounded-xl">
               No
             </button>
           </div>
@@ -134,16 +134,16 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
         {/* Importe grande */}
         <div className="text-center py-4">
           {esDevolucion && (
-            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">Devolución o cobro</p>
+            <p className="text-xs font-semibold text-[var(--ingreso)] uppercase tracking-wide mb-1">Devolución o cobro</p>
           )}
           <p className={`text-5xl font-bold ${colorImporte}`}>
             {ocultar(mostrarCifras, `${signo}${euros(Math.abs(importe))} €`)}
           </p>
-          <p className="text-sm text-gray-400 mt-2 capitalize">{fechaLegible}</p>
+          <p className="text-sm text-[var(--tinta-4)] mt-2 capitalize">{fechaLegible}</p>
         </div>
 
         {/* Datos */}
-        <div className="bg-gray-50 rounded-2xl divide-y divide-gray-100">
+        <div className="bg-[var(--superficie-2)] rounded-2xl divide-y divide-[var(--linea-2)]">
           {t.establecimiento && (
             <Fila label="Establecimiento" valor={t.establecimiento} />
           )}
@@ -172,18 +172,18 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
         {/* Evento */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Evento</p>
+            <p className="text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide">Evento</p>
             <button
               onClick={() => setMostrarSelectorEvento(v => !v)}
-              className="text-xs text-blue-500 font-semibold">
+              className="text-xs text-[var(--acento)] font-semibold">
               {eventoId ? 'Cambiar' : '+ Asignar'}
             </button>
           </div>
           {eventoId ? (
-            <div className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-xl px-3 py-2.5">
+            <div className="flex items-center justify-between bg-[var(--aviso-fondo)] border border-[var(--aviso-linea)] rounded-xl px-3 py-2.5">
               <div className="flex items-center gap-2">
                 <span>🎯</span>
-                <span className="text-sm font-semibold text-orange-800">
+                <span className="text-sm font-semibold text-[var(--aviso)]">
                   {eventos.find(e => e.id === eventoId)?.nombre || 'Evento'}
                 </span>
               </div>
@@ -191,17 +191,17 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
                 className="text-orange-400 text-xs font-bold px-2">✕</button>
             </div>
           ) : (
-            <p className="text-sm text-gray-400 px-1">Sin evento asignado</p>
+            <p className="text-sm text-[var(--tinta-4)] px-1">Sin evento asignado</p>
           )}
 
           {mostrarSelectorEvento && (
-            <div className="mt-2 bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="mt-2 bg-[var(--superficie)] border border-[var(--linea)] rounded-xl overflow-hidden shadow-sm">
               {eventos.length === 0 ? (
-                <p className="text-sm text-gray-400 p-3 text-center">No hay eventos disponibles</p>
+                <p className="text-sm text-[var(--tinta-4)] p-3 text-center">No hay eventos disponibles</p>
               ) : (
                 eventos.map((ev, idx) => (
                   <button key={ev.id} onClick={() => guardarEvento(ev.id)} disabled={guardandoEvento}
-                    className={`w-full text-left px-4 py-3 text-sm font-medium flex items-center justify-between ${idx > 0 ? 'border-t border-gray-50' : ''} ${eventoId === ev.id ? 'text-orange-600 bg-orange-50' : 'text-gray-800'}`}>
+                    className={`w-full text-left px-4 py-3 text-sm font-medium flex items-center justify-between ${idx > 0 ? 'border-t border-[var(--linea-3)]' : ''} ${eventoId === ev.id ? 'text-[var(--aviso)] bg-[var(--aviso-fondo)]' : 'text-[var(--tinta)]'}`}>
                     <span>{ev.nombre}</span>
                     {eventoId === ev.id && <span className="text-orange-500 text-xs">✓ Actual</span>}
                   </button>
@@ -215,11 +215,11 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
         {imagenUrl && (
           <div>
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Foto del documento</p>
+              <p className="text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide">Foto del documento</p>
               <button
                 onClick={eliminarFoto}
                 disabled={eliminandoFoto}
-                className="text-xs text-red-400 font-semibold disabled:opacity-40">
+                className="text-xs text-[var(--gasto)] font-semibold disabled:opacity-40">
                 {eliminandoFoto ? 'Eliminando…' : 'Eliminar foto'}
               </button>
             </div>
@@ -227,9 +227,9 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
               <img
                 src={imagenVer}
                 alt="Documento"
-                className="w-full rounded-2xl border border-gray-100 shadow-sm object-contain max-h-96"
+                className="w-full rounded-2xl border border-[var(--linea-2)] shadow-sm object-contain max-h-96"
               />
-              <p className="text-xs text-blue-500 text-center mt-1">Toca para ver a tamaño completo</p>
+              <p className="text-xs text-[var(--acento)] text-center mt-1">Toca para ver a tamaño completo</p>
             </a>
           </div>
         )}
@@ -241,8 +241,8 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
 function Fila({ label, valor }) {
   return (
     <div className="flex justify-between items-start px-4 py-3 gap-4">
-      <span className="text-sm text-gray-400 shrink-0">{label}</span>
-      <span className="text-sm font-medium text-gray-800 text-right">{valor}</span>
+      <span className="text-sm text-[var(--tinta-4)] shrink-0">{label}</span>
+      <span className="text-sm font-medium text-[var(--tinta)] text-right">{valor}</span>
     </div>
   )
 }

@@ -2,12 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================================================================
+   LOS COLORES DE LA APP, EN UN SOLO SITIO
+   =========================================================================
+
+   Hasta el 27/09/2026 cada color estaba escrito allí donde se usaba: 996
+   decisiones repartidas por 14 archivos. Cambiar el aspecto significaba
+   tocarlas una a una, y no había forma de ver el conjunto.
+
+   Ahora las pantallas no nombran colores: nombran PAPELES. Un fondo de
+   tarjeta es --superficie, un texto secundario es --tinta-4. Qué color tiene
+   cada papel se decide aquí, y solo aquí.
+
+   Lo que esto compra: cambiar la piel entera de la app es editar este bloque.
+   Y volver atrás, lo mismo.
+
+   PIEL ACTUAL: «Noche» — azul tinta y ámbar.
+   ========================================================================= */
+
+:root {
+  /* --- Los fondos, del más hondo al más claro --- */
+  --fondo:        #171A2E;   /* el papel de la app */
+  --superficie:   #20243D;   /* tarjetas y listas */
+  --superficie-2: #272C48;   /* relleno suave dentro de una tarjeta */
+  --superficie-3: #2F3555;   /* relleno marcado: botones apagados, barras */
+  --superficie-4: #383F68;   /* el más claro de todos */
+
+  /* --- Las líneas que separan --- */
+  --linea:        #2E3455;
+  --linea-2:      #262B47;
+  --linea-3:      #212639;
+
+  /* --- La tinta, de la más fuerte a la más callada --- */
+  --tinta:        #F0F1F7;   /* títulos e importes */
+  --tinta-2:      #C9CDE6;
+  --tinta-3:      #B0B5D2;
+  --tinta-4:      #9CA1C2;   /* etiquetas y textos de apoyo */
+  --tinta-5:      #858BB0;   /* lo más tenue que sigue leyéndose */
+
+  /* Los cuatro niveles de tinta están MEDIDOS sobre el fondo de tarjeta: dan
+     13,5 · 9,7 · 6,0 · 4,6 de contraste, y el mínimo para leer es 4,5. El
+     gris más tenue estaba en 3,3 y no pasaba: en el diseño claro colaba, en
+     uno oscuro no. Si algún día se cambian estos valores, hay que volver a
+     medirlos — a ojo no se ve venir. */
+
+  /* --- El acento: lo que hay que pulsar --- */
+  --acento:       #FFC24B;
+  --acento-tinta: #221A05;   /* el texto que va ENCIMA del acento */
+  --acento-flojo: #45330F;   /* el acento como fondo discreto */
+
+  /* --- Dinero: se separa del acento a propósito --- */
+  --dinero:       #2FBF8F;   /* saldar, cerrar cuenta, "de los dos" */
+  --dinero-tinta: #04241A;
+
+  /* --- Los colores que SIGNIFICAN algo y no son piel --- */
+  --gasto:        #FF6B6B;
+  --ingreso:      #34D399;
+  --aviso:        #F0C36B;
+  --aviso-fondo:  #3A2F16;
+  --aviso-linea:  #4A3A18;
+  --personal:     #C4B0F5;
+  --personal-fondo:#2E2A52;
+  --comun:        #7FE3C4;
+  --comun-fondo:  #17362E;
+  --info:         #8FD3F5;
+  --info-fondo:   #1D2B48;
+  --info-linea:   #2B3F63;
+  --cris:         #FF8FC0;
+  --adri:         #5AB8F5;
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
   overscroll-behavior: none;
+  background: var(--fondo);
+  color: var(--tinta);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 

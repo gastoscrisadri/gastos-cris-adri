@@ -77,7 +77,7 @@ export default function DetalleEvento({ evento, onCerrar, mostrarCifras }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col max-w-lg mx-auto">
+    <div className="fixed inset-0 z-50 bg-[var(--superficie)] flex flex-col max-w-lg mx-auto">
       {/* Cabecera */}
       <div className="bg-gradient-to-r from-orange-500 to-amber-400 px-5 pt-12 pb-5">
         <button onClick={onCerrar} className="text-white/70 text-sm font-medium flex items-center gap-1 mb-3">
@@ -104,7 +104,7 @@ export default function DetalleEvento({ evento, onCerrar, mostrarCifras }) {
                 <p className="text-xs text-white/70">de {ocultar(mostrarCifras, `${presupuesto.toLocaleString('es-ES')} €`)} presupuestados</p>
               </div>
               <div className="text-right">
-                <p className={`text-lg font-bold ${restante < 0 ? 'text-red-200' : 'text-white'}`}>
+                <p className={`text-lg font-bold ${restante < 0 ? 'text-[#E08A9E]' : 'text-white'}`}>
                   {ocultar(mostrarCifras, restante >= 0 ? `${euros0(restante)} €` : `+${euros0(Math.abs(restante))} €`)}
                 </p>
                 <p className="text-xs text-white/70">{restante >= 0 ? 'disponible' : 'excedido'}</p>
@@ -112,7 +112,7 @@ export default function DetalleEvento({ evento, onCerrar, mostrarCifras }) {
             </div>
             <div className="h-2 bg-white/30 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${porcentaje >= 100 ? 'bg-red-300' : 'bg-white'}`}
+                className={`h-full rounded-full transition-all ${porcentaje >= 100 ? 'bg-[#6B3040]' : 'bg-[var(--superficie)]'}`}
                 style={{ width: `${porcentaje}%` }}
               />
             </div>
@@ -130,41 +130,41 @@ export default function DetalleEvento({ evento, onCerrar, mostrarCifras }) {
             <div className="w-6 h-6 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : transacciones.length === 0 ? (
-          <div className="text-center mt-16 text-gray-400 space-y-2">
+          <div className="text-center mt-16 text-[var(--tinta-4)] space-y-2">
             <div className="text-5xl">🎯</div>
-            <p className="font-medium text-gray-500">Sin apuntes aún</p>
+            <p className="font-medium text-[var(--tinta-3)]">Sin apuntes aún</p>
             <p className="text-sm">Los nuevos apuntes se asignarán automáticamente mientras el evento esté activo</p>
           </div>
         ) : (
           <>
             {/* Stats */}
             <div className="grid grid-cols-3 gap-2">
-              <div className="bg-gray-50 rounded-2xl p-3 text-center">
-                <p className="text-lg font-black text-gray-900">{gastos.length}</p>
-                <p className="text-xs text-gray-400 mt-0.5">apuntes</p>
+              <div className="bg-[var(--superficie-2)] rounded-2xl p-3 text-center">
+                <p className="text-lg font-black text-[var(--tinta)]">{gastos.length}</p>
+                <p className="text-xs text-[var(--tinta-4)] mt-0.5">apuntes</p>
               </div>
-              <div className="bg-gray-50 rounded-2xl p-3 text-center">
-                <p className="text-lg font-black text-gray-900">{diasTranscurridos ?? '—'}</p>
-                <p className="text-xs text-gray-400 mt-0.5">días</p>
+              <div className="bg-[var(--superficie-2)] rounded-2xl p-3 text-center">
+                <p className="text-lg font-black text-[var(--tinta)]">{diasTranscurridos ?? '—'}</p>
+                <p className="text-xs text-[var(--tinta-4)] mt-0.5">días</p>
               </div>
-              <div className="bg-gray-50 rounded-2xl p-3 text-center">
-                <p className="text-lg font-black text-gray-900">{mediaPorDia > 0 ? ocultar(mostrarCifras, `${euros0(mediaPorDia)}€`) : '—'}</p>
-                <p className="text-xs text-gray-400 mt-0.5">media/día</p>
+              <div className="bg-[var(--superficie-2)] rounded-2xl p-3 text-center">
+                <p className="text-lg font-black text-[var(--tinta)]">{mediaPorDia > 0 ? ocultar(mostrarCifras, `${euros0(mediaPorDia)}€`) : '—'}</p>
+                <p className="text-xs text-[var(--tinta-4)] mt-0.5">media/día</p>
               </div>
             </div>
 
             {/* Desglose por categoría */}
             {porCategoria.length > 0 && (
               <div>
-                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Por categoría</h2>
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <h2 className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-wide mb-2">Por categoría</h2>
+                <div className="bg-[var(--superficie)] rounded-2xl border border-[var(--linea-2)] shadow-sm overflow-hidden">
                   {porCategoria.map(([cat, importe], idx) => (
-                    <div key={cat} className={`px-4 py-3 ${idx > 0 ? 'border-t border-gray-50' : ''}`}>
+                    <div key={cat} className={`px-4 py-3 ${idx > 0 ? 'border-t border-[var(--linea-3)]' : ''}`}>
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium text-gray-700">{cat}</span>
-                        <span className="text-sm font-bold text-gray-900">{ocultar(mostrarCifras, `${euros(importe)} €`)}</span>
+                        <span className="text-sm font-medium text-[var(--tinta-2)]">{cat}</span>
+                        <span className="text-sm font-bold text-[var(--tinta)]">{ocultar(mostrarCifras, `${euros(importe)} €`)}</span>
                       </div>
-                      <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-1 bg-[var(--superficie-3)] rounded-full overflow-hidden">
                         <div
                           className="h-full bg-orange-400 rounded-full"
                           style={{ width: `${(importe / maxCategoria) * 100}%` }}
@@ -178,25 +178,25 @@ export default function DetalleEvento({ evento, onCerrar, mostrarCifras }) {
 
             {/* Lista de apuntes */}
             <div>
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Apuntes</h2>
+              <h2 className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-wide mb-2">Apuntes</h2>
               <div className="space-y-3">
                 {porFecha.map(([fecha, apuntes]) => (
                   <div key={fecha}>
-                    <p className="text-xs font-semibold text-gray-400 mb-1.5 px-1">{formatFecha(fecha)}</p>
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <p className="text-xs font-semibold text-[var(--tinta-4)] mb-1.5 px-1">{formatFecha(fecha)}</p>
+                    <div className="bg-[var(--superficie)] rounded-2xl border border-[var(--linea-2)] shadow-sm overflow-hidden">
                       {apuntes.map((t, idx) => {
                         const esGasto = t.tipo === 'gasto' && Number(t.importe) >= 0
                         return (
-                          <div key={t.id} className={`flex items-center gap-3 px-4 py-3 ${idx > 0 ? 'border-t border-gray-50' : ''}`}>
+                          <div key={t.id} className={`flex items-center gap-3 px-4 py-3 ${idx > 0 ? 'border-t border-[var(--linea-3)]' : ''}`}>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-gray-900 truncate">
+                              <p className="text-sm font-semibold text-[var(--tinta)] truncate">
                                 {t.establecimiento || t.descripcion || t.categoria}
                               </p>
-                              <p className="text-xs text-gray-400 mt-0.5">
+                              <p className="text-xs text-[var(--tinta-4)] mt-0.5">
                                 {t.categoria}{t.medio_pago ? ` · ${t.medio_pago}` : ''}
                               </p>
                             </div>
-                            <p className={`text-sm font-bold shrink-0 ${esGasto ? 'text-red-500' : 'text-emerald-500'}`}>
+                            <p className={`text-sm font-bold shrink-0 ${esGasto ? 'text-[var(--gasto)]' : 'text-[var(--ingreso)]'}`}>
                               {ocultar(mostrarCifras, `${esGasto ? '−' : '+'}${euros(Math.abs(Number(t.importe)))} €`)}
                             </p>
                           </div>

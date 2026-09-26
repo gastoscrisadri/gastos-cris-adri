@@ -16,13 +16,13 @@ export const viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: '#0d1b2a',
+  themeColor: '#20243D',
 }
 
 export default function RootLayout({ children }) {
   return (
     <html lang="es">
-      <body className="bg-[#f2f2f7] min-h-screen">
+      <body className="bg-[var(--fondo)] min-h-screen">
         {children}
       </body>
     </html>

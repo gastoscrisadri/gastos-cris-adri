@@ -442,10 +442,10 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   if (estadoOCR === 'procesando') {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-6">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-lg font-semibold text-gray-700">Analizando documento...</p>
-        <p className="text-sm text-gray-400 text-center">Estoy leyendo el ticket para rellenar los datos automáticamente</p>
-        {foto && <img src={foto} alt="documento" className="w-48 rounded-2xl border border-gray-100 shadow object-contain max-h-48" />}
+        <div className="w-12 h-12 border-4 border-[var(--adri)] border-t-transparent rounded-full animate-spin" />
+        <p className="text-lg font-semibold text-[var(--tinta-2)]">Analizando documento...</p>
+        <p className="text-sm text-[var(--tinta-4)] text-center">Estoy leyendo el ticket para rellenar los datos automáticamente</p>
+        {foto && <img src={foto} alt="documento" className="w-48 rounded-2xl border border-[var(--linea-2)] shadow object-contain max-h-48" />}
       </div>
     )
   }
@@ -453,13 +453,13 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   if (estadoOCR === 'exito') {
     return (
       <div className="flex flex-col gap-4 px-2 py-4">
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col items-center gap-2 text-center">
+        <div className="bg-[var(--comun-fondo)] border border-[var(--comun)] rounded-2xl p-4 flex flex-col items-center gap-2 text-center">
           <span className="text-4xl">✅</span>
-          <p className="text-lg font-bold text-emerald-800">Documento reconocido</p>
-          <p className="text-sm text-emerald-700">He leído correctamente todos los datos</p>
+          <p className="text-lg font-bold text-[var(--comun)]">Documento reconocido</p>
+          <p className="text-sm text-[var(--comun)]">He leído correctamente todos los datos</p>
         </div>
-        {foto && <img src={foto} alt="documento" className="w-full rounded-2xl border border-gray-100 shadow object-contain max-h-40" />}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50">
+        {foto && <img src={foto} alt="documento" className="w-full rounded-2xl border border-[var(--linea-2)] shadow object-contain max-h-40" />}
+        <div className="bg-[var(--superficie)] rounded-2xl border border-[var(--linea-2)] shadow-sm divide-y divide-[var(--linea-3)]">
           <ResumenFila label="Tipo" valor={form.tipo === 'gasto' ? '💸 Gasto' : '💰 Ingreso'} />
           <ResumenFila label="Importe" valor={form.importe ? `${form.importe} €` : '—'} />
           <ResumenFila label="Categoría" valor={form.categoria || '—'} />
@@ -467,7 +467,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           <ResumenFila label="Establecimiento" valor={form.establecimiento || '—'} />
         </div>
         <button onClick={() => setEstadoOCR(null)}
-          className="w-full py-4 bg-blue-600 text-white rounded-2xl text-base font-bold shadow">
+          className="w-full py-4 bg-[var(--acento)] text-[var(--acento-tinta)] rounded-2xl text-base font-bold shadow">
           Revisar y guardar →
         </button>
       </div>
@@ -477,22 +477,22 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   if (estadoOCR === 'duda') {
     return (
       <div className="flex flex-col gap-4 px-2 py-4">
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col items-center gap-2 text-center">
+        <div className="bg-[var(--aviso-fondo)] border border-[var(--aviso-linea)] rounded-2xl p-4 flex flex-col items-center gap-2 text-center">
           <span className="text-4xl">⚠️</span>
-          <p className="text-lg font-bold text-amber-800">Necesito tu ayuda</p>
-          <p className="text-sm text-amber-700">No he podido leer con seguridad:</p>
+          <p className="text-lg font-bold text-[var(--aviso)]">Necesito tu ayuda</p>
+          <p className="text-sm text-[var(--aviso)]">No he podido leer con seguridad:</p>
           <div className="flex flex-wrap gap-2 justify-center mt-1">
             {camposFaltantes.map(c => (
-              <span key={c} className="bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full capitalize">{c}</span>
+              <span key={c} className="bg-[var(--acento-flojo)] text-[var(--aviso)] text-xs font-semibold px-3 py-1 rounded-full capitalize">{c}</span>
             ))}
           </div>
           {diagnosticoOCR && (
-            <p className="text-[10px] text-amber-500 mt-1">código: {diagnosticoOCR}</p>
+            <p className="text-[10px] text-[var(--aviso)] mt-1">código: {diagnosticoOCR}</p>
           )}
         </div>
-        {foto && <img src={foto} alt="documento" className="w-full rounded-2xl border border-gray-100 shadow object-contain max-h-32" />}
+        {foto && <img src={foto} alt="documento" className="w-full rounded-2xl border border-[var(--linea-2)] shadow object-contain max-h-32" />}
         <button onClick={() => setEstadoOCR(null)}
-          className="w-full py-4 bg-blue-600 text-white rounded-2xl text-base font-bold shadow">
+          className="w-full py-4 bg-[var(--acento)] text-[var(--acento-tinta)] rounded-2xl text-base font-bold shadow">
           Completar datos →
         </button>
       </div>
@@ -551,16 +551,16 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           del evento "cancel" apuntan solo a ella, nunca a la galería. */}
       <input ref={inputFotoRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={procesarFoto} />
       <input ref={inputGaleriaRef} type="file" accept="image/*" className="hidden" onChange={procesarFoto} />
-      {foto && <img src={foto} alt="ticket" className="w-full rounded-xl object-contain max-h-28 border border-gray-100" />}
+      {foto && <img src={foto} alt="ticket" className="w-full rounded-xl object-contain max-h-28 border border-[var(--linea-2)]" />}
 
       {/* Tipo */}
-      <div className="flex rounded-xl overflow-hidden border border-gray-200">
+      <div className="flex rounded-xl overflow-hidden border border-[var(--linea)]">
         <button type="button" onClick={() => { set('tipo', 'gasto'); set('categoria', '') }}
-          className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${form.tipo === 'gasto' ? 'bg-red-500 text-white' : 'bg-white text-gray-400'}`}>
+          className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${form.tipo === 'gasto' ? 'bg-red-500 text-white' : 'bg-[var(--superficie)] text-[var(--tinta-4)]'}`}>
           💸 Gasto
         </button>
         <button type="button" onClick={() => { set('tipo', 'ingreso'); set('categoria', '') }}
-          className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${form.tipo === 'ingreso' ? 'bg-emerald-500 text-white' : 'bg-white text-gray-400'}`}>
+          className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${form.tipo === 'ingreso' ? 'bg-emerald-500 text-white' : 'bg-[var(--superficie)] text-[var(--tinta-4)]'}`}>
           💰 Ingreso
         </button>
       </div>
@@ -573,14 +573,14 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           onChange={e => set('importe', e.target.value)}
           onKeyDown={e => e.key === 'Enter' && categoriaRef.current?.focus()}
           placeholder="0,00"
-          className="w-full pl-4 pr-10 py-2 border-2 border-blue-300 rounded-xl text-2xl font-bold text-center focus:outline-none focus:border-blue-500"
+          className="w-full pl-4 pr-10 py-2 border-2 border-[var(--info-linea)] rounded-xl text-2xl font-bold text-center focus:outline-none focus:border-[var(--adri)]"
         />
-        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-300 font-bold">€</span>
+        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-[var(--tinta-5)] font-bold">€</span>
       </div>
 
       {/* Categoría */}
       <div>
-        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Categoría *</label>
+        <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Categoría *</label>
         <select ref={categoriaRef} value={form.categoria}
           onChange={e => {
             set('categoria', e.target.value)
@@ -594,7 +594,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
             setEnfocarSiguiente(tieneSubs ? 'subcategoria' : 'establecimiento')
           }}
           onKeyDown={e => e.key === 'Enter' && establecimientoRef.current?.focus()}
-          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white">
+          className="w-full px-3 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)] bg-[var(--superficie)]">
           <option value="">Selecciona categoría...</option>
           {principales.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
         </select>
@@ -602,11 +602,11 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
       {subcategorias.length > 0 && (
         <div>
-          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Subcategoría</label>
+          <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Subcategoría</label>
           <select ref={subcategoriaRef} value={form.subcategoria}
             onChange={e => { set('subcategoria', e.target.value); setEnfocarSiguiente('establecimiento') }}
             onKeyDown={e => e.key === 'Enter' && establecimientoRef.current?.focus()}
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white">
+            className="w-full px-3 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)] bg-[var(--superficie)]">
             <option value="">Sin subcategoría</option>
             {subcategorias.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
           </select>
@@ -615,27 +615,27 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
       {/* Fecha: en una sola línea, que casi nunca se toca (viene la de hoy) */}
       <div className="flex items-center gap-3">
-        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide shrink-0">Fecha *</label>
+        <label className="text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide shrink-0">Fecha *</label>
         <input ref={fechaRef} type="date" value={form.fecha} onChange={e => set('fecha', e.target.value)}
           onKeyDown={e => e.key === 'Enter' && establecimientoRef.current?.focus()}
-          className="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          className="flex-1 min-w-0 px-3 py-2 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
       </div>
 
       {/* Establecimiento */}
       <div className="relative">
-        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Establecimiento / Pagador (opcional)</label>
+        <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Establecimiento / Pagador (opcional)</label>
         <input ref={establecimientoRef} type="text" enterKeyHint="next" value={form.establecimiento} autoComplete="off"
           onChange={e => { set('establecimiento', e.target.value); filtrarSugerencias(e.target.value, historialEstablecimientos, setSugerenciasEstablecimiento) }}
           onBlur={() => setTimeout(() => setSugerenciasEstablecimiento([]), 150)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); notasRef.current?.focus() } }}
           placeholder="Mercadona, Empresa S.L., ..."
-          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          className="w-full px-3 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
         {sugerenciasEstablecimiento.length > 0 && (
-          <ul className="absolute z-10 left-0 right-0 bg-white border border-gray-200 rounded-xl mt-1 shadow-lg overflow-hidden">
+          <ul className="absolute z-10 left-0 right-0 bg-[var(--superficie)] border border-[var(--linea)] rounded-xl mt-1 shadow-lg overflow-hidden">
             {sugerenciasEstablecimiento.map(s => (
               <li key={s}>
                 <button type="button" onMouseDown={() => { set('establecimiento', s); setSugerenciasEstablecimiento([]) }}
-                  className="w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-blue-50 border-b border-gray-50 last:border-0">
+                  className="w-full text-left px-3 py-2.5 text-sm text-[var(--tinta-2)] hover:bg-[var(--info-fondo)] border-b border-[var(--linea-3)] last:border-0">
                   {s}
                 </button>
               </li>
@@ -649,19 +649,19 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           los campos que hay, y si este no está, la flecha de bajar se apaga y
           desde Establecimiento solo se puede subir a Fecha. */}
       <div className="relative">
-        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Notas (opcional)</label>
+        <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Notas (opcional)</label>
         <input ref={notasRef} type="text" enterKeyHint="next" value={form.descripcion} autoComplete="off"
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); medioPagoRef.current?.focus() } }}
           onChange={e => { set('descripcion', e.target.value); filtrarSugerencias(e.target.value, historialNotas, setSugerenciasNotas) }}
           onBlur={() => setTimeout(() => setSugerenciasNotas([]), 150)}
           placeholder="Descripción breve..."
-          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          className="w-full px-3 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
         {sugerenciasNotas.length > 0 && (
-          <ul className="absolute z-10 left-0 right-0 bg-white border border-gray-200 rounded-xl mt-1 shadow-lg overflow-hidden">
+          <ul className="absolute z-10 left-0 right-0 bg-[var(--superficie)] border border-[var(--linea)] rounded-xl mt-1 shadow-lg overflow-hidden">
             {sugerenciasNotas.map(s => (
               <li key={s}>
                 <button type="button" onMouseDown={() => { set('descripcion', s); setSugerenciasNotas([]) }}
-                  className="w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-blue-50 border-b border-gray-50 last:border-0">
+                  className="w-full text-left px-3 py-2.5 text-sm text-[var(--tinta-2)] hover:bg-[var(--info-fondo)] border-b border-[var(--linea-3)] last:border-0">
                   {s}
                 </button>
               </li>
@@ -672,12 +672,12 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
       {/* Medio de pago — scroll horizontal */}
       <div>
-        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Medio de pago</label>
+        <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1.5">Medio de pago</label>
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5 scrollbar-hide">
           {mediosPago.map((m, i) => (
             <button key={m.nombre} type="button" ref={i === 0 ? medioPagoRef : undefined}
               onClick={() => set('medio_pago', m.nombre)}
-              className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-colors ${form.medio_pago === m.nombre ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200'}`}>
+              className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-colors ${form.medio_pago === m.nombre ? 'bg-[var(--acento)] text-[var(--acento-tinta)] border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-3)] border-[var(--linea)]'}`}>
               <span>{m.emoji}</span>
               <span>{m.nombre}</span>
             </button>
@@ -696,40 +696,40 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           apunte se quedaría sin dueño. */}
       {movilConfigurado && form.quien ? null : (
         <div>
-          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">¿Quién lo registra? *</label>
+          <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">¿Quién lo registra? *</label>
           <div className="flex gap-2">
             {NOMBRES.map(nombre => (
               <button key={nombre} type="button"
                 onClick={() => { set('quien', nombre); guardarNombre(nombre) }}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.quien === nombre ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.quien === nombre ? 'bg-[var(--superficie)] text-white border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
                 {nombre}
               </button>
             ))}
           </div>
-          <p className="text-xs text-gray-400 mt-1.5">Queda guardado en tu cuenta. Se cambia en Ajustes.</p>
+          <p className="text-xs text-[var(--tinta-4)] mt-1.5">Queda guardado en tu cuenta. Se cambia en Ajustes.</p>
         </div>
       )}
 
       {/* Evento */}
       {(eventoActivo || form.evento_id) && (
-        <div className={`flex items-center justify-between px-3 py-2.5 rounded-xl border ${form.evento_id ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-200'}`}>
+        <div className={`flex items-center justify-between px-3 py-2.5 rounded-xl border ${form.evento_id ? 'bg-[var(--aviso-fondo)] border-[var(--aviso-linea)]' : 'bg-[var(--superficie-2)] border-[var(--linea)]'}`}>
           <div className="flex items-center gap-2">
             <span className="text-sm">🎯</span>
             <div>
-              <p className="text-xs font-semibold text-amber-800">
+              <p className="text-xs font-semibold text-[var(--aviso)]">
                 {form.evento_id ? (eventoActivo?.nombre || 'Evento') : 'Sin evento'}
               </p>
-              <p className="text-xs text-gray-400">{form.evento_id ? 'Apunte asignado a este evento' : ''}</p>
+              <p className="text-xs text-[var(--tinta-4)]">{form.evento_id ? 'Apunte asignado a este evento' : ''}</p>
             </div>
           </div>
           {form.evento_id ? (
             <button type="button" onClick={() => set('evento_id', null)}
-              className="text-amber-500 text-xs font-bold px-2 py-0.5 rounded-lg hover:bg-amber-100">
+              className="text-[var(--aviso)] text-xs font-bold px-2 py-0.5 rounded-lg hover:bg-[var(--acento-flojo)]">
               ✕
             </button>
           ) : eventoActivo ? (
             <button type="button" onClick={() => set('evento_id', eventoActivo.id)}
-              className="text-xs text-amber-700 font-semibold px-2 py-1 bg-amber-100 rounded-lg">
+              className="text-xs text-[var(--aviso)] font-semibold px-2 py-1 bg-[var(--acento-flojo)] rounded-lg">
               + Asignar
             </button>
           ) : null}
@@ -744,24 +744,24 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       {form.tipo !== 'ingreso' && (
         <>
         <div>
-          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">¿De quién es este gasto? *</label>
+          <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1.5">¿De quién es este gasto? *</label>
 
           {/* "De los dos" al doble de alto: es lo normal y así se pulsa sin
               pensar. Las dos excepciones, debajo y más pequeñas. No hay
               ninguna línea explicando que hay que elegir: si se te olvida, te
               lo dice al guardar, que es cuando importa. */}
           <button type="button" onClick={() => set('deQuien', 'dos')}
-            className={`w-full py-5 rounded-2xl text-base font-bold border-2 transition-colors ${form.deQuien === 'dos' ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-400 border-gray-200'}`}>
+            className={`w-full py-5 rounded-2xl text-base font-bold border-2 transition-colors ${form.deQuien === 'dos' ? 'bg-[var(--dinero)] text-[var(--dinero-tinta)] border-[var(--dinero)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
             De los dos
           </button>
 
           <div className="flex gap-2 mt-2">
             <button type="button" onClick={() => set('deQuien', 'mio')}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.deQuien === 'mio' ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.deQuien === 'mio' ? 'bg-[var(--superficie)] text-white border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
               Solo mío
             </button>
             <button type="button" onClick={() => set('deQuien', 'otro')} disabled={!elOtro}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors disabled:opacity-40 ${form.deQuien === 'otro' ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors disabled:opacity-40 ${form.deQuien === 'otro' ? 'bg-[var(--superficie)] text-white border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
               Gasto de {elOtro || '…'}
             </button>
           </div>
@@ -771,11 +771,11 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
               de guardar, de qué va a hacer con el dinero: si aquí pone algo
               que no es, es peor que no poner nada. */}
           {form.deQuien === 'mio' && esPrivado && (
-            <p className="text-xs text-gray-400 mt-1.5">Este gasto solo lo verás tú, y no entra en la cuenta de los dos.</p>
+            <p className="text-xs text-[var(--tinta-4)] mt-1.5">Este gasto solo lo verás tú, y no entra en la cuenta de los dos.</p>
           )}
 
           {form.deQuien === 'mio' && !esPrivado && (
-            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-2.5 mt-1.5 leading-snug">
+            <p className="text-xs text-[var(--aviso)] bg-[var(--aviso-fondo)] border border-[var(--aviso-linea)] rounded-xl p-2.5 mt-1.5 leading-snug">
               {quienPaga
                 ? <>Lo pagas con «{form.medio_pago}», que es de {quienPaga}. El gasto sigue siendo <b>tuyo entero</b>, <b>{quienPaga} verá este apunte</b> porque ha puesto el dinero, y quedará que <b>se lo debes</b>. Si te has equivocado de tarjeta, cámbiala.</>
                 : <>Lo pagas con «{form.medio_pago}», que es una cuenta común. El gasto sigue siendo <b>tuyo entero</b>, lo veréis los dos, y quedará que <b>lo debes</b>.</>}
@@ -783,7 +783,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
           )}
 
           {form.deQuien === 'otro' && (
-            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-2.5 mt-1.5 leading-snug">
+            <p className="text-xs text-[var(--aviso)] bg-[var(--aviso-fondo)] border border-[var(--aviso-linea)] rounded-xl p-2.5 mt-1.5 leading-snug">
               {esPrivado
                 ? <>Es un gasto de {elOtro} y lo paga {elOtro}: <b>no genera deuda</b>. Lo guardas a su nombre, así que <b>tú dejarás de verlo</b> — lo verá solo {elOtro}.</>
                 : quienPaga
@@ -795,12 +795,12 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         </>
       )}
 
-      {error && <p className="text-red-500 text-sm bg-red-50 rounded-xl p-3">{error}</p>}
+      {error && <p className="text-[var(--gasto)] text-sm bg-[#3A2230] rounded-xl p-3">{error}</p>}
 
       {/* Guardar — Cancelar ya está arriba, junto a la foto */}
       <div className="pt-1">
         <button type="button" onClick={guardar} disabled={guardando}
-          className="w-full py-4 bg-[#0d1b2a] text-white rounded-xl text-base font-bold disabled:opacity-50 shadow-sm">
+          className="w-full py-4 bg-[var(--superficie)] text-white rounded-xl text-base font-bold disabled:opacity-50 shadow-sm">
           {guardando ? 'Guardando...' : '✓ Guardar apunte'}
         </button>
       </div>
@@ -809,13 +809,13 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       {esEdicion && (
         !confirmando ? (
           <button type="button" onClick={() => setConfirmando(true)}
-            className="w-full py-2.5 bg-red-50 border border-red-200 text-red-500 rounded-xl text-sm font-semibold">
+            className="w-full py-2.5 bg-[#3A2230] border border-[#5A2C3C] text-[var(--gasto)] rounded-xl text-sm font-semibold">
             🗑️ Eliminar apunte
           </button>
         ) : (
           <div className="flex gap-3">
             <button type="button" onClick={() => setConfirmando(false)}
-              className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 font-medium">No, cancelar</button>
+              className="flex-1 py-2.5 border border-[var(--linea)] rounded-xl text-sm text-[var(--tinta-3)] font-medium">No, cancelar</button>
             <button type="button" onClick={() => onEliminar?.(transaccionEditar)}
               className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold">Sí, eliminar</button>
           </div>
@@ -902,8 +902,8 @@ function filtrarSugerencias(valor, historial, setSugerencias) {
 function ResumenFila({ label, valor }) {
   return (
     <div className="flex justify-between items-center px-4 py-3 gap-4">
-      <span className="text-sm text-gray-400">{label}</span>
-      <span className="text-sm font-semibold text-gray-800 text-right">{valor}</span>
+      <span className="text-sm text-[var(--tinta-4)]">{label}</span>
+      <span className="text-sm font-semibold text-[var(--tinta)] text-right">{valor}</span>
     </div>
   )
 }
