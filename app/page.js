@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import FormTransaccion from '@/components/FormTransaccion'
+import FormTransaccion, { MODELO_CADUCADO_MARCA } from '@/components/FormTransaccion'
 import ListaTransacciones from '@/components/ListaTransacciones'
 import Informes from '@/components/Informes'
 import Ajustes from '@/components/Ajustes'
@@ -83,6 +83,16 @@ export default function Home() {
   // se pierde y no se recupera.
   const [mesesSinCopia, setMesesSinCopia] = useState(0)
   const [avisoAlmacenamiento, setAvisoAlmacenamiento] = useState(false)
+  // El escáner de tickets funciona, pero con el modelo de reserva porque el
+  // principal ya no existe. Es el aviso temprano: Google no retira los dos el
+  // mismo día, así que esto da meses de margen para actualizarlos antes de
+  // quedarse sin ninguno.
+  const [avisoEscaner, setAvisoEscaner] = useState(false)
+  useEffect(() => {
+    try {
+      setAvisoEscaner(localStorage.getItem('geminiPrincipalCaducado') === MODELO_CADUCADO_MARCA)
+    } catch {}
+  }, [])
   const [eventoActivo, setEventoActivo] = useState(null)
   const [eventoDetalle, setEventoDetalle] = useState(null)
   const [busqueda, setBusqueda] = useState('')
@@ -361,10 +371,15 @@ export default function Home() {
     setTimeout(() => setToast(null), 2500)
   }
 
-  function onGuardado() {
+  function onGuardado({ fotoFallida } = {}) {
     setVista('lista')
     cargarTransacciones()
-    mostrarToast('✅ Apunte guardado')
+    // Si la foto no subió, el gasto SÍ se ha guardado: eso es lo importante y
+    // se dice primero. Pero no se calla lo otro, que antes pasaba: creías que
+    // tenías el ticket guardado y no lo tenías.
+    mostrarToast(fotoFallida
+      ? '⚠️ Apunte guardado, pero la foto no se ha podido subir'
+      : '✅ Apunte guardado')
   }
 
   // El reparto puesto en Ajustes, para saber qué parte de cada gasto común
@@ -515,6 +530,20 @@ export default function Home() {
         </div>
       )}
 
+      {avisoEscaner && (
+        <div className="mx-4 mt-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-start gap-3">
+          <span className="text-lg mt-0.5">📸</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-800">El escáner va con el modelo de reserva</p>
+            <p className="text-xs text-amber-600 mt-0.5">
+              El principal ha dejado de responder. Los tickets se siguen leyendo, pero conviene
+              actualizarlo antes de que la reserva también se retire. Avisad a Toni.
+            </p>
+          </div>
+          <button onClick={() => setAvisoEscaner(false)} className="text-amber-400 text-sm font-bold shrink-0">✕</button>
+        </div>
+      )}
+
       {/* Contenido */}
       <main className="flex-1 px-4 pt-4 overflow-y-auto">
         {vista === 'lista' && !mostrarFormulario && (
@@ -619,10 +648,10 @@ export default function Home() {
               usuario={usuario}
               transaccionEditar={transaccionEditar}
               eventoActivo={eventoActivo}
-              onGuardado={() => {
+              onGuardado={info => {
                 setTransaccionEditar(null)
                 setTransaccionDetalle(null)
-                onGuardado()
+                onGuardado(info)
               }}
               onCancelar={() => {
                 setTransaccionEditar(null)

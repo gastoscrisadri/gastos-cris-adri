@@ -10,6 +10,12 @@ import { comunYCargo } from '@/lib/dequien'
 import { cargarPersonas, idDe } from '@/lib/personas'
 
 
+// Marca que se guarda en el móvil cuando el modelo principal del escáner deja
+// de existir. Lleva la fecha dentro a propósito: si algún día se actualizan
+// los modelos, esta marca deja de coincidir y el aviso se apaga solo, sin que
+// nadie tenga que acordarse de borrarlo a mano.
+export const MODELO_CADUCADO_MARCA = 'gemini-3.1-flash-lite'
+
 const FORM_VACIO = {
   importe: '',
   tipo: 'gasto',
@@ -283,6 +289,15 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         }
         setForm(f => ({ ...f, ...nuevo }))
 
+        // El ticket se ha leído bien, pero si el modelo principal ya no
+        // existe conviene dejar constancia: la app tira de la reserva y sigue
+        // funcionando, así que sin esto nadie se enteraría hasta que también
+        // muriera la reserva, meses después y de golpe. Se guarda en el móvil
+        // y la portada lo enseña.
+        if (data.principalCaducado) {
+          try { localStorage.setItem('geminiPrincipalCaducado', MODELO_CADUCADO_MARCA) } catch {}
+        }
+
         const faltantes = []
         if (!nuevo.importe) faltantes.push('importe')
         if (!nuevo.fecha) faltantes.push('fecha')
@@ -340,6 +355,10 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
     setError('')
 
     let imagen_url = transaccionEditar?.imagen_url || null
+    // El gasto se guarda igual aunque su foto no suba, pero hay que decirlo.
+    // Se lleva en una variable y no en un estado porque esta pantalla se
+    // cierra al guardar: el aviso tiene que salir FUERA, en la portada.
+    let fotoFallida = false
     if (fotoFile) {
       // Se sube encogida: ocupa ~8 veces menos y sube mucho más rápido con
       // mala cobertura. Si la compresión falla, devuelve la original.
@@ -351,6 +370,16 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       if (!errUpload) {
         const { data: urlData } = supabase.storage.from('documentos').getPublicUrl(nombre)
         imagen_url = urlData?.publicUrl || null
+      } else {
+        // Antes esto se tragaba en silencio: el gasto se guardaba sin foto y
+        // nadie se enteraba. Creías que tenías el ticket guardado y no lo
+        // tenías, y solo lo descubrías el día que ibas a buscarlo.
+        //
+        // El gasto se guarda igual, que es lo importante —perder el apunte
+        // por no poder subir una foto sería mucho peor—, pero se avisa.
+        // Puede fallar por quedarse sin cobertura a mitad, o porque el
+        // almacén se haya llenado.
+        fotoFallida = true
       }
     }
 
@@ -405,7 +434,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       setError('Error al guardar. Inténtalo de nuevo.')
       setGuardando(false)
     } else {
-      onGuardado()
+      onGuardado({ fotoFallida })
     }
   }
 
@@ -802,9 +831,19 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 // Encoge la foto en el propio móvil antes de subirla a Supabase.
 // 1600 px: el iPhone hace fotos de 4032 px de ancho pero su pantalla muestra
 // 1170 como mucho, así que la letra pequeña del ticket se lee igual y se pasa
-// de ~2,4 MB a ~300 KB.
-const LADO_MAX = 1600
-const CALIDAD_JPEG = 0.82
+// de ~2,4 MB a ~190 KB.
+//
+// Los números están bajados a propósito (antes 1600 y 0,82, que daban unos
+// 494 KB de media medidos sobre las fotos reales). El motivo es de capacidad:
+// el plan gratuito da 1 GB, así que a 494 KB caben unas 2.100 fotos y a 190 KB
+// caben unas 5.600. Eso saca el problema de llenarse fuera de los próximos
+// cinco años.
+//
+// No perjudica al escáner: a Gemini se le manda la foto ORIGINAL, sin tocar.
+// Esto solo afecta a cómo se ve después, y 1200 píxeles siguen siendo el
+// triple de lo que una pantalla de móvil puede enseñar.
+const LADO_MAX = 1200
+const CALIDAD_JPEG = 0.70
 
 async function comprimirImagen(file) {
   try {
