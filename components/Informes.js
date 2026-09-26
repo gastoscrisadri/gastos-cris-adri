@@ -598,12 +598,12 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
           que va de meses. Al quedarse sola, la cifra del mes puede ocupar
           todo el ancho, que es lo que merece siendo el número principal de
           esta pantalla. */}
-      <div className="w-full bg-[var(--superficie)] rounded-2xl px-4 py-3.5">
+      <div className="w-full bg-[var(--superficie)] rounded-2xl px-4 py-3 text-center">
         <p className="text-[10px] font-bold text-[var(--tinta-4)] uppercase tracking-widest">Gasto conjunto del mes</p>
-        <p className="text-3xl font-black text-[var(--gasto)] mt-1 tracking-tight">
+        <p className="text-2xl font-black text-[var(--gasto)] mt-1 tracking-tight">
           {ocultar(mostrarCifras, `${euros(gastoConjuntoMes)} €`)}
         </p>
-        <p className="text-[11px] text-[var(--tinta-5)] mt-1">Lo de los dos, sin los gastos particulares</p>
+        <p className="text-[11px] text-[var(--tinta-5)] mt-0.5">Lo de los dos, sin los gastos particulares</p>
       </div>
 
       </>)}
