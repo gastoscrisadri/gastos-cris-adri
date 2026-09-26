@@ -37,8 +37,28 @@ export default function GestionRecurrentes({ mostrarCifras }) {
   }
 
   async function toggleActivo(r) {
-    await supabase.from('apuntes_recurrentes').update({ activo: !r.activo }).eq('id', r.id)
-    setRecurrentes(rs => rs.map(x => x.id === r.id ? { ...x, activo: !r.activo } : x))
+    const activando = !r.activo
+
+    // Al REACTIVAR hay que ponerlo al día antes de encenderlo.
+    //
+    // La app rellena los meses que falten desde el último generado, y eso es
+    // lo que se quiere cuando nadie ha abierto la app en un tiempo. Pero si
+    // este gasto llevaba medio año pausado A PROPÓSITO, su último mes
+    // generado es de hace medio año, y al reactivarlo se crearían de golpe
+    // los seis meses que estuvo apagado. Nadie quiere eso.
+    //
+    // Poniéndole el mes pasado, al reactivarlo genera solo el mes en curso,
+    // que es justo lo que espera quien pulsa "Activar".
+    const datos = { activo: activando }
+    if (activando) {
+      const d = new Date()
+      d.setDate(1)                  // primero el día, o al restar un mes se va al que no es
+      d.setMonth(d.getMonth() - 1)
+      datos.ultimo_generado = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    }
+
+    await supabase.from('apuntes_recurrentes').update(datos).eq('id', r.id)
+    setRecurrentes(rs => rs.map(x => x.id === r.id ? { ...x, ...datos } : x))
   }
 
   async function eliminar(r) {
