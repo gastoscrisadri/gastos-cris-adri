@@ -22,7 +22,7 @@ mkdirSync(join(tmp, 'supabase'), { recursive: true })
 writeFileSync(join(tmp, 'supabase', 'client.mjs'),
   'export const createClient = () => ({ auth: { updateUser: async () => ({ error: null }) } })\n')
 
-for (const nombre of ['identidad', 'cuentas', 'apuntes', 'reparto', 'deuda', 'dequien']) {
+for (const nombre of ['identidad', 'cuentas', 'apuntes', 'reparto', 'deuda', 'dequien', 'fechas']) {
   const texto = readFileSync(join(raiz, 'lib', nombre + '.js'), 'utf8')
     .replace(/@\/lib\/supabase\/client/g, './supabase/client.mjs')
     .replace(/@\/lib\/([a-z]+)/g, './$1.mjs')
@@ -34,6 +34,7 @@ const { calcularDeuda, gastosComunesDesde, desdeElCierre } = await import(join(t
 const { esDeLaCasa, esLiquidacion, sinAjustes, soloComunes, soloMios, gastoDeLaCasaDelMes } =
   await import(join(tmp, 'apuntes.mjs'))
 const { comunYCargo } = await import(join(tmp, 'dequien.mjs'))
+const { mesesQueFaltan } = await import(join(tmp, 'fechas.mjs'))
 
 // ---------------------------------------------------------------- utilidades
 
@@ -185,6 +186,29 @@ comprobar('mío con medio sin asignar: no es privado', resumen('mio', 'Sin asign
 comprobar('un ingreso es siempre de quien lo cobra',
   JSON.stringify(comunYCargo('dos', 'Cris', 'Común', 'ingreso')),
   JSON.stringify({ comun: false, a_cargo_de: null, duenoDelGasto: 'Cris' }))
+
+seccion('LOS GASTOS FIJOS QUE SE SALTAN UN MES')
+//
+// De esto salen los alquileres. Antes solo se generaba el mes en curso: si
+// nadie abria la app durante un mes, ese alquiler no se creaba NUNCA y la
+// cuenta quedaba descuadrada por 1.400 € sin avisar.
+const meses = (ultimo, actual, tope) => mesesQueFaltan(ultimo, actual, tope).join(',')
+
+comprobar('al dia: solo el mes actual', meses('2026-09', '2026-09'), '2026-09')
+comprobar('un mes de retraso', meses('2026-08', '2026-09'), '2026-09')
+comprobar('tres meses fuera: se recuperan todos', meses('2026-06', '2026-09'), '2026-07,2026-08,2026-09')
+comprobar('el cambio de año no se pierde', meses('2026-11', '2027-02'), '2026-12,2027-01,2027-02')
+
+// Un gasto fijo recien creado no tiene ultimo mes: si se rellenara hacia
+// atras crearia apuntes desde el principio de los tiempos.
+comprobar('recien creado: solo el mes actual', meses(null, '2026-09'), '2026-09')
+
+// Red de seguridad: una fecha vieja no puede inundar la cuenta.
+comprobar('el tope corta el relleno', mesesQueFaltan('2020-01', '2026-09').length, 12)
+comprobar('y el tope se puede ajustar', meses('2026-01', '2026-09', 3), '2026-02,2026-03,2026-04')
+
+// Nunca debe devolver vacio: eso seria dejar de generar el gasto fijo.
+comprobar('nunca se queda sin generar nada', mesesQueFaltan('2027-05', '2026-09').length >= 1, true)
 
 seccion('LAS COPIAS DE SEGURIDAD')
 const todos = [alquiler, compra, cena, ropaCris, zapas, nomina, pago]

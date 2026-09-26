@@ -14,7 +14,7 @@ import { cargarCategorias } from '@/lib/categorias'
 import { construirReparto } from '@/lib/reparto'
 import { nombreDe } from '@/lib/identidad'
 import { apuntarme } from '@/lib/personas'
-import { hoy, mesDeHoy, mesesEntre } from '@/lib/fechas'
+import { hoy, mesDeHoy, mesesEntre, mesesQueFaltan } from '@/lib/fechas'
 import { esDeLaCasa, esLiquidacion, gastoDeLaCasaDelMes } from '@/lib/apuntes'
 import { cargarCuentas, personaDeMedioPago, CUENTAS_RESPALDO } from '@/lib/cuentas'
 import { calcularDeuda } from '@/lib/deuda'
@@ -337,26 +337,49 @@ export default function Home() {
       }
       if (!pendientes.length) return
 
-      const [anio, mes] = mesActual.split('-')
-      const inserts = pendientes.map(r => {
-        const diasEnMes = new Date(parseInt(anio), parseInt(mes), 0).getDate()
-        const dia = Math.min(r.dia_mes || 1, diasEnMes)
-        return {
-          fecha: `${mesActual}-${String(dia).padStart(2, '0')}`,
-          importe: r.importe,
-          tipo: r.tipo,
-          categoria: r.categoria,
-          subcategoria: r.subcategoria || null,
-          establecimiento: r.establecimiento || null,
-          descripcion: r.descripcion || null,
-          medio_pago: r.medio_pago || null,
-          quien: 'Auto',
+      // SE RELLENAN TODOS LOS MESES QUE FALTEN, no solo el actual.
+      //
+      // Antes se creaba únicamente el apunte del mes en curso. Si nadie abría
+      // la app durante un mes entero --un viaje largo, un móvil roto-- el
+      // alquiler de ese mes no se creaba NUNCA: al volver se saltaba y la
+      // cuenta de los dos quedaba descuadrada por 1.400 € sin que nada lo
+      // avisara. Era el fallo más silencioso que tenía la app.
+      //
+      // Dos cuidados, sin los cuales el remedio sería peor que la enfermedad:
+      //
+      //  · Un gasto fijo recién creado no tiene "último mes generado". Ahí no
+      //    se rellena hacia atrás o crearía apuntes desde el principio de los
+      //    tiempos: se queda solo con el mes actual, como hasta ahora.
+      //  · TOPE_MESES pone un límite por si alguna fila trae una fecha vieja.
+      //    Mejor quedarse corto que inundar la cuenta de apuntes inventados.
+      const inserts = []
+      for (const r of pendientes) {
+        // El cálculo vive en lib/fechas.js para poder probarlo solo.
+        for (const m of mesesQueFaltan(r.ultimo_generado, mesActual)) {
+          const [anio, mes] = m.split('-')
+          // El día se recorta mes a mes: un fijo del día 31 cae en el 28 o el
+          // 29 en febrero, según el año.
+          const diasEnMes = new Date(parseInt(anio), parseInt(mes), 0).getDate()
+          const dia = Math.min(r.dia_mes || 1, diasEnMes)
+          inserts.push({
+            fecha: `${m}-${String(dia).padStart(2, '0')}`,
+            importe: r.importe,
+            tipo: r.tipo,
+            categoria: r.categoria,
+            subcategoria: r.subcategoria || null,
+            establecimiento: r.establecimiento || null,
+            descripcion: r.descripcion || null,
+            medio_pago: r.medio_pago || null,
+            quien: 'Auto',
+          })
         }
-      })
+      }
 
       await supabase.from('transacciones').insert(inserts)
       await cargarTransacciones()
-      mostrarToast(`🔄 ${pendientes.length} apunte${pendientes.length > 1 ? 's' : ''} fijo${pendientes.length > 1 ? 's' : ''} generado${pendientes.length > 1 ? 's' : ''}`)
+      // Se dice cuántos, porque al volver de un viaje pueden salir varios de
+      // golpe y la deuda dar un salto: si no se avisa, parece un error.
+      mostrarToast(`🔄 ${inserts.length} apunte${inserts.length > 1 ? 's' : ''} fijo${inserts.length > 1 ? 's' : ''} generado${inserts.length > 1 ? 's' : ''}`)
     }
     generarRecurrentes()
   }, [])
