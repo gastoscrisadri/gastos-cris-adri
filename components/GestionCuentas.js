@@ -217,7 +217,7 @@ export default function GestionCuentas({ transacciones, mostrarCifras, usuario }
       </div>
 
       {error && (
-        <p className="text-xs text-[var(--gasto)] bg-[#3A2230] border border-[#5A2C3C] rounded-xl px-3 py-2">{error}</p>
+        <p className="text-xs text-[var(--gasto)] bg-[#6B3E4C] border border-[#7A4657] rounded-xl px-3 py-2">{error}</p>
       )}
 
       {/* Añadir cuenta */}

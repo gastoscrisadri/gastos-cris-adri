@@ -33,7 +33,7 @@ function EditorReparto({ item, esSub, onGuardar, onQuitar }) {
         <input type="text" inputMode="decimal" value={texto}
           onChange={e => setTexto(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); guardar() } }}
-          className={`w-20 px-2 py-1 border rounded-lg text-sm text-center ${valido ? 'border-[var(--linea)]' : 'border-[#5A2C3C] bg-[#3A2230]'}`} />
+          className={`w-20 px-2 py-1 border rounded-lg text-sm text-center ${valido ? 'border-[var(--linea)]' : 'border-[#7A4657] bg-[#6B3E4C]'}`} />
         <span className="text-xs text-[var(--tinta-3)]">%</span>
         <button type="button" onClick={guardar} disabled={!valido || !cambiado}
           className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[var(--dinero)] text-[var(--dinero-tinta)] disabled:bg-[var(--superficie-4)] disabled:text-[var(--tinta-4)]">
@@ -187,7 +187,7 @@ export default function GestionCategorias() {
         </button>
       </div>
 
-      {error && <p className="text-[var(--gasto)] text-sm bg-[#3A2230] rounded-xl p-3">{error}</p>}
+      {error && <p className="text-[var(--gasto)] text-sm bg-[#6B3E4C] rounded-xl p-3">{error}</p>}
 
       {/* Lista de categorías */}
       <div className="space-y-2">

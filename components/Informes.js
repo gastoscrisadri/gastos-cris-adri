@@ -594,12 +594,15 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
 
       {/* Lo único que hay que mirar de un vistazo */}
       <div className="flex gap-2">
-        <div className="flex-1 bg-[#3A2230] rounded-2xl px-4 py-3">
-          <p className="text-[10px] font-bold text-[var(--gasto)] uppercase tracking-widest">Gasto conjunto del mes</p>
+        {/* Sobre fondo oscuro, una tarjeta roja con letra roja y un pie rojo
+            se convierte en una mancha. El rojo se reserva para LA CIFRA, que
+            es lo que significa gasto; el resto va en tinta normal. */}
+        <div className="flex-1 bg-[var(--superficie)] rounded-2xl px-4 py-3">
+          <p className="text-[10px] font-bold text-[var(--tinta-4)] uppercase tracking-widest">Gasto conjunto del mes</p>
           <p className="text-xl font-bold text-[var(--gasto)] mt-0.5">
             {ocultar(mostrarCifras, `${euros(gastoConjuntoMes)} €`)}
           </p>
-          <p className="text-[10px] text-[#E08A9E] mt-0.5">Lo de los dos, sin los gastos particulares</p>
+          <p className="text-[10px] text-[var(--tinta-5)] mt-0.5">Lo de los dos, sin los gastos particulares</p>
         </div>
         {/* Pulsando esta tarjeta se va a Balance. Si hay deuda, además abre
             directamente el formulario de "ya le he pagado": es lo que se
@@ -678,6 +681,9 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                 <Tooltip
                   formatter={(val) => [ocultar(mostrarCifras, `${euros(val)} €`), '']}
                   labelFormatter={(_, payload) => payload?.[0]?.payload?.nombre || ''}
+                  contentStyle={{ borderRadius: 12, border: '1px solid var(--linea)', background: 'var(--superficie-3)', color: 'var(--tinta)', fontSize: 12 }}
+                  itemStyle={{ color: 'var(--tinta)' }}
+                  labelStyle={{ color: 'var(--tinta-4)' }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -1195,7 +1201,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
             actual={datosHist.totalGastos}
             anterior={datosMesAnterior.gastos}
             colorActual="text-[var(--gasto)]"
-            colorBg="bg-[#3A2230]"
+            colorBg="bg-[#6B3E4C]"
             mostrarCifras={mostrarCifras}
           />
           <TarjetaComparativa
@@ -1221,7 +1227,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
               actual={resumenAnual.totalGastosActual}
               anterior={resumenAnual.totalGastosAnterior}
               colorActual="text-[var(--gasto)]"
-              colorBg="bg-[#3A2230]"
+              colorBg="bg-[#6B3E4C]"
               etiquetaAnterior={anioAnterior}
               mostrarCifras={mostrarCifras}
             />
@@ -1247,7 +1253,9 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                   tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
                 <Tooltip
                   formatter={(val, name) => [ocultar(mostrarCifras, `${euros(val)} €`), name === 'gastos' ? anioActual : anioAnterior]}
-                  contentStyle={{ borderRadius: 12, border: '1px solid #2F3555', fontSize: 12 }}
+                  contentStyle={{ borderRadius: 12, border: '1px solid var(--linea)', background: 'var(--superficie-3)', color: 'var(--tinta)', fontSize: 12 }}
+                  itemStyle={{ color: 'var(--tinta)' }}
+                  labelStyle={{ color: 'var(--tinta-4)' }}
                 />
                 <Bar dataKey="gastosAnt" fill="#8A4A4A" radius={[3, 3, 0, 0]} name="gastosAnt" />
                 <Bar dataKey="gastos" fill="#FF6B6B" radius={[3, 3, 0, 0]} name="gastos" />
@@ -1258,7 +1266,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                 <span className="w-3 h-2 rounded bg-red-500 inline-block" /> {anioActual}
               </span>
               <span className="flex items-center gap-1 text-xs text-[var(--tinta-4)]">
-                <span className="w-3 h-2 rounded bg-[#45222F] inline-block" /> {anioAnterior}
+                <span className="w-3 h-2 rounded bg-[#7A4657] inline-block" /> {anioAnterior}
               </span>
             </div>
           </div>

@@ -326,7 +326,7 @@ function FormRecurrente({ inicial, onGuardado, onCancelar }) {
         </div>
       </div>
 
-      {error && <p className="text-[var(--gasto)] text-sm bg-[#3A2230] rounded-xl p-3">{error}</p>}
+      {error && <p className="text-[var(--gasto)] text-sm bg-[#6B3E4C] rounded-xl p-3">{error}</p>}
 
       <div className="flex gap-3 pt-1">
         <button type="button" onClick={onCancelar}
@@ -342,7 +342,7 @@ function FormRecurrente({ inicial, onGuardado, onCancelar }) {
       {esEdicion && (
         !confirmando ? (
           <button type="button" onClick={() => setConfirmando(true)}
-            className="w-full py-2.5 bg-[#3A2230] border border-[#5A2C3C] text-[var(--gasto)] rounded-xl text-sm font-semibold">
+            className="w-full py-2.5 bg-[#6B3E4C] border border-[#7A4657] text-[var(--gasto)] rounded-xl text-sm font-semibold">
             🗑️ Eliminar recurrente
           </button>
         ) : (

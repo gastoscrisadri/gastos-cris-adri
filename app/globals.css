@@ -49,7 +49,7 @@
   /* --- El acento: lo que hay que pulsar --- */
   --acento:       #FFC24B;
   --acento-tinta: #221A05;   /* el texto que va ENCIMA del acento */
-  --acento-flojo: #45330F;   /* el acento como fondo discreto */
+  --acento-flojo: #5E4614;   /* el acento como fondo discreto */
 
   /* --- Dinero: se separa del acento a propósito --- */
   --dinero:       #2FBF8F;   /* saldar, cerrar cuenta, "de los dos" */
@@ -59,14 +59,19 @@
   --gasto:        #FF6B6B;
   --ingreso:      #34D399;
   --aviso:        #F0C36B;
-  --aviso-fondo:  #3A2F16;
+  --aviso-fondo:  #594822;
   --aviso-linea:  #4A3A18;
   --personal:     #C4B0F5;
-  --personal-fondo:#2E2A52;
+  --personal-fondo:#484281;
   --comun:        #7FE3C4;
-  --comun-fondo:  #17362E;
+  --comun-fondo:  #235346;
+  /* Los fondos de recuadro están SUBIDOS a propósito. Los primeros valores
+     daban 1,05-1,42 de separación contra la tarjeta que tienen detrás, y por
+     debajo de 1,25 el ojo lee las dos superficies como una sola: los avisos
+     y las etiquetas se veían como manchas, no como recuadros. Ahora están
+     todos en 1,7, y el texto de cada uno sigue por encima de 4,5. */
   --info:         #8FD3F5;
-  --info-fondo:   #1D2B48;
+  --info-fondo:   #314979;
   --info-linea:   #2B3F63;
   --cris:         #FF8FC0;
   --adri:         #5AB8F5;
@@ -83,8 +88,28 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+/* LAS CASILLAS DE ESCRIBIR.
+   Esto no es un adorno: sin ello la app no se puede usar.
+   Safari pinta los <input> y <select> de BLANCO por su cuenta si nadie le
+   dice otra cosa. Con el diseño claro no se notaba —el fondo ya era blanco—,
+   pero al oscurecer la app quedaron casillas blancas con la letra clara
+   encima: invisible. Pasaba en todos los campos, incluida la fecha, que sí
+   venía rellena pero no se leía.
+   Se arregla aquí, en un sitio, y no casilla por casilla. */
+input, select, textarea {
+  background-color: var(--superficie-2);
+  color: var(--tinta);
+}
+input::placeholder, textarea::placeholder {
+  color: var(--tinta-4);
+}
+/* El calendario y la hora de iOS pintan su texto aparte */
+input[type="date"], input[type="month"] {
+  color-scheme: dark;
+}
 input[type="date"]::-webkit-calendar-picker-indicator {
-  opacity: 0.5;
+  opacity: 0.6;
+  filter: invert(1);
 }
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }

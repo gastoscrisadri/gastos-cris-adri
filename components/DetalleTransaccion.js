@@ -109,7 +109,7 @@ export default function DetalleTransaccion({ transaccion: t, onCerrar, onElimina
               Editar
             </button>
             <button onClick={() => setConfirmando(true)}
-              className="px-3 py-2 bg-[#3A2230] text-[var(--gasto)] text-sm font-semibold rounded-xl">
+              className="px-3 py-2 bg-[#6B3E4C] text-[var(--gasto)] text-sm font-semibold rounded-xl">
               Eliminar
             </button>
           </>

@@ -275,7 +275,7 @@ function FormEvento({ inicial, onGuardado, onCancelar }) {
         </div>
       </div>
 
-      {error && <p className="text-[var(--gasto)] text-sm bg-[#3A2230] rounded-xl p-3">{error}</p>}
+      {error && <p className="text-[var(--gasto)] text-sm bg-[#6B3E4C] rounded-xl p-3">{error}</p>}
 
       <div className="flex gap-3 pt-1">
         <button type="button" onClick={onCancelar}
