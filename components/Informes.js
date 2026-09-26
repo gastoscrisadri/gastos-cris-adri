@@ -16,7 +16,7 @@ import { calcularDeuda, gastosComunesDesde } from '@/lib/deuda'
 import { esLiquidacion, sinAjustes, esDeLaCasa, soloComunes, soloMios, soloConjunto } from '@/lib/apuntes'
 
 const COLORES = [
-  '#ef4444','#f97316','#eab308','#84cc16','#22c55e',
+  '#FF6B6B','#f97316','#eab308','#84cc16','#22c55e',
   '#14b8a6','#3b82f6','#8b5cf6','#ec4899','#f43f5e',
   '#0ea5e9','#a855f7','#10b981','#f59e0b','#6366f1',
   '#d946ef','#64748b',
@@ -50,20 +50,20 @@ function FilaApunte({ t, mostrarCifras, extra, yo }) {
   const [, mesN, dia] = t.fecha.split('-')
   const fechaCorta = `${parseInt(dia)}/${parseInt(mesN)}`
   return (
-    <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50/50">
-      <span className="text-xs text-gray-400 w-10 shrink-0">{fechaCorta}</span>
+    <div className="flex items-center gap-2 px-3 py-2.5 bg-[var(--superficie-2)]/50">
+      <span className="text-xs text-[var(--tinta-4)] w-10 shrink-0">{fechaCorta}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-gray-700 truncate">
+        <p className="text-xs font-semibold text-[var(--tinta-2)] truncate">
           {t.liquidacion_a && yo
             ? (loCobroYo ? `${t.quien} te pagó` : `Le pagaste a ${t.liquidacion_a}`)
             : (t.establecimiento || t.descripcion || t.subcategoria || t.categoria)}
         </p>
         {t.descripcion && t.establecimiento && (
-          <p className="text-[10px] text-gray-400 truncate">{t.descripcion}</p>
+          <p className="text-[10px] text-[var(--tinta-4)] truncate">{t.descripcion}</p>
         )}
       </div>
       {extra}
-      <span className={`text-xs font-bold shrink-0 ${esGasto ? 'text-red-500' : 'text-emerald-500'}`}>
+      <span className={`text-xs font-bold shrink-0 ${esGasto ? 'text-[var(--gasto)]' : 'text-[var(--ingreso)]'}`}>
         {ocultar(mostrarCifras, `${esGasto ? '−' : '+'}${euros(Math.abs(importe))} €`)}
       </span>
     </div>
@@ -77,17 +77,17 @@ function TarjetaComparativa({ label, actual, anterior, colorActual, colorBg, eti
 
   return (
     <div className={`${colorBg} rounded-2xl p-3 space-y-1`}>
-      <p className="text-xs font-semibold text-gray-500">{label}</p>
+      <p className="text-xs font-semibold text-[var(--tinta-3)]">{label}</p>
       <p className={`text-lg font-bold ${colorActual}`}>{ocultar(mostrarCifras, `${euros(actual)} €`)}</p>
       <div className="flex items-center gap-1">
         {igual ? (
-          <span className="text-xs text-gray-400">Sin datos anteriores</span>
+          <span className="text-xs text-[var(--tinta-4)]">Sin datos anteriores</span>
         ) : (
           <>
-            <span className={`text-xs font-bold ${sube ? 'text-red-500' : 'text-emerald-600'}`}>
+            <span className={`text-xs font-bold ${sube ? 'text-[var(--gasto)]' : 'text-[var(--ingreso)]'}`}>
               {sube ? '▲' : '▼'} {Math.abs(diff).toFixed(1)}%
             </span>
-            <span className="text-xs text-gray-400">vs {etiquetaAnterior || 'mes ant.'} ({ocultar(mostrarCifras, `${euros0(anterior)} €`)})</span>
+            <span className="text-xs text-[var(--tinta-4)]">vs {etiquetaAnterior || 'mes ant.'} ({ocultar(mostrarCifras, `${euros0(anterior)} €`)})</span>
           </>
         )}
       </div>
@@ -537,7 +537,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
 
   if (!meses.length) {
     return (
-      <div className="text-center mt-16 text-gray-400">
+      <div className="text-center mt-16 text-[var(--tinta-4)]">
         <div className="text-4xl mb-3">📊</div>
         <p>Aún no hay datos para informes</p>
       </div>
@@ -549,13 +549,13 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
   // Selector Ingresos / Gastos. Lo usan "Mes" y "Histórico": las dos enseñan
   // cifras que dependen de él, así que se define una vez y se pinta en ambas.
   const barraTipos = d => (
-      <div className="flex border-b border-gray-100">
+      <div className="flex border-b border-[var(--linea-2)]">
         <button onClick={() => setTabActiva('ingreso')}
-          className={`flex-1 pb-2 text-sm font-semibold transition-colors ${tabActiva === 'ingreso' ? 'text-emerald-600 border-b-2 border-emerald-500' : 'text-gray-400'}`}>
+          className={`flex-1 pb-2 text-sm font-semibold transition-colors ${tabActiva === 'ingreso' ? 'text-[var(--ingreso)] border-b-2 border-emerald-500' : 'text-[var(--tinta-4)]'}`}>
           Ingresos {ocultar(mostrarCifras, `${euros(d.totalIngresos)} €`)}
         </button>
         <button onClick={() => setTabActiva('gasto')}
-          className={`flex-1 pb-2 text-sm font-semibold transition-colors ${tabActiva === 'gasto' ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-400'}`}>
+          className={`flex-1 pb-2 text-sm font-semibold transition-colors ${tabActiva === 'gasto' ? 'text-[var(--gasto)] border-b-2 border-red-500' : 'text-[var(--tinta-4)]'}`}>
           Gastos {ocultar(mostrarCifras, `${euros(d.totalGastos)} €`)}
         </button>
       </div>
@@ -573,11 +573,11 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
         <button
           onClick={() => idxMes < meses.length - 1 && setMesSeleccionado(meses[idxMes + 1])}
           disabled={idxMes >= meses.length - 1}
-          className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 font-bold disabled:opacity-30">
+          className="w-9 h-9 flex items-center justify-center rounded-full bg-[var(--superficie-3)] text-[var(--tinta-3)] font-bold disabled:opacity-30">
           ‹
         </button>
         <select value={mesSeleccionado} onChange={e => { setMesSeleccionado(e.target.value); setMesComparacion(null) }}
-          className="text-base font-bold text-gray-800 bg-transparent text-center focus:outline-none">
+          className="text-base font-bold text-[var(--tinta)] bg-transparent text-center focus:outline-none">
           {meses.map(m => {
             const [a, mn] = m.split('-')
             const label = new Date(a, parseInt(mn) - 1).toLocaleString('es', { month: 'short', year: 'numeric' })
@@ -587,19 +587,19 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
         <button
           onClick={() => idxMes > 0 && setMesSeleccionado(meses[idxMes - 1])}
           disabled={idxMes <= 0}
-          className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 font-bold disabled:opacity-30">
+          className="w-9 h-9 flex items-center justify-center rounded-full bg-[var(--superficie-3)] text-[var(--tinta-3)] font-bold disabled:opacity-30">
           ›
         </button>
       </div>
 
       {/* Lo único que hay que mirar de un vistazo */}
       <div className="flex gap-2">
-        <div className="flex-1 bg-red-50 rounded-2xl px-4 py-3">
-          <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Gasto conjunto del mes</p>
-          <p className="text-xl font-bold text-red-500 mt-0.5">
+        <div className="flex-1 bg-[#3A2230] rounded-2xl px-4 py-3">
+          <p className="text-[10px] font-bold text-[var(--gasto)] uppercase tracking-widest">Gasto conjunto del mes</p>
+          <p className="text-xl font-bold text-[var(--gasto)] mt-0.5">
             {ocultar(mostrarCifras, `${euros(gastoConjuntoMes)} €`)}
           </p>
-          <p className="text-[10px] text-red-300 mt-0.5">Lo de los dos, sin los gastos particulares</p>
+          <p className="text-[10px] text-[#E08A9E] mt-0.5">Lo de los dos, sin los gastos particulares</p>
         </div>
         {/* Pulsando esta tarjeta se va a Balance. Si hay deuda, además abre
             directamente el formulario de "ya le he pagado": es lo que se
@@ -608,14 +608,14 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
             Es un <button> de verdad, no un div con onClick: así se puede
             pulsar también con el teclado y el móvil lo anuncia como botón. */}
         <button type="button" onClick={onSaldar}
-          className="flex-1 bg-[#0d1b2a] rounded-2xl px-4 py-3 text-left active:opacity-80">
+          className="flex-1 bg-[var(--superficie)] rounded-2xl px-4 py-3 text-left active:opacity-80">
           <div className="flex items-center justify-between gap-1">
-            <p className="text-[10px] font-bold text-[#8fa6c9] uppercase tracking-widest">La cuenta de los dos</p>
-            <span className="text-[#8fa6c9] text-xs shrink-0">›</span>
+            <p className="text-[10px] font-bold text-[var(--tinta-4)] uppercase tracking-widest">La cuenta de los dos</p>
+            <span className="text-[var(--tinta-4)] text-xs shrink-0">›</span>
           </div>
           {/* Desde cuándo se cuenta. Sin esto, la cifra sale sin contexto y no
               se sabe si habla de este mes o de toda la historia. */}
-          <p className="text-[10px] text-[#8fa6c9]">
+          <p className="text-[10px] text-[var(--tinta-4)]">
             {ultimoCierre ? `Desde el ${fechaCorta(ultimoCierre.created_at)}` : 'Desde el principio'}
           </p>
           {deuda.aRepartir <= 0 || deuda.importe < 0.01 ? (
@@ -636,18 +636,18 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
       {/* De quién son los apuntes que se enseñan debajo. Aquí es donde cada
           uno ve sus gastos particulares desglosados. */}
       <div>
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Qué gastos estás viendo</p>
+        <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-widest mb-1.5">Qué gastos estás viendo</p>
         <div className="flex gap-1.5">
-          {[['comunes', 'De los dos', 'bg-teal-600 border-teal-600'], ['mios', 'Lo mío', 'bg-violet-600 border-violet-600']].map(([id, label, activo]) => (
+          {[['comunes', 'De los dos', 'bg-[var(--dinero)] border-[var(--dinero)]'], ['mios', 'Lo mío', 'bg-violet-600 border-violet-600']].map(([id, label, activo]) => (
             <button key={id} type="button" onClick={() => setDeQuien(id)}
-              className={`flex-1 py-2 rounded-xl text-xs font-bold border-2 transition-colors ${deQuien === id ? activo + ' text-white' : 'bg-white text-gray-500 border-gray-200'}`}>
+              className={`flex-1 py-2 rounded-xl text-xs font-bold border-2 transition-colors ${deQuien === id ? activo + ' text-white' : 'bg-[var(--superficie)] text-[var(--tinta-3)] border-[var(--linea)]'}`}>
               {label}
             </button>
           ))}
         </div>
         {/* Sin esto las cifras confunden: en "Lo mío" el alquiler no sale por
             1.400 sino por lo que te toque, y conviene decirlo. */}
-        <p className="text-[11px] text-gray-400 mt-1.5">
+        <p className="text-[11px] text-[var(--tinta-4)] mt-1.5">
           {deQuien === 'comunes' && 'Los gastos de los dos, por su importe entero.'}
           {deQuien === 'mios' && 'Tu parte: lo tuyo entero y de lo de los dos, solo lo que te toca.'}
         </p>
@@ -706,34 +706,34 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
               const agruparPorSub = gruposSubcategoria.length > 1
 
               return (
-                <div key={d.nombre} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <div key={d.nombre} className="bg-[var(--superficie)] rounded-xl border border-[var(--linea-2)] shadow-sm overflow-hidden">
                   {/* Cabecera de categoría */}
                   <button
                     type="button"
                     onClick={() => { setCategoriaAbierta(abierta ? null : d.nombre); setSubcategoriaAbierta(null) }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left active:bg-gray-50">
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-left active:bg-[var(--superficie-2)]">
                     <span className="text-xs font-bold px-2 py-1 rounded-lg text-white min-w-[42px] text-center shrink-0"
                       style={{ backgroundColor: color }}>
                       {d.pct}%
                     </span>
-                    <span className="flex-1 text-sm font-medium text-gray-800">{d.nombre}</span>
-                    <span className="text-sm font-semibold text-gray-700 mr-1">{ocultar(mostrarCifras, `${euros(d.valor)} €`)}</span>
-                    <span className="text-gray-400 text-xs">{abierta ? '▲' : '▼'}</span>
+                    <span className="flex-1 text-sm font-medium text-[var(--tinta)]">{d.nombre}</span>
+                    <span className="text-sm font-semibold text-[var(--tinta-2)] mr-1">{ocultar(mostrarCifras, `${euros(d.valor)} €`)}</span>
+                    <span className="text-[var(--tinta-4)] text-xs">{abierta ? '▲' : '▼'}</span>
                   </button>
 
                   {/* Apuntes desplegados. Con una sola subcategoría en uso se
                       va directo a la lista de siempre, sin un toque de más. */}
                   {abierta && !agruparPorSub && (
-                    <div className="border-t border-gray-50 divide-y divide-gray-50">
+                    <div className="border-t border-[var(--linea-3)] divide-y divide-[var(--linea-3)]">
                       {apuntesCategoria.map(t => (
                         <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras} yo={yo}
-                          extra={t.medio_pago && <span className="text-[10px] text-gray-400 shrink-0">{t.medio_pago.split(' ')[0]}</span>} />
+                          extra={t.medio_pago && <span className="text-[10px] text-[var(--tinta-4)] shrink-0">{t.medio_pago.split(' ')[0]}</span>} />
                       ))}
                     </div>
                   )}
 
                   {abierta && agruparPorSub && (
-                    <div className="border-t border-gray-50 divide-y divide-gray-50">
+                    <div className="border-t border-[var(--linea-3)] divide-y divide-[var(--linea-3)]">
                       {gruposSubcategoria.map(g => {
                         const claveSub = `${d.nombre}|${g.nombre}`
                         const subAbierta = subcategoriaAbierta === claveSub
@@ -742,16 +742,16 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                             <button
                               type="button"
                               onClick={() => setSubcategoriaAbierta(subAbierta ? null : claveSub)}
-                              className="w-full flex items-center gap-2 px-3 py-2.5 text-left active:bg-gray-50 bg-gray-50/40">
-                              <span className="flex-1 text-xs font-semibold text-gray-600">{g.nombre}</span>
-                              <span className="text-xs font-bold text-gray-700">{ocultar(mostrarCifras, `${euros(g.total)} €`)}</span>
-                              <span className="text-gray-400 text-[10px]">{subAbierta ? '▲' : '▼'}</span>
+                              className="w-full flex items-center gap-2 px-3 py-2.5 text-left active:bg-[var(--superficie-2)] bg-[var(--superficie-2)]/40">
+                              <span className="flex-1 text-xs font-semibold text-[var(--tinta-3)]">{g.nombre}</span>
+                              <span className="text-xs font-bold text-[var(--tinta-2)]">{ocultar(mostrarCifras, `${euros(g.total)} €`)}</span>
+                              <span className="text-[var(--tinta-4)] text-[10px]">{subAbierta ? '▲' : '▼'}</span>
                             </button>
                             {subAbierta && (
-                              <div className="divide-y divide-gray-50">
+                              <div className="divide-y divide-[var(--linea-3)]">
                                 {g.apuntes.map(t => (
                                   <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras} yo={yo}
-                                    extra={t.medio_pago && <span className="text-[10px] text-gray-400 shrink-0">{t.medio_pago.split(' ')[0]}</span>} />
+                                    extra={t.medio_pago && <span className="text-[10px] text-[var(--tinta-4)] shrink-0">{t.medio_pago.split(' ')[0]}</span>} />
                                 ))}
                               </div>
                             )}
@@ -769,25 +769,25 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
               de los gastos de los dos solo cuenta su parte, si no le restaría
               el alquiler entero cuando solo le toca un trozo. */}
           {miBalanceMes ? (
-            <div className={`rounded-xl p-3 text-center ${miBalanceMes.queda >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
-              <p className={`text-xs font-medium ${miBalanceMes.queda >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>Lo que te queda a ti este mes</p>
-              <p className={`text-xl font-bold ${miBalanceMes.queda >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
+            <div className={`rounded-xl p-3 text-center ${miBalanceMes.queda >= 0 ? 'bg-[var(--info-fondo)]' : 'bg-[var(--aviso-fondo)]'}`}>
+              <p className={`text-xs font-medium ${miBalanceMes.queda >= 0 ? 'text-[var(--acento)]' : 'text-[var(--aviso)]'}`}>Lo que te queda a ti este mes</p>
+              <p className={`text-xl font-bold ${miBalanceMes.queda >= 0 ? 'text-[var(--info)]' : 'text-[var(--aviso)]'}`}>
                 {ocultar(mostrarCifras, `${miBalanceMes.queda >= 0 ? '+' : ''}${euros(miBalanceMes.queda)} €`)}
               </p>
-              <p className="text-[10px] text-gray-400 mt-1">
+              <p className="text-[10px] text-[var(--tinta-4)] mt-1">
                 Tus ingresos {ocultar(mostrarCifras, euros(miBalanceMes.ingresos))} € menos tu parte de los gastos {ocultar(mostrarCifras, euros(miBalanceMes.gastos))} €
               </p>
             </div>
           ) : null}
         </>
       ) : (
-        <p className="text-gray-400 text-sm text-center mt-4">Sin datos este mes</p>
+        <p className="text-[var(--tinta-4)] text-sm text-center mt-4">Sin datos este mes</p>
       )}
 
       {/* Resumen por medio de pago — expandible */}
       {datosVista.medios.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Por medio de pago</p>
+          <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-widest">Por medio de pago</p>
           <div className="space-y-1.5">
             {datosVista.medios.map((m) => {
               const emoji = cuentas.find(c => c.nombre === m.nombre)?.emoji || '💳'
@@ -797,37 +797,37 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                 .filter(t => t.medio_pago === m.nombre && t.tipo === tabActiva)
                 .sort((a, b) => b.fecha.localeCompare(a.fecha))
               return (
-                <div key={m.nombre} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <div key={m.nombre} className="bg-[var(--superficie)] rounded-xl border border-[var(--linea-2)] shadow-sm overflow-hidden">
                   <button
                     type="button"
                     onClick={() => setMedioAbierto(abierto ? null : m.nombre)}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-gray-50">
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-[var(--superficie-2)]">
                     <span className="text-xl w-8 text-center shrink-0">{emoji}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-800">{m.nombre}</p>
-                      <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <p className="text-sm font-semibold text-[var(--tinta)]">{m.nombre}</p>
+                      <div className="mt-1 h-1.5 bg-[var(--superficie-3)] rounded-full overflow-hidden">
                         <div className="h-full bg-red-400 rounded-full" style={{ width: `${totalMedio}%` }} />
                       </div>
                     </div>
                     <div className="text-right shrink-0 mr-1">
                       {tabActiva === 'gasto' && m.gasto > 0 && (
-                        <p className="text-sm font-bold text-red-500">{ocultar(mostrarCifras, `−${euros(m.gasto)} €`)}</p>
+                        <p className="text-sm font-bold text-[var(--gasto)]">{ocultar(mostrarCifras, `−${euros(m.gasto)} €`)}</p>
                       )}
                       {tabActiva === 'ingreso' && m.ingreso > 0 && (
-                        <p className="text-sm font-bold text-emerald-500">{ocultar(mostrarCifras, `+${euros(m.ingreso)} €`)}</p>
+                        <p className="text-sm font-bold text-[var(--ingreso)]">{ocultar(mostrarCifras, `+${euros(m.ingreso)} €`)}</p>
                       )}
-                      <p className="text-xs text-gray-300">{totalMedio}%</p>
+                      <p className="text-xs text-[var(--tinta-5)]">{totalMedio}%</p>
                     </div>
-                    <span className="text-gray-400 text-xs">{abierto ? '▲' : '▼'}</span>
+                    <span className="text-[var(--tinta-4)] text-xs">{abierto ? '▲' : '▼'}</span>
                   </button>
 
                   {abierto && (
-                    <div className="border-t border-gray-50 divide-y divide-gray-50">
+                    <div className="border-t border-[var(--linea-3)] divide-y divide-[var(--linea-3)]">
                       {apuntesMedio.length === 0 ? (
-                        <p className="text-xs text-gray-400 text-center py-3">Sin apuntes de {tabActiva === 'gasto' ? 'gastos' : 'ingresos'} con este medio</p>
+                        <p className="text-xs text-[var(--tinta-4)] text-center py-3">Sin apuntes de {tabActiva === 'gasto' ? 'gastos' : 'ingresos'} con este medio</p>
                       ) : apuntesMedio.map(t => (
                         <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras} yo={yo}
-                          extra={<span className="text-[10px] text-gray-400 shrink-0">{t.categoria}</span>} />
+                          extra={<span className="text-[10px] text-[var(--tinta-4)] shrink-0">{t.categoria}</span>} />
                       ))}
                     </div>
                   )}
@@ -846,18 +846,18 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
       {/* La cuenta de los dos — solo con los gastos comunes */}
       {deuda.aRepartir > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">La cuenta de los dos</p>
-          <div className="bg-[#0d1b2a] rounded-2xl px-5 py-5 text-center">
+          <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-widest">La cuenta de los dos</p>
+          <div className="bg-[var(--superficie)] rounded-2xl px-5 py-5 text-center">
             {deuda.importe < 0.01 ? (
               <>
                 <p className="text-base font-bold text-white">Estáis en paz</p>
-                <p className="text-xs text-[#8fa6c9] mt-1">
+                <p className="text-xs text-[var(--tinta-4)] mt-1">
                   {ultimoCierre ? `Desde el cierre del ${fechaCorta(ultimoCierre.created_at)}` : 'Habéis puesto lo mismo los dos'}
                 </p>
               </>
             ) : (
               <>
-                <p className="text-[10px] uppercase tracking-widest text-[#8fa6c9] mb-1.5">
+                <p className="text-[10px] uppercase tracking-widest text-[var(--tinta-4)] mb-1.5">
                   {ultimoCierre ? `Desde el cierre del ${fechaCorta(ultimoCierre.created_at)}` : 'En total, desde el principio'}
                 </p>
                 <p className="text-lg font-bold text-white leading-snug">
@@ -873,7 +873,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
               {NOMBRES.map(n => (
                 <div key={n} className="flex items-baseline gap-2 text-left">
                   <span className="text-xs font-semibold text-white w-12 shrink-0">{n}</span>
-                  <span className="flex-1 text-[11px] text-[#8fa6c9]">
+                  <span className="flex-1 text-[11px] text-[var(--tinta-4)]">
                     ha pagado <b className="text-white font-semibold">{ocultar(mostrarCifras, `${euros((deuda.pagado[n] || 0))} €`)}</b>
                     {' · '}le tocaban <b className="text-white font-semibold">{ocultar(mostrarCifras, `${euros((deuda.toca[n] || 0))} €`)}</b>
                     {Math.abs(deuda.ajuste[n] || 0) >= 0.01 && (
@@ -890,7 +890,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
             </div>
           </div>
           {deuda.comunSinAsignar > 0 && (
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-[var(--tinta-4)]">
               No cuentan {ocultar(mostrarCifras, `${euros(deuda.comunSinAsignar)} €`)} pagados con dinero común: no los ha puesto ninguno de los dos.
             </p>
           )}
@@ -898,12 +898,12 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
           {/* Cerrar la cuenta. Solo aparece estando en paz: es lo que hace que
               no se pueda perder dinero de nadie al cerrar. */}
           {deuda.importe < 0.01 && (
-            <div className="bg-teal-50 border-2 border-teal-200 rounded-2xl p-3 space-y-2">
+            <div className="bg-[var(--comun-fondo)] border-2 border-[var(--comun)] rounded-2xl p-3 space-y-2">
               <button type="button" onClick={cerrarCuenta} disabled={cerrando}
-                className="w-full py-3.5 bg-teal-600 text-white font-bold rounded-2xl text-sm disabled:opacity-50 shadow-sm">
+                className="w-full py-3.5 bg-[var(--dinero)] text-[var(--dinero-tinta)] font-bold rounded-2xl text-sm disabled:opacity-50 shadow-sm">
                 {cerrando ? 'Cerrando…' : '🔒 Cerrar la cuenta y empezar de cero'}
               </button>
-              <p className="text-xs text-teal-800 leading-snug">
+              <p className="text-xs text-[var(--comun)] leading-snug">
                 Los gastos se quedan donde están; lo único que cambia es que la cuenta de los
                 dos empieza a contar desde hoy. Así se entiende mejor de dónde sale cada cifra.
               </p>
@@ -914,53 +914,53 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
               en los totales del mes, solo ajusta quién ha puesto cuánto. */}
           {deuda.importe >= 0.01 && (
             saldando ? (
-              <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
-                <p className="text-sm font-semibold text-gray-800">
+              <div className="bg-[var(--superficie)] rounded-2xl border border-[var(--linea)] p-4 space-y-3">
+                <p className="text-sm font-semibold text-[var(--tinta)]">
                   {deuda.deudor} paga a {deuda.acreedor}
                 </p>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Cuánto</label>
+                  <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Cuánto</label>
                   <input type="text" inputMode="decimal" value={importeSaldo}
                     onChange={e => { setImporteSaldo(e.target.value); setErrorSaldo('') }}
                     placeholder={deuda.importe.toFixed(2)}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                    className="w-full px-3 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
                   <button type="button" onClick={() => setImporteSaldo(deuda.importe.toFixed(2))}
-                    className="text-xs text-blue-500 mt-1.5">
+                    className="text-xs text-[var(--acento)] mt-1.5">
                     Poner los {euros(deuda.importe)} € enteros
                   </button>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Con qué</label>
+                  <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Con qué</label>
                   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                     {soloActivas(cuentas).map(c => (
                       <button key={c.nombre} type="button"
                         onClick={() => { setMedioSaldo(c.nombre); setErrorSaldo('') }}
-                        className={`shrink-0 px-3 py-2 rounded-xl text-xs font-semibold border ${medioSaldo === c.nombre ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200'}`}>
+                        className={`shrink-0 px-3 py-2 rounded-xl text-xs font-semibold border ${medioSaldo === c.nombre ? 'bg-[var(--acento)] text-[var(--acento-tinta)] border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-3)] border-[var(--linea)]'}`}>
                         {c.emoji} {c.nombre}
                       </button>
                     ))}
                   </div>
                 </div>
-                {errorSaldo && <p className="text-xs text-red-500">{errorSaldo}</p>}
+                {errorSaldo && <p className="text-xs text-[var(--gasto)]">{errorSaldo}</p>}
                 <div className="flex gap-2">
                   <button type="button" onClick={anotarPago} disabled={guardandoSaldo}
-                    className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[#0d1b2a] text-white disabled:opacity-50">
+                    className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[var(--superficie)] text-white disabled:opacity-50">
                     {guardandoSaldo ? 'Guardando…' : 'Anotar el pago'}
                   </button>
                   <button type="button" onClick={() => { setSaldando(false); setErrorSaldo('') }}
-                    className="px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-500">
+                    className="px-4 py-2.5 rounded-xl text-sm font-medium border border-[var(--linea)] text-[var(--tinta-3)]">
                     Cancelar
                   </button>
                 </div>
               </div>
             ) : (
               <button type="button" onClick={() => { setSaldando(true); setImporteSaldo('') }}
-                className="w-full py-3 rounded-2xl text-sm font-bold bg-teal-600 text-white">
+                className="w-full py-3 rounded-2xl text-sm font-bold bg-[var(--dinero)] text-[var(--dinero-tinta)]">
                 Ya le he pagado
               </button>
             )
           )}
-          <p className="text-xs text-gray-400">Cuenta acumulada de todos los meses, no solo del que estás viendo. Solo entra lo marcado «de los dos»: los gastos personales no cuentan.</p>
+          <p className="text-xs text-[var(--tinta-4)]">Cuenta acumulada de todos los meses, no solo del que estás viendo. Solo entra lo marcado «de los dos»: los gastos personales no cuentan.</p>
         </div>
       )}
 
@@ -969,27 +969,27 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
           veían en ningún sitio, y ahora mandan sobre lo que cuenta la cuenta. */}
       {historial.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Historial</p>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-widest">Historial</p>
+          <div className="bg-[var(--superficie)] rounded-xl border border-[var(--linea-2)] shadow-sm overflow-hidden">
             <button type="button" onClick={() => setHistorialAbierto(v => !v)}
-              className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-gray-50">
+              className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-[var(--superficie-2)]">
               <span className="text-xl w-8 text-center shrink-0">🧾</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-800">Pagos entre vosotros y cierres</p>
-                <p className="text-xs text-gray-400">{historial.length} {historial.length === 1 ? 'apunte' : 'apuntes'}</p>
+                <p className="text-sm font-semibold text-[var(--tinta)]">Pagos entre vosotros y cierres</p>
+                <p className="text-xs text-[var(--tinta-4)]">{historial.length} {historial.length === 1 ? 'apunte' : 'apuntes'}</p>
               </div>
-              <span className="text-gray-400 text-xs">{historialAbierto ? '▲' : '▼'}</span>
+              <span className="text-[var(--tinta-4)] text-xs">{historialAbierto ? '▲' : '▼'}</span>
             </button>
 
             {historialAbierto && (
-              <div className="border-t border-gray-50 divide-y divide-gray-50">
+              <div className="border-t border-[var(--linea-3)] divide-y divide-[var(--linea-3)]">
                 {historial.map(h => (
-                  <div key={h.clave} className="flex items-center gap-2 px-3 py-2.5 bg-gray-50/50">
-                    <span className="text-xs text-gray-400 w-14 shrink-0">
+                  <div key={h.clave} className="flex items-center gap-2 px-3 py-2.5 bg-[var(--superficie-2)]/50">
+                    <span className="text-xs text-[var(--tinta-4)] w-14 shrink-0">
                       {new Date(h.cuando).toLocaleDateString('es', { day: 'numeric', month: 'short' })}
                     </span>
                     <span className="text-sm shrink-0">{h.tipo === 'cierre' ? '🔒' : '🤝'}</span>
-                    <span className={`flex-1 text-xs ${h.tipo === 'cierre' ? 'font-semibold text-gray-700' : 'text-gray-600'}`}>
+                    <span className={`flex-1 text-xs ${h.tipo === 'cierre' ? 'font-semibold text-[var(--tinta-2)]' : 'text-[var(--tinta-3)]'}`}>
                       {ocultar(mostrarCifras, h.texto)}
                     </span>
                   </div>
@@ -1002,25 +1002,25 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
               la cuenta vuelve a contar desde el cierre anterior. */}
           {ultimoCierre && (
             confirmandoDeshacer ? (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
-                <p className="text-xs text-amber-900 leading-snug">
+              <div className="bg-[var(--aviso-fondo)] border border-[var(--aviso-linea)] rounded-xl p-3 space-y-2">
+                <p className="text-xs text-[var(--aviso)] leading-snug">
                   Si deshaces el cierre del {fechaCorta(ultimoCierre.created_at)}, la cuenta volverá a
                   contar desde antes. No se borra ningún gasto.
                 </p>
                 <div className="flex gap-2">
                   <button type="button" onClick={deshacerCierre}
-                    className="flex-1 py-2.5 bg-amber-600 text-white text-xs font-bold rounded-xl">
+                    className="flex-1 py-2.5 bg-[var(--acento)] text-[var(--acento-tinta)] text-xs font-bold rounded-xl">
                     Sí, deshacerlo
                   </button>
                   <button type="button" onClick={() => setConfirmandoDeshacer(false)}
-                    className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-500 text-xs font-semibold rounded-xl">
+                    className="flex-1 py-2.5 bg-[var(--superficie)] border border-[var(--linea)] text-[var(--tinta-3)] text-xs font-semibold rounded-xl">
                     No
                   </button>
                 </div>
               </div>
             ) : (
               <button type="button" onClick={() => setConfirmandoDeshacer(true)}
-                className="text-xs text-gray-400 underline">
+                className="text-xs text-[var(--tinta-4)] underline">
                 Deshacer el último cierre
               </button>
             )
@@ -1031,8 +1031,8 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
       {/* Resumen por persona — expandible */}
       {quienPuso.lista.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Quién puso el dinero de los dos</p>
-          <p className="text-xs text-gray-400 -mt-1">
+          <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-widest">Quién puso el dinero de los dos</p>
+          <p className="text-xs text-[var(--tinta-4)] -mt-1">
             {ultimoCierre ? `Desde el cierre del ${fechaCorta(ultimoCierre.created_at)}` : 'Desde el principio'}
           </p>
           <div className="space-y-1.5">
@@ -1047,32 +1047,32 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                 .filter(t => personaDeMedioPago(t.medio_pago, cuentas) === p.nombre)
                 .sort((a, b) => b.fecha.localeCompare(a.fecha))
               return (
-                <div key={p.nombre} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <div key={p.nombre} className="bg-[var(--superficie)] rounded-xl border border-[var(--linea-2)] shadow-sm overflow-hidden">
                   <button
                     type="button"
                     onClick={() => setPersonaAbierta(abierto ? null : p.nombre)}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-gray-50">
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-[var(--superficie-2)]">
                     <span className="text-xl w-8 text-center shrink-0">{emoji}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-800">{p.nombre}</p>
-                      <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <p className="text-sm font-semibold text-[var(--tinta)]">{p.nombre}</p>
+                      <div className="mt-1 h-1.5 bg-[var(--superficie-3)] rounded-full overflow-hidden">
                         <div className="h-full bg-red-400 rounded-full" style={{ width: `${pctPersona}%` }} />
                       </div>
                     </div>
                     <div className="text-right shrink-0 mr-1">
-                      <p className="text-sm font-bold text-red-500">{ocultar(mostrarCifras, `${euros(p.puesto)} €`)}</p>
-                      <p className="text-xs text-gray-300">{pctPersona}%</p>
+                      <p className="text-sm font-bold text-[var(--gasto)]">{ocultar(mostrarCifras, `${euros(p.puesto)} €`)}</p>
+                      <p className="text-xs text-[var(--tinta-5)]">{pctPersona}%</p>
                     </div>
-                    <span className="text-gray-400 text-xs">{abierto ? '▲' : '▼'}</span>
+                    <span className="text-[var(--tinta-4)] text-xs">{abierto ? '▲' : '▼'}</span>
                   </button>
 
                   {abierto && (
-                    <div className="border-t border-gray-50 divide-y divide-gray-50">
+                    <div className="border-t border-[var(--linea-3)] divide-y divide-[var(--linea-3)]">
                       {apuntesPersona.length === 0 ? (
-                        <p className="text-xs text-gray-400 text-center py-3">Sin apuntes de esta persona</p>
+                        <p className="text-xs text-[var(--tinta-4)] text-center py-3">Sin apuntes de esta persona</p>
                       ) : apuntesPersona.map(t => (
                         <FilaApunte key={t.id} t={t} mostrarCifras={mostrarCifras} yo={yo}
-                          extra={<span className="text-[10px] text-gray-400 shrink-0">{t.categoria}</span>} />
+                          extra={<span className="text-[10px] text-[var(--tinta-4)] shrink-0">{t.categoria}</span>} />
                       ))}
                     </div>
                   )}
@@ -1084,7 +1084,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
       )}
 
       {deuda.aRepartir <= 0 && quienPuso.lista.length === 0 && (
-        <p className="text-gray-400 text-sm text-center mt-8">Todavía no hay gastos de los dos que repartir</p>
+        <p className="text-[var(--tinta-4)] text-sm text-center mt-8">Todavía no hay gastos de los dos que repartir</p>
       )}
         </>
       )}
@@ -1097,7 +1097,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
           cómo funciona. */}
       {seccion === 'informes' && (
         <button type="button" onClick={() => setVerHistorico(v => !v)}
-          className="w-full py-3.5 rounded-2xl text-sm font-bold bg-[#0d1b2a] text-white shadow-sm">
+          className="w-full py-3.5 rounded-2xl text-sm font-bold bg-[var(--superficie)] text-white shadow-sm">
           {verHistorico ? '▲ Cerrar la comparación' : '📈 Comparar con otro mes y ver el año'}
         </button>
       )}
@@ -1112,7 +1112,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
           <select
             value=""
             onChange={e => { if (e.target.value) setMesComparacion(e.target.value) }}
-            className="text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-xl px-3 py-1.5 focus:outline-none">
+            className="text-xs font-semibold text-[var(--acento)] bg-[var(--info-fondo)] border border-[var(--info-linea)] rounded-xl px-3 py-1.5 focus:outline-none">
             <option value="">⚖️ Comparar con...</option>
             {meses.filter(m => m !== mesSeleccionado).map(m => {
               const [a, mn] = m.split('-')
@@ -1122,32 +1122,32 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
           </select>
         </div>
       ) : (
-        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl px-3 py-2">
-          <span className="text-xs font-semibold text-blue-700">
+        <div className="flex items-center justify-between bg-[var(--info-fondo)] border border-[var(--info-linea)] rounded-xl px-3 py-2">
+          <span className="text-xs font-semibold text-[var(--info)]">
             ⚖️ Comparando con {new Date(mesComparacion.split('-')[0], parseInt(mesComparacion.split('-')[1]) - 1).toLocaleString('es', { month: 'long', year: 'numeric' })}
           </span>
-          <button onClick={() => setMesComparacion(null)} className="text-blue-400 text-sm font-bold">✕</button>
+          <button onClick={() => setMesComparacion(null)} className="text-[var(--adri)] text-sm font-bold">✕</button>
         </div>
       )}
 
       {/* Tabla comparativa */}
       {mesComparacion && datosComp && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-[var(--superficie)] rounded-2xl border border-[var(--linea-2)] shadow-sm overflow-hidden">
           {/* Cabecera */}
-          <div className="grid grid-cols-4 gap-1 px-3 py-2 bg-gray-50 border-b border-gray-100">
-            <span className="text-xs font-bold text-gray-400 col-span-1">Categoría</span>
-            <span className="text-xs font-bold text-gray-600 text-right">{new Date(mesSeleccionado.split('-')[0], parseInt(mesSeleccionado.split('-')[1]) - 1).toLocaleString('es', { month: 'short' })}</span>
-            <span className="text-xs font-bold text-gray-400 text-right">{new Date(mesComparacion.split('-')[0], parseInt(mesComparacion.split('-')[1]) - 1).toLocaleString('es', { month: 'short' })}</span>
-            <span className="text-xs font-bold text-gray-400 text-right">Dif.</span>
+          <div className="grid grid-cols-4 gap-1 px-3 py-2 bg-[var(--superficie-2)] border-b border-[var(--linea-2)]">
+            <span className="text-xs font-bold text-[var(--tinta-4)] col-span-1">Categoría</span>
+            <span className="text-xs font-bold text-[var(--tinta-3)] text-right">{new Date(mesSeleccionado.split('-')[0], parseInt(mesSeleccionado.split('-')[1]) - 1).toLocaleString('es', { month: 'short' })}</span>
+            <span className="text-xs font-bold text-[var(--tinta-4)] text-right">{new Date(mesComparacion.split('-')[0], parseInt(mesComparacion.split('-')[1]) - 1).toLocaleString('es', { month: 'short' })}</span>
+            <span className="text-xs font-bold text-[var(--tinta-4)] text-right">Dif.</span>
           </div>
 
           {/* Fila totales */}
-          <div className="grid grid-cols-4 gap-1 px-3 py-2.5 border-b border-gray-100 bg-gray-50/50">
-            <span className="text-xs font-bold text-gray-700 col-span-1 truncate">{tabActiva === 'gasto' ? '💸 Total' : '💰 Total'}</span>
-            <span className="text-xs font-bold text-gray-800 text-right">
+          <div className="grid grid-cols-4 gap-1 px-3 py-2.5 border-b border-[var(--linea-2)] bg-[var(--superficie-2)]/50">
+            <span className="text-xs font-bold text-[var(--tinta-2)] col-span-1 truncate">{tabActiva === 'gasto' ? '💸 Total' : '💰 Total'}</span>
+            <span className="text-xs font-bold text-[var(--tinta)] text-right">
               {ocultar(mostrarCifras, `${euros0((tabActiva === 'gasto' ? datosHist.totalGastos : datosHist.totalIngresos))}€`)}
             </span>
-            <span className="text-xs font-semibold text-gray-400 text-right">
+            <span className="text-xs font-semibold text-[var(--tinta-4)] text-right">
               {ocultar(mostrarCifras, `${euros0((tabActiva === 'gasto' ? datosComp.totalGastos : datosComp.totalIngresos))}€`)}
             </span>
             {(() => {
@@ -1155,7 +1155,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
               const comp = tabActiva === 'gasto' ? datosComp.totalGastos : datosComp.totalIngresos
               const dif = actual - comp
               const esAlerta = tabActiva === 'gasto' ? dif > 0 : dif < 0
-              return <span className={`text-xs font-bold text-right ${dif === 0 ? 'text-gray-400' : esAlerta ? 'text-red-500' : 'text-emerald-600'}`}>{ocultar(mostrarCifras, `${dif > 0 ? '+' : ''}${euros0(dif)}€`)}</span>
+              return <span className={`text-xs font-bold text-right ${dif === 0 ? 'text-[var(--tinta-4)]' : esAlerta ? 'text-[var(--gasto)]' : 'text-[var(--ingreso)]'}`}>{ocultar(mostrarCifras, `${dif > 0 ? '+' : ''}${euros0(dif)}€`)}</span>
             })()}
           </div>
 
@@ -1172,11 +1172,11 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
               const dif = actual - comp
               const esAlerta = tabActiva === 'gasto' ? dif > 0 : dif < 0
               return (
-                <div key={cat} className={`grid grid-cols-4 gap-1 px-3 py-2 ${idx % 2 === 0 ? '' : 'bg-gray-50/40'}`}>
-                  <span className="text-xs text-gray-600 col-span-1 truncate">{cat}</span>
-                  <span className="text-xs font-semibold text-gray-800 text-right">{actual > 0 ? ocultar(mostrarCifras, `${euros0(actual)}€`) : '—'}</span>
-                  <span className="text-xs text-gray-400 text-right">{comp > 0 ? ocultar(mostrarCifras, `${euros0(comp)}€`) : '—'}</span>
-                  <span className={`text-xs font-semibold text-right ${dif === 0 ? 'text-gray-300' : esAlerta ? 'text-red-500' : 'text-emerald-600'}`}>
+                <div key={cat} className={`grid grid-cols-4 gap-1 px-3 py-2 ${idx % 2 === 0 ? '' : 'bg-[var(--superficie-2)]/40'}`}>
+                  <span className="text-xs text-[var(--tinta-3)] col-span-1 truncate">{cat}</span>
+                  <span className="text-xs font-semibold text-[var(--tinta)] text-right">{actual > 0 ? ocultar(mostrarCifras, `${euros0(actual)}€`) : '—'}</span>
+                  <span className="text-xs text-[var(--tinta-4)] text-right">{comp > 0 ? ocultar(mostrarCifras, `${euros0(comp)}€`) : '—'}</span>
+                  <span className={`text-xs font-semibold text-right ${dif === 0 ? 'text-[var(--tinta-5)]' : esAlerta ? 'text-[var(--gasto)]' : 'text-[var(--ingreso)]'}`}>
                     {dif === 0 ? '—' : ocultar(mostrarCifras, `${dif > 0 ? '+' : ''}${euros0(dif)}€`)}
                   </span>
                 </div>
@@ -1188,22 +1188,22 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
 
       {/* Comparativa con mes anterior */}
       <div className="space-y-2">
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">vs mes anterior</p>
+        <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-widest">vs mes anterior</p>
         <div className="grid grid-cols-2 gap-2">
           <TarjetaComparativa
             label="Gastos de los dos"
             actual={datosHist.totalGastos}
             anterior={datosMesAnterior.gastos}
-            colorActual="text-red-500"
-            colorBg="bg-red-50"
+            colorActual="text-[var(--gasto)]"
+            colorBg="bg-[#3A2230]"
             mostrarCifras={mostrarCifras}
           />
           <TarjetaComparativa
             label="Tus ingresos"
             actual={datosHist.totalIngresos}
             anterior={datosMesAnterior.ingresos}
-            colorActual="text-emerald-600"
-            colorBg="bg-emerald-50"
+            colorActual="text-[var(--ingreso)]"
+            colorBg="bg-[var(--comun-fondo)]"
             mostrarCifras={mostrarCifras}
           />
         </div>
@@ -1212,7 +1212,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
       {/* Resumen anual */}
       {resumenAnual && (
         <div className="space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+          <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-widest">
             Resumen {anioActual} vs {anioAnterior}
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -1220,8 +1220,8 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
               label={`Gastos de los dos ${anioActual}`}
               actual={resumenAnual.totalGastosActual}
               anterior={resumenAnual.totalGastosAnterior}
-              colorActual="text-red-500"
-              colorBg="bg-red-50"
+              colorActual="text-[var(--gasto)]"
+              colorBg="bg-[#3A2230]"
               etiquetaAnterior={anioAnterior}
               mostrarCifras={mostrarCifras}
             />
@@ -1229,36 +1229,36 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
               label={`Tus ingresos ${anioActual}`}
               actual={resumenAnual.totalIngresosActual}
               anterior={resumenAnual.totalIngresosAnterior}
-              colorActual="text-emerald-600"
-              colorBg="bg-emerald-50"
+              colorActual="text-[var(--ingreso)]"
+              colorBg="bg-[var(--comun-fondo)]"
               etiquetaAnterior={anioAnterior}
               mostrarCifras={mostrarCifras}
             />
           </div>
 
           {/* Gráfico de barras mensual */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3">
-            <p className="text-xs font-semibold text-gray-400 mb-3">Gastos de los dos por mes — {anioActual} vs {anioAnterior}</p>
+          <div className="bg-[var(--superficie)] rounded-2xl border border-[var(--linea-2)] shadow-sm p-3">
+            <p className="text-xs font-semibold text-[var(--tinta-4)] mb-3">Gastos de los dos por mes — {anioActual} vs {anioAnterior}</p>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={resumenAnual.porMes} barCategoryGap="20%" barGap={2}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                <XAxis dataKey="nombre" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={32}
+                <CartesianGrid strokeDasharray="3 3" stroke="#2F3555" vertical={false} />
+                <XAxis dataKey="nombre" tick={{ fontSize: 10, fill: '#8E93B5' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 9, fill: '#8E93B5' }} axisLine={false} tickLine={false} width={32}
                   tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
                 <Tooltip
                   formatter={(val, name) => [ocultar(mostrarCifras, `${euros(val)} €`), name === 'gastos' ? anioActual : anioAnterior]}
-                  contentStyle={{ borderRadius: 12, border: '1px solid #f0f0f0', fontSize: 12 }}
+                  contentStyle={{ borderRadius: 12, border: '1px solid #2F3555', fontSize: 12 }}
                 />
-                <Bar dataKey="gastosAnt" fill="#fca5a5" radius={[3, 3, 0, 0]} name="gastosAnt" />
-                <Bar dataKey="gastos" fill="#ef4444" radius={[3, 3, 0, 0]} name="gastos" />
+                <Bar dataKey="gastosAnt" fill="#8A4A4A" radius={[3, 3, 0, 0]} name="gastosAnt" />
+                <Bar dataKey="gastos" fill="#FF6B6B" radius={[3, 3, 0, 0]} name="gastos" />
               </BarChart>
             </ResponsiveContainer>
             <div className="flex gap-4 justify-center mt-1">
-              <span className="flex items-center gap-1 text-xs text-gray-400">
+              <span className="flex items-center gap-1 text-xs text-[var(--tinta-4)]">
                 <span className="w-3 h-2 rounded bg-red-500 inline-block" /> {anioActual}
               </span>
-              <span className="flex items-center gap-1 text-xs text-gray-400">
-                <span className="w-3 h-2 rounded bg-red-200 inline-block" /> {anioAnterior}
+              <span className="flex items-center gap-1 text-xs text-[var(--tinta-4)]">
+                <span className="w-3 h-2 rounded bg-[#45222F] inline-block" /> {anioAnterior}
               </span>
             </div>
           </div>
@@ -1268,26 +1268,26 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
       {/* Eventos del mes */}
       {eventosDelMes.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">🎯 Eventos este mes</p>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-widest">🎯 Eventos este mes</p>
+          <div className="bg-[var(--superficie)] rounded-2xl border border-[var(--linea-2)] shadow-sm overflow-hidden">
             {eventosDelMes.map((ev, idx) => {
               const pct = ev.presupuesto ? Math.min(100, (ev.total / ev.presupuesto) * 100) : null
               return (
-                <div key={ev.id} className={`px-4 py-3 ${idx > 0 ? 'border-t border-gray-50' : ''}`}>
+                <div key={ev.id} className={`px-4 py-3 ${idx > 0 ? 'border-t border-[var(--linea-3)]' : ''}`}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-sm">🎯</span>
-                      <span className="text-sm font-semibold text-gray-800 truncate">{ev.nombre}</span>
-                      <span className="text-xs text-gray-400 shrink-0">{ev.count} apunte{ev.count !== 1 ? 's' : ''}</span>
+                      <span className="text-sm font-semibold text-[var(--tinta)] truncate">{ev.nombre}</span>
+                      <span className="text-xs text-[var(--tinta-4)] shrink-0">{ev.count} apunte{ev.count !== 1 ? 's' : ''}</span>
                     </div>
-                    <span className="text-sm font-bold text-red-500 shrink-0 ml-2">{ocultar(mostrarCifras, `${euros(ev.total)} €`)}</span>
+                    <span className="text-sm font-bold text-[var(--gasto)] shrink-0 ml-2">{ocultar(mostrarCifras, `${euros(ev.total)} €`)}</span>
                   </div>
                   {pct !== null && (
                     <div className="mt-1.5">
-                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-[var(--superficie-3)] rounded-full overflow-hidden">
                         <div className="h-full bg-orange-400 rounded-full" style={{ width: `${pct}%` }} />
                       </div>
-                      <p className="text-[10px] text-gray-400 mt-0.5">
+                      <p className="text-[10px] text-[var(--tinta-4)] mt-0.5">
                         {pct.toFixed(0)}% de {ocultar(mostrarCifras, `${euros0(ev.presupuesto)} €`)} presupuestados
                       </p>
                     </div>
@@ -1303,21 +1303,21 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
           primera es la que vale como copia de seguridad de los dos y se puede
           compartir sin enseñar los gastos particulares de nadie. */}
       <div className="space-y-2 pt-1">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Exportar a Excel</p>
+        <p className="text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide">Exportar a Excel</p>
         <button onClick={async () => { await exportarExcel(soloComunes(transacciones), `gastos_de_los_dos_${hoy()}.xlsx`); onCopiaDescargada?.() }}
           disabled={soloComunes(transacciones).length === 0}
-          className="w-full py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold rounded-xl active:bg-emerald-100 disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
+          className="w-full py-2.5 bg-[var(--comun-fondo)] border border-[var(--comun)] text-[var(--comun)] font-semibold rounded-xl active:bg-[var(--comun-fondo)] disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
           <span>📥</span> Copia de los gastos de los dos (Excel)
         </button>
-        <p className="text-[11px] text-gray-400 -mt-0.5">
+        <p className="text-[11px] text-[var(--tinta-4)] -mt-0.5">
           Sin gastos particulares de nadie. Es la que vale como copia de seguridad y se puede pasar al otro.
         </p>
         <button onClick={() => exportarExcel(soloMios(transacciones), `mis_gastos_${hoy()}.xlsx`)}
           disabled={soloMios(transacciones).length === 0}
-          className="w-full py-2.5 bg-gray-50 border border-gray-200 text-gray-600 font-semibold rounded-xl active:bg-gray-100 disabled:opacity-40 flex items-center justify-center gap-2 text-sm mt-2">
+          className="w-full py-2.5 bg-[var(--superficie-2)] border border-[var(--linea)] text-[var(--tinta-3)] font-semibold rounded-xl active:bg-[var(--superficie-3)] disabled:opacity-40 flex items-center justify-center gap-2 text-sm mt-2">
           <span>📥</span> Solo mis apuntes personales (Excel)
         </button>
-        <p className="text-[11px] text-gray-400 -mt-0.5">
+        <p className="text-[11px] text-[var(--tinta-4)] -mt-0.5">
           Tuyos y de nadie más. No lo compartas si no quieres que se vean.
         </p>
       </div>

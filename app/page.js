@@ -532,7 +532,7 @@ export default function Home() {
 
       {/* Cabecera oscura */}
       {!mostrarFormulario && (
-        <header className="bg-[#0d1b2a] px-5 pt-8 pb-4">
+        <header className="bg-[var(--superficie)] px-5 pt-8 pb-4">
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-[10px] text-white/40 uppercase tracking-widest font-medium">Control de gastos</p>
@@ -553,7 +553,7 @@ export default function Home() {
           {/* Balance */}
           <div className="mb-3">
             <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Balance {mesNombre}</p>
-            <p className={`text-3xl font-black tracking-tight ${balanceMes.balance >= 0 ? 'text-white' : 'text-red-300'}`}>
+            <p className={`text-3xl font-black tracking-tight ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#E08A9E]'}`}>
               {ocultar(mostrarCifras, `${balanceMes.balance >= 0 ? '+' : ''}${euros(balanceMes.balance)} €`)}
             </p>
           </div>
@@ -562,11 +562,11 @@ export default function Home() {
           <div className="flex gap-2">
             <div className="flex items-center gap-1.5 bg-white/8 rounded-xl px-2.5 py-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-              <span className="text-xs text-emerald-300 font-semibold">↑ {ocultar(mostrarCifras, `${euros(balanceMes.ingresos)} €`)}</span>
+              <span className="text-xs text-[var(--ingreso)] font-semibold">↑ {ocultar(mostrarCifras, `${euros(balanceMes.ingresos)} €`)}</span>
             </div>
             <div className="flex items-center gap-1.5 bg-white/8 rounded-xl px-2.5 py-1">
               <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
-              <span className="text-xs text-red-300 font-semibold">↓ {ocultar(mostrarCifras, `${euros(balanceMes.gastos)} €`)}</span>
+              <span className="text-xs text-[#E08A9E] font-semibold">↓ {ocultar(mostrarCifras, `${euros(balanceMes.gastos)} €`)}</span>
             </div>
           </div>
         </header>
@@ -574,27 +574,27 @@ export default function Home() {
 
       {/* Aviso almacenamiento Supabase */}
       {avisoAlmacenamiento && (
-        <div className="mx-4 mt-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-start gap-3">
+        <div className="mx-4 mt-3 bg-[var(--aviso-fondo)] border border-[var(--aviso-linea)] rounded-2xl px-4 py-3 flex items-start gap-3">
           <span className="text-lg mt-0.5">⚠️</span>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-amber-800">Almacenamiento al 75%</p>
-            <p className="text-xs text-amber-600 mt-0.5">El espacio de fotos de tickets está casi lleno. Considera borrar fotos antiguas o ampliar el plan de Supabase.</p>
+            <p className="text-sm font-semibold text-[var(--aviso)]">Almacenamiento al 75%</p>
+            <p className="text-xs text-[var(--aviso)] mt-0.5">El espacio de fotos de tickets está casi lleno. Considera borrar fotos antiguas o ampliar el plan de Supabase.</p>
           </div>
-          <button onClick={() => setAvisoAlmacenamiento(false)} className="text-amber-400 text-sm font-bold shrink-0">✕</button>
+          <button onClick={() => setAvisoAlmacenamiento(false)} className="text-[var(--aviso)] text-sm font-bold shrink-0">✕</button>
         </div>
       )}
 
       {avisoEscaner && (
-        <div className="mx-4 mt-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-start gap-3">
+        <div className="mx-4 mt-3 bg-[var(--aviso-fondo)] border border-[var(--aviso-linea)] rounded-2xl px-4 py-3 flex items-start gap-3">
           <span className="text-lg mt-0.5">📸</span>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-amber-800">El escáner va con el modelo de reserva</p>
-            <p className="text-xs text-amber-600 mt-0.5">
+            <p className="text-sm font-semibold text-[var(--aviso)]">El escáner va con el modelo de reserva</p>
+            <p className="text-xs text-[var(--aviso)] mt-0.5">
               El principal ha dejado de responder. Los tickets se siguen leyendo, pero conviene
               actualizarlo antes de que la reserva también se retire. Avisad a Toni.
             </p>
           </div>
-          <button onClick={() => setAvisoEscaner(false)} className="text-amber-400 text-sm font-bold shrink-0">✕</button>
+          <button onClick={() => setAvisoEscaner(false)} className="text-[var(--aviso)] text-sm font-bold shrink-0">✕</button>
         </div>
       )}
 
@@ -606,19 +606,19 @@ export default function Home() {
             <div className="space-y-2 mb-3">
               <div className="flex gap-2">
                 <div className="flex-1 relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-sm">🔍</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--tinta-5)] text-sm">🔍</span>
                   <input
                     type="text" value={busqueda} onChange={e => setBusqueda(e.target.value)}
                     placeholder="Buscar apuntes..."
-                    className="w-full pl-9 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full pl-9 pr-8 py-2.5 bg-[var(--superficie)] border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]"
                   />
                   {busqueda && (
                     <button onClick={() => setBusqueda('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-300 text-xs font-bold">✕</button>
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--tinta-5)] text-xs font-bold">✕</button>
                   )}
                 </div>
                 <button onClick={() => setMostrarFiltros(f => !f)}
-                  className={`relative px-3.5 py-2.5 rounded-xl border text-sm font-semibold transition-colors ${filtrosActivos > 0 || mostrarFiltros ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-500 border-gray-200'}`}>
+                  className={`relative px-3.5 py-2.5 rounded-xl border text-sm font-semibold transition-colors ${filtrosActivos > 0 || mostrarFiltros ? 'bg-[var(--superficie)] text-white border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-3)] border-[var(--linea)]'}`}>
                   ⚙️
                   {filtrosActivos > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -629,14 +629,14 @@ export default function Home() {
               </div>
 
               {mostrarFiltros && (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 space-y-3">
+                <div className="bg-[var(--superficie)] rounded-2xl border border-[var(--linea-2)] shadow-sm p-3 space-y-3">
                   {/* Quién */}
                   <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Quién</p>
+                    <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-wide mb-1.5">Quién</p>
                     <div className="flex gap-1.5">
                       {['', 'Cris', 'Adri', 'Auto'].map(q => (
                         <button key={q} onClick={() => setFiltros(f => ({ ...f, quien: q }))}
-                          className={`flex-1 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${filtros.quien === q ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                          className={`flex-1 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${filtros.quien === q ? 'bg-[var(--superficie)] text-white border-[var(--acento)]' : 'bg-[var(--superficie-2)] text-[var(--tinta-3)] border-[var(--linea)]'}`}>
                           {q || 'Todos'}
                         </button>
                       ))}
@@ -645,9 +645,9 @@ export default function Home() {
 
                   {/* Categoría */}
                   <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Categoría</p>
+                    <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-wide mb-1.5">Categoría</p>
                     <select value={filtros.categoria} onChange={e => setFiltros(f => ({ ...f, categoria: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                      className="w-full px-3 py-2 border border-[var(--linea)] rounded-xl text-sm bg-[var(--superficie)] focus:outline-none focus:ring-2 focus:ring-[var(--acento)]">
                       <option value="">Todas</option>
                       {categoriasFiltro.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
@@ -655,9 +655,9 @@ export default function Home() {
 
                   {/* Medio de pago */}
                   <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Medio de pago</p>
+                    <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-wide mb-1.5">Medio de pago</p>
                     <select value={filtros.medio_pago} onChange={e => setFiltros(f => ({ ...f, medio_pago: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                      className="w-full px-3 py-2 border border-[var(--linea)] rounded-xl text-sm bg-[var(--superficie)] focus:outline-none focus:ring-2 focus:ring-[var(--acento)]">
                       <option value="">Todos</option>
                       {mediosFiltro.map(m => <option key={m} value={m}>{m}</option>)}
                     </select>
@@ -665,7 +665,7 @@ export default function Home() {
 
                   {filtrosActivos > 0 && (
                     <button onClick={() => setFiltros({ categoria: '', quien: '', medio_pago: '' })}
-                      className="w-full py-2 text-sm text-red-500 font-semibold border border-red-200 rounded-xl bg-red-50">
+                      className="w-full py-2 text-sm text-[var(--gasto)] font-semibold border border-[#5A2C3C] rounded-xl bg-[#3A2230]">
                       Limpiar filtros
                     </button>
                   )}
@@ -673,7 +673,7 @@ export default function Home() {
               )}
 
               {(busqueda || filtrosActivos > 0) && !cargando && (
-                <p className="text-xs text-gray-400 px-1">
+                <p className="text-xs text-[var(--tinta-4)] px-1">
                   {transaccionesFiltradas.length} resultado{transaccionesFiltradas.length !== 1 ? 's' : ''}
                 </p>
               )}
@@ -693,7 +693,7 @@ export default function Home() {
           <div>
             {/* Cabecera baja a propósito: en esta pantalla lo que hace falta es
                 sitio para los campos, no un título grande. */}
-            <div className="bg-[#0d1b2a] px-5 pt-5 pb-3 -mx-4 -mt-4 mb-3">
+            <div className="bg-[var(--superficie)] px-5 pt-5 pb-3 -mx-4 -mt-4 mb-3">
               <h1 className="text-base font-bold text-white">
                 {transaccionEditar ? 'Editar apunte' : 'Nuevo apunte'}
               </h1>
@@ -738,7 +738,7 @@ export default function Home() {
       </main>
 
       {/* Barra de navegación inferior */}
-      {!mostrarFormulario && <nav className="fixed bottom-0 left-0 right-0 bg-white max-w-lg mx-auto shadow-lg">
+      {!mostrarFormulario && <nav className="fixed bottom-0 left-0 right-0 bg-[var(--superficie)] max-w-lg mx-auto shadow-lg">
         {/* Chip evento activo */}
         {eventoActivo && (
           <div className="px-4 pt-3 pb-2 bg-gradient-to-r from-orange-500 to-amber-400">
@@ -765,7 +765,7 @@ export default function Home() {
                 </div>
                 <div className="h-1.5 bg-white/30 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-white rounded-full transition-all"
+                    className="h-full bg-[var(--superficie)] rounded-full transition-all"
                     style={{ width: `${Math.min(100, (gastoEvento / eventoActivo.presupuesto) * 100)}%` }}
                   />
                 </div>
@@ -777,23 +777,26 @@ export default function Home() {
             )}
           </div>
         )}
-        <div className="flex items-center h-16 border-t border-gray-100">
+        <div className="flex items-center h-16 border-t border-[var(--linea-2)]">
           {navItems.map((item, i) => (
             <React.Fragment key={item.id}>
               {i === 1 && (
                 <button
                   onClick={() => { setTransaccionEditar(null); setVista('nuevo') }}
                   className="flex flex-col items-center justify-center px-6">
-                  <span className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl font-light shadow-lg -mt-6 transition-colors ${vista === 'nuevo' ? 'bg-[#0a1520]' : 'bg-[#0d1b2a]'}`}
-                    style={{ boxShadow: '0 4px 16px rgba(13,27,42,0.4)' }}>
-                    <span className="text-white">+</span>
+                  {/* El "+" es el botón más importante de la app, así que lleva
+                      el color del acento: sobre un fondo oscuro, un círculo
+                      oscuro con un "+" blanco desaparecería. */}
+                  <span className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl font-light shadow-lg -mt-6 transition-colors ${vista === 'nuevo' ? 'bg-[var(--acento)] opacity-80' : 'bg-[var(--acento)]'}`}
+                    style={{ boxShadow: '0 6px 18px rgba(255,194,75,0.28)' }}>
+                    <span className="text-[var(--acento-tinta)]">+</span>
                   </span>
-                  <span className="text-[10px] text-[#0d1b2a] font-medium mt-0.5">Nuevo</span>
+                  <span className="text-[10px] text-[var(--tinta-4)] font-medium mt-0.5">Nuevo</span>
                 </button>
               )}
               <button
                 onClick={() => cambiarVista(item.id)}
-                className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${vista === item.id && !mostrarFormulario ? 'text-[#0d1b2a]' : 'text-gray-300'}`}>
+                className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors ${vista === item.id && !mostrarFormulario ? 'text-[var(--acento)]' : 'text-[var(--tinta-5)]'}`}>
                 <span className="text-xl">{item.emoji}</span>
                 {item.label}
               </button>
@@ -804,7 +807,7 @@ export default function Home() {
 
       {/* Toast confirmación */}
       {toast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl animate-fade-in">
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--superficie-4)] text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl animate-fade-in">
           {toast}
         </div>
       )}
@@ -816,10 +819,10 @@ export default function Home() {
       {mostrarResumenMes && resumenMes && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={cerrarResumenMes} />
-          <div className="relative w-full max-w-lg bg-white rounded-t-3xl px-6 pt-6 pb-10 shadow-2xl animate-fade-in">
-            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Se ha cerrado el mes</p>
-            <h2 className="text-lg font-bold text-gray-900 text-center capitalize mb-3">{resumenMes.nombre}</h2>
+          <div className="relative w-full max-w-lg bg-[var(--superficie)] rounded-t-3xl px-6 pt-6 pb-10 shadow-2xl animate-fade-in">
+            <div className="w-10 h-1 bg-[var(--superficie-4)] rounded-full mx-auto mb-5" />
+            <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-widest text-center">Se ha cerrado el mes</p>
+            <h2 className="text-lg font-bold text-[var(--tinta)] text-center capitalize mb-3">{resumenMes.nombre}</h2>
 
             <div className="flex justify-center mb-3">
               <button type="button" onClick={() => setVerCifrasResumen(v => !v)}
@@ -828,18 +831,18 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="bg-red-50 rounded-2xl px-4 py-3 text-center mb-3">
-              <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Gastasteis entre los dos</p>
-              <p className="text-2xl font-bold text-red-500 mt-0.5">
+            <div className="bg-[#3A2230] rounded-2xl px-4 py-3 text-center mb-3">
+              <p className="text-[10px] font-bold text-[var(--gasto)] uppercase tracking-widest">Gastasteis entre los dos</p>
+              <p className="text-2xl font-bold text-[var(--gasto)] mt-0.5">
                 {ocultar(verCifrasResumen, `${euros(resumenMes.total)} €`)}
               </p>
             </div>
 
-            <div className="bg-gray-50 rounded-2xl divide-y divide-gray-100 mb-5">
+            <div className="bg-[var(--superficie-2)] rounded-2xl divide-y divide-[var(--linea-2)] mb-5">
               {resumenMes.puesto.map(([quien, cuanto]) => (
                 <div key={quien} className="flex justify-between items-center px-4 py-2.5">
-                  <span className="text-sm text-gray-500">Puso {quien}</span>
-                  <span className="text-sm font-bold text-gray-800">
+                  <span className="text-sm text-[var(--tinta-3)]">Puso {quien}</span>
+                  <span className="text-sm font-bold text-[var(--tinta)]">
                     {ocultar(verCifrasResumen, `${euros(cuanto)} €`)}
                   </span>
                 </div>
@@ -851,13 +854,13 @@ export default function Home() {
                 el botón de saldar: no habría nada que saldar. */}
             {deuda.importe >= 0.01 ? (
               <>
-                <div className="bg-[#0d1b2a] rounded-2xl px-4 py-3 text-center mb-4">
+                <div className="bg-[var(--superficie)] rounded-2xl px-4 py-3 text-center mb-4">
                   {/* Lo de arriba es de este mes; esto NO. La deuda se cuenta
                       desde el primer día, así que hay que decirlo o parece que
                       las tres cifras hablan del mismo periodo. La misma
                       coletilla que lleva la tarjeta de Informes. */}
-                  <p className="text-[10px] font-bold text-[#8fa6c9] uppercase tracking-widest">La cuenta de los dos</p>
-                  <p className="text-[10px] text-[#8fa6c9] mb-1">
+                  <p className="text-[10px] font-bold text-[var(--tinta-4)] uppercase tracking-widest">La cuenta de los dos</p>
+                  <p className="text-[10px] text-[var(--tinta-4)] mb-1">
                     {ultimoCierre
                       ? `Desde el cierre del ${new Date(ultimoCierre.created_at).toLocaleDateString('es', { day: 'numeric', month: 'long' })}`
                       : 'En total, desde el principio'}
@@ -868,12 +871,12 @@ export default function Home() {
                 </div>
                 <button
                   onClick={() => { cerrarResumenMes(); setAbrirInformesEn({ saldar: true }); setVista('balance') }}
-                  className="w-full py-3.5 bg-teal-600 text-white font-bold rounded-2xl text-sm mb-2.5">
+                  className="w-full py-3.5 bg-[var(--dinero)] text-[var(--dinero-tinta)] font-bold rounded-2xl text-sm mb-2.5">
                   🤝 Saldar cuentas
                 </button>
               </>
             ) : (
-              <div className="bg-[#0d1b2a] rounded-2xl px-4 py-3 text-center mb-4">
+              <div className="bg-[var(--superficie)] rounded-2xl px-4 py-3 text-center mb-4">
                 <p className="text-base font-bold text-white">Estáis en paz</p>
               </div>
             )}
@@ -882,10 +885,10 @@ export default function Home() {
                 acaba de cerrarse. Así no hacen falta dos ventanas seguidas. */}
             <button
               onClick={() => { cerrarResumenMes(); setAbrirInformesEn({ vista: 'historico' }); setVista('informes') }}
-              className="w-full py-3.5 bg-[#0d1b2a] text-white font-bold rounded-2xl text-sm mb-2.5">
+              className="w-full py-3.5 bg-[var(--superficie)] text-white font-bold rounded-2xl text-sm mb-2.5">
               📥 Descargar la copia
             </button>
-            <button onClick={cerrarResumenMes} className="w-full py-3 text-gray-400 font-medium text-sm">
+            <button onClick={cerrarResumenMes} className="w-full py-3 text-[var(--tinta-4)] font-medium text-sm">
               Ahora no
             </button>
           </div>
@@ -895,17 +898,17 @@ export default function Home() {
       {mostrarRecordatorioCopia && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={posponerRecordatorio} />
-          <div className="relative w-full max-w-lg bg-white rounded-t-3xl px-6 pt-6 pb-10 shadow-2xl animate-fade-in">
-            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+          <div className="relative w-full max-w-lg bg-[var(--superficie)] rounded-t-3xl px-6 pt-6 pb-10 shadow-2xl animate-fade-in">
+            <div className="w-10 h-1 bg-[var(--superficie-4)] rounded-full mx-auto mb-5" />
             {/* A partir de dos meses el aviso cambia de tono. No hay copias
                 automáticas a propósito (una copia entera dejaría ver los gastos
                 personales del otro), así que esto es lo único que hay entre
                 vosotros y perder la contabilidad. */}
             <div className="text-4xl text-center mb-3">{mesesSinCopia >= 2 ? '⚠️' : '💾'}</div>
-            <h2 className={`text-lg font-bold text-center mb-1 ${mesesSinCopia >= 2 ? 'text-red-600' : 'text-gray-900'}`}>
+            <h2 className={`text-lg font-bold text-center mb-1 ${mesesSinCopia >= 2 ? 'text-[var(--gasto)]' : 'text-[var(--tinta)]'}`}>
               {mesesSinCopia >= 2 ? 'Lleváis sin copia de seguridad' : 'Copia de seguridad'}
             </h2>
-            <p className={`text-sm text-center mb-6 ${mesesSinCopia >= 2 ? 'text-gray-700' : 'text-gray-500'}`}>
+            <p className={`text-sm text-center mb-6 ${mesesSinCopia >= 2 ? 'text-[var(--tinta-2)]' : 'text-[var(--tinta-3)]'}`}>
               {mesesSinCopia >= 99
                 ? <>Todavía no habéis descargado ninguna copia. Si algo le pasara al servidor, <b>no habría forma de recuperar nada</b>.</>
                 : mesesSinCopia >= 2
@@ -914,12 +917,12 @@ export default function Home() {
             </p>
             <button
               onClick={() => { setMostrarRecordatorioCopia(false); setAbrirInformesEn({ vista: 'historico' }); setVista('informes') }}
-              className={`w-full py-3.5 text-white font-bold rounded-2xl text-sm mb-3 ${mesesSinCopia >= 2 ? 'bg-red-600' : 'bg-[#0d1b2a]'}`}>
+              className={`w-full py-3.5 text-white font-bold rounded-2xl text-sm mb-3 ${mesesSinCopia >= 2 ? 'bg-red-600' : 'bg-[var(--superficie)]'}`}>
               📥 Ir a Informes y descargar
             </button>
             <button
               onClick={posponerRecordatorio}
-              className="w-full py-3 text-gray-400 font-medium text-sm">
+              className="w-full py-3 text-[var(--tinta-4)] font-medium text-sm">
               {mesesSinCopia >= 2 ? 'Ahora no puedo' : 'Recordar la próxima vez que entre'}
             </button>
           </div>

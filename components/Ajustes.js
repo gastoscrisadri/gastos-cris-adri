@@ -83,20 +83,20 @@ export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mo
           nada, se puede corregir. Así, quien le dé al botón equivocado el día
           que instala la app lo arregla él mismo, sin tener que pedir que le
           toquen la base de datos. */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Yo soy</p>
+      <div className="bg-[var(--superficie)] border border-[var(--linea)] rounded-2xl p-4 mb-4">
+        <p className="text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Yo soy</p>
 
         {nombreCerrado ? (
           <>
-            <p className="text-lg font-bold text-[#0d1b2a]">{duenoMovil}</p>
-            <p className="text-xs text-gray-400 mt-1 leading-snug">
+            <p className="text-lg font-bold text-[var(--acento)]">{duenoMovil}</p>
+            <p className="text-xs text-[var(--tinta-4)] mt-1 leading-snug">
               Va unido a tu cuenta, no a este móvil: entres desde donde entres, eres tú.
               Ya no se puede cambiar, porque tus apuntes cuelgan de este nombre.
             </p>
           </>
         ) : (
           <>
-            <p className="text-xs text-gray-400 mb-2.5">
+            <p className="text-xs text-[var(--tinta-4)] mb-2.5">
               Queda unido a tu cuenta: entres desde donde entres, eres tú.
               {nombreEsDeLaCuenta(usuario)
                 ? ' Todavía puedes corregirlo, pero en cuanto apuntes tu primer gasto se quedará fijo.'
@@ -105,32 +105,32 @@ export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mo
             <div className="flex gap-2">
               {NOMBRES.map(nombre => (
                 <button key={nombre} type="button" onClick={() => elegirDueno(nombre)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${duenoMovil === nombre ? 'bg-[#0d1b2a] text-white border-[#0d1b2a]' : 'bg-white text-gray-400 border-gray-200'}`}>
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${duenoMovil === nombre ? 'bg-[var(--superficie)] text-white border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
                   {nombre}
                 </button>
               ))}
             </div>
             {!duenoMovil && (
-              <p className="text-xs text-amber-600 mt-2">Sin elegir: al crear un apunte se preguntará cada vez.</p>
+              <p className="text-xs text-[var(--aviso)] mt-2">Sin elegir: al crear un apunte se preguntará cada vez.</p>
             )}
             {duenoMovil && !nombreEsDeLaCuenta(usuario) && (
-              <p className="text-xs text-gray-400 mt-2">Toca tu nombre para dejarlo guardado en tu cuenta.</p>
+              <p className="text-xs text-[var(--tinta-4)] mt-2">Toca tu nombre para dejarlo guardado en tu cuenta.</p>
             )}
           </>
         )}
-        {avisoNombre && <p className="text-xs text-amber-600 mt-2">{avisoNombre}</p>}
+        {avisoNombre && <p className="text-xs text-[var(--aviso)] mt-2">{avisoNombre}</p>}
       </div>
 
       {/* Mi contraseña */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Mi contraseña</p>
-        <p className="text-xs text-gray-400 mb-2.5">
+      <div className="bg-[var(--superficie)] border border-[var(--linea)] rounded-2xl p-4 mb-4">
+        <p className="text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Mi contraseña</p>
+        <p className="text-xs text-[var(--tinta-4)] mb-2.5">
           Ponte una que solo sepas tú. Es lo que hace que tus gastos personales sean tuyos.
         </p>
 
         {!mostrarClave ? (
           <button type="button" onClick={() => { setMostrarClave(true); setEstadoClave(null) }}
-            className="w-full py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-500">
+            className="w-full py-2.5 rounded-xl text-sm font-semibold border border-[var(--linea)] text-[var(--tinta-3)]">
             Cambiar mi contraseña
           </button>
         ) : (
@@ -138,24 +138,24 @@ export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mo
             <input type="password" value={clave} autoComplete="new-password"
               onChange={e => { setClave(e.target.value); setEstadoClave(null) }}
               placeholder="Contraseña nueva"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              className="w-full px-3 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
             <input type="password" value={claveRepetida} autoComplete="new-password"
               onChange={e => { setClaveRepetida(e.target.value); setEstadoClave(null) }}
               placeholder="Repítela"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              className="w-full px-3 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
 
             {estadoClave && estadoClave !== 'ok' && estadoClave !== 'guardando' && (
-              <p className="text-xs text-red-500">{estadoClave}</p>
+              <p className="text-xs text-[var(--gasto)]">{estadoClave}</p>
             )}
 
             <div className="flex gap-2">
               <button type="button" onClick={cambiarContrasena} disabled={estadoClave === 'guardando'}
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[#0d1b2a] text-white disabled:opacity-50">
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[var(--superficie)] text-white disabled:opacity-50">
                 {estadoClave === 'guardando' ? 'Guardando…' : 'Guardar'}
               </button>
               <button type="button"
                 onClick={() => { setMostrarClave(false); setClave(''); setClaveRepetida(''); setEstadoClave(null) }}
-                className="px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-500">
+                className="px-4 py-2.5 rounded-xl text-sm font-medium border border-[var(--linea)] text-[var(--tinta-3)]">
                 Cancelar
               </button>
             </div>
@@ -163,17 +163,17 @@ export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mo
         )}
 
         {estadoClave === 'ok' && (
-          <p className="text-xs text-emerald-600 font-semibold mt-2">
+          <p className="text-xs text-[var(--ingreso)] font-semibold mt-2">
             ✓ Contraseña cambiada. A partir de ahora entras con la nueva.
           </p>
         )}
       </div>
 
       {/* Sub-navegación */}
-      <div className="grid grid-cols-4 gap-1 bg-gray-100 rounded-2xl p-1 mb-5">
+      <div className="grid grid-cols-4 gap-1 bg-[var(--superficie-3)] rounded-2xl p-1 mb-5">
         {SECCIONES.map(s => (
           <button key={s.id} onClick={() => setSeccion(s.id)}
-            className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl text-xs font-semibold transition-colors ${seccion === s.id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>
+            className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-xl text-xs font-semibold transition-colors ${seccion === s.id ? 'bg-[var(--superficie)] text-[var(--tinta)] shadow-sm' : 'text-[var(--tinta-4)]'}`}>
             <span>{s.emoji}</span>
             <span>{s.label}</span>
           </button>
@@ -190,12 +190,12 @@ export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mo
           ocultar las cifras. Aquí abajo hay que venir a propósito, que es lo
           que toca para algo que te obliga a volver a escribir la contraseña. */}
       {onCerrarSesion && (
-        <div className="mt-8 pt-5 border-t border-gray-100">
+        <div className="mt-8 pt-5 border-t border-[var(--linea-2)]">
           <button type="button" onClick={onCerrarSesion}
-            className="w-full py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-400">
+            className="w-full py-2.5 rounded-xl text-sm font-semibold border border-[var(--linea)] text-[var(--tinta-4)]">
             Salir de la cuenta
           </button>
-          <p className="text-[11px] text-gray-400 mt-2 text-center leading-snug">
+          <p className="text-[11px] text-[var(--tinta-4)] mt-2 text-center leading-snug">
             Solo hace falta si vais a entrar con la otra cuenta en este móvil.
             Para volver a entrar tendrás que escribir tu correo y tu contraseña.
           </p>

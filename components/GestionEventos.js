@@ -73,30 +73,30 @@ export default function GestionEventos({ onVerDetalle, mostrarCifras }) {
     <div className="pb-24 space-y-4">
       <div className="flex items-center justify-between pt-1">
         <div>
-          <h2 className="text-base font-bold text-gray-900">Eventos</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Viajes, reformas, celebraciones…</p>
+          <h2 className="text-base font-bold text-[var(--tinta)]">Eventos</h2>
+          <p className="text-xs text-[var(--tinta-4)] mt-0.5">Viajes, reformas, celebraciones…</p>
         </div>
         <button
           onClick={() => setFormulario('nuevo')}
-          className="px-4 py-2 bg-[#0d1b2a] text-white text-sm font-semibold rounded-xl">
+          className="px-4 py-2 bg-[var(--superficie)] text-white text-sm font-semibold rounded-xl">
           + Nuevo
         </button>
       </div>
 
       {cargando ? (
         <div className="flex justify-center mt-10">
-          <div className="w-6 h-6 border-2 border-[#0d1b2a] border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-[var(--acento)] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : activos.length === 0 && archivados.length === 0 ? (
-        <div className="text-center mt-16 text-gray-400 space-y-2">
+        <div className="text-center mt-16 text-[var(--tinta-4)] space-y-2">
           <div className="text-5xl">🎯</div>
-          <p className="font-medium text-gray-500">No hay eventos</p>
+          <p className="font-medium text-[var(--tinta-3)]">No hay eventos</p>
           <p className="text-sm">Crea uno para agrupar gastos de un viaje, reforma…</p>
         </div>
       ) : (
         <>
           {activos.length > 0 && (
-            <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+            <div className="bg-[var(--superficie)] rounded-2xl overflow-hidden shadow-sm border border-[var(--linea-2)]">
               {activos.map((ev, idx) => (
                 <EventoFila
                   key={ev.id}
@@ -116,12 +116,12 @@ export default function GestionEventos({ onVerDetalle, mostrarCifras }) {
             <div>
               <button
                 onClick={() => setMostrarArchivados(v => !v)}
-                className="text-xs text-gray-400 font-medium flex items-center gap-1 py-1">
+                className="text-xs text-[var(--tinta-4)] font-medium flex items-center gap-1 py-1">
                 <span>{mostrarArchivados ? '▾' : '▸'}</span>
                 <span>Archivados ({archivados.length})</span>
               </button>
               {mostrarArchivados && (
-                <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 mt-2">
+                <div className="bg-[var(--superficie)] rounded-2xl overflow-hidden shadow-sm border border-[var(--linea-2)] mt-2">
                   {archivados.map((ev, idx) => (
                     <EventoFila
                       key={ev.id}
@@ -148,52 +148,52 @@ function EventoFila({ ev, idx, onEditar, onToggleActivo, onArchivar, onVerDetall
   const [expandido, setExpandido] = useState(false)
 
   return (
-    <div className={`${idx > 0 ? 'border-t border-gray-50' : ''}`}>
+    <div className={`${idx > 0 ? 'border-t border-[var(--linea-3)]' : ''}`}>
       <div
         className={`flex items-center gap-3 px-4 py-3 ${ev.archivado ? 'opacity-50' : ''}`}
         onClick={() => setExpandido(v => !v)}>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             {ev.activo && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--comun-fondo)] text-[var(--comun)]">
                 Activo
               </span>
             )}
-            <p className="font-semibold text-gray-900 text-sm truncate">{ev.nombre}</p>
+            <p className="font-semibold text-[var(--tinta)] text-sm truncate">{ev.nombre}</p>
           </div>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-xs text-[var(--tinta-4)] mt-0.5">
             {ev.fecha_inicio ? new Date(ev.fecha_inicio + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : ''}
             {ev.fecha_inicio && ev.fecha_fin ? ' → ' : ''}
             {ev.fecha_fin ? new Date(ev.fecha_fin + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
             {ev.presupuesto ? ` · ${ocultar(mostrarCifras, `${Number(ev.presupuesto).toLocaleString('es-ES', { minimumFractionDigits: 0 })} €`)} presup.` : ''}
           </p>
         </div>
-        <span className="text-gray-300 text-xs">{expandido ? '▾' : '▸'}</span>
+        <span className="text-[var(--tinta-5)] text-xs">{expandido ? '▾' : '▸'}</span>
       </div>
 
       {expandido && (
         <div className="px-4 pb-3 flex gap-2 flex-wrap">
           <button
             onClick={onVerDetalle}
-            className="text-xs px-3 py-1.5 bg-orange-50 text-orange-600 rounded-lg font-medium">
+            className="text-xs px-3 py-1.5 bg-[var(--aviso-fondo)] text-[var(--aviso)] rounded-lg font-medium">
             Ver detalle
           </button>
           <button
             onClick={onEditar}
-            className="text-xs px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg font-medium">
+            className="text-xs px-3 py-1.5 bg-[var(--info-fondo)] text-[var(--acento)] rounded-lg font-medium">
             Editar
           </button>
           {!ev.archivado && (
             <button
               onClick={onToggleActivo}
-              className={`text-xs px-3 py-1.5 rounded-lg font-medium ${ev.activo ? 'bg-gray-100 text-gray-500' : 'bg-emerald-50 text-emerald-600'}`}>
+              className={`text-xs px-3 py-1.5 rounded-lg font-medium ${ev.activo ? 'bg-[var(--superficie-3)] text-[var(--tinta-3)]' : 'bg-[var(--comun-fondo)] text-[var(--ingreso)]'}`}>
               {ev.activo ? 'Desactivar' : 'Activar'}
             </button>
           )}
           {!ev.archivado && !ev.activo && (
             <button
               onClick={onArchivar}
-              className="text-xs px-3 py-1.5 bg-orange-50 text-orange-500 rounded-lg font-medium">
+              className="text-xs px-3 py-1.5 bg-[var(--aviso-fondo)] text-orange-500 rounded-lg font-medium">
               Archivar
             </button>
           )}
@@ -240,50 +240,50 @@ function FormEvento({ inicial, onGuardado, onCancelar }) {
 
   return (
     <div className="space-y-3 pb-28">
-      <h2 className="text-base font-bold text-gray-900 mb-2">
+      <h2 className="text-base font-bold text-[var(--tinta)] mb-2">
         {esEdicion ? 'Editar evento' : 'Nuevo evento'}
       </h2>
 
       <div>
-        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Nombre</label>
+        <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Nombre</label>
         <input type="text" value={form.nombre} onChange={e => set('nombre', e.target.value)}
           placeholder="Viaje a Roma, Reforma cocina…"
-          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          className="w-full px-3 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Inicio (opcional)</label>
+          <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Inicio (opcional)</label>
           <input type="date" value={form.fecha_inicio} onChange={e => set('fecha_inicio', e.target.value)}
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            className="w-full px-3 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Fin (opcional)</label>
+          <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Fin (opcional)</label>
           <input type="date" value={form.fecha_fin} onChange={e => set('fecha_fin', e.target.value)}
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            className="w-full px-3 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Presupuesto (opcional)</label>
+        <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Presupuesto (opcional)</label>
         <div className="relative">
           <input type="text" inputMode="decimal" value={form.presupuesto}
             onChange={e => set('presupuesto', e.target.value)}
             placeholder="0"
-            className="w-full pl-4 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-300 font-bold">€</span>
+            className="w-full pl-4 pr-10 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-[var(--tinta-5)] font-bold">€</span>
         </div>
       </div>
 
-      {error && <p className="text-red-500 text-sm bg-red-50 rounded-xl p-3">{error}</p>}
+      {error && <p className="text-[var(--gasto)] text-sm bg-[#3A2230] rounded-xl p-3">{error}</p>}
 
       <div className="flex gap-3 pt-1">
         <button type="button" onClick={onCancelar}
-          className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 font-medium">
+          className="flex-1 py-2.5 border border-[var(--linea)] rounded-xl text-sm text-[var(--tinta-3)] font-medium">
           Cancelar
         </button>
         <button type="button" onClick={guardar} disabled={guardando}
-          className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50 shadow-sm">
+          className="flex-1 py-2.5 bg-[var(--acento)] text-[var(--acento-tinta)] rounded-xl text-sm font-semibold disabled:opacity-50 shadow-sm">
           {guardando ? 'Guardando...' : 'Guardar'}
         </button>
       </div>

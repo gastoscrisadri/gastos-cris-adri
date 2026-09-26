@@ -70,25 +70,25 @@ export default function NuevaClavePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-gradient-to-b from-[var(--info-fondo)] to-white">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🔑</div>
-          <h1 className="text-2xl font-bold text-gray-900">Nueva contraseña</h1>
+          <h1 className="text-2xl font-bold text-[var(--tinta)]">Nueva contraseña</h1>
         </div>
 
         {estado === 'comprobando' && (
-          <p className="text-sm text-gray-400 text-center">Comprobando el enlace…</p>
+          <p className="text-sm text-[var(--tinta-4)] text-center">Comprobando el enlace…</p>
         )}
 
         {estado === 'sinEnlace' && (
           <div className="text-center space-y-4">
-            <p className="text-sm text-gray-600 bg-amber-50 border border-amber-200 rounded-2xl p-4 leading-snug">
+            <p className="text-sm text-[var(--tinta-3)] bg-[var(--aviso-fondo)] border border-[var(--aviso-linea)] rounded-2xl p-4 leading-snug">
               Este enlace no vale o ha caducado. Los enlaces duran poco rato a propósito.
               Vuelve a pedir uno desde la pantalla de entrada.
             </p>
             <button onClick={() => router.push('/login')}
-              className="w-full py-4 bg-blue-600 text-white rounded-2xl text-base font-bold shadow-md">
+              className="w-full py-4 bg-[var(--acento)] text-[var(--acento-tinta)] rounded-2xl text-base font-bold shadow-md">
               Volver a la entrada
             </button>
           </div>
@@ -97,31 +97,31 @@ export default function NuevaClavePage() {
         {estado === 'listo' && !hecho && (
           <form onSubmit={guardar} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Contraseña nueva</label>
+              <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1.5">Contraseña nueva</label>
               <input type="password" required value={clave} autoComplete="new-password"
                 onChange={e => setClave(e.target.value)}
-                className="w-full px-4 py-3.5 border border-gray-200 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                className="w-full px-4 py-3.5 border border-[var(--linea)] rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-[var(--acento)] bg-[var(--superficie)]"
                 placeholder="••••••••" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Repítela</label>
+              <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1.5">Repítela</label>
               <input type="password" required value={repetida} autoComplete="new-password"
                 onChange={e => setRepetida(e.target.value)}
-                className="w-full px-4 py-3.5 border border-gray-200 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                className="w-full px-4 py-3.5 border border-[var(--linea)] rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-[var(--acento)] bg-[var(--superficie)]"
                 placeholder="••••••••" />
             </div>
 
-            {error && <p className="text-red-500 text-sm text-center bg-red-50 py-2 rounded-xl">{error}</p>}
+            {error && <p className="text-[var(--gasto)] text-sm text-center bg-[#3A2230] py-2 rounded-xl">{error}</p>}
 
             <button type="submit" disabled={guardando}
-              className="w-full py-4 bg-blue-600 text-white rounded-2xl text-base font-bold disabled:opacity-50 shadow-md mt-2">
+              className="w-full py-4 bg-[var(--acento)] text-[var(--acento-tinta)] rounded-2xl text-base font-bold disabled:opacity-50 shadow-md mt-2">
               {guardando ? 'Guardando…' : 'Guardar y entrar'}
             </button>
           </form>
         )}
 
         {hecho && (
-          <p className="text-sm font-semibold text-emerald-700 text-center bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+          <p className="text-sm font-semibold text-[var(--comun)] text-center bg-[var(--comun-fondo)] border border-[var(--comun)] rounded-2xl p-4">
             Contraseña cambiada. Entrando…
           </p>
         )}
