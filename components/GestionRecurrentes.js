@@ -326,11 +326,11 @@ function FormRecurrente({ inicial, onGuardado, onCancelar }) {
         </div>
       </div>
 
-      {error && <p className="text-[var(--gasto)] text-sm bg-[#6B3E4C] rounded-xl p-3">{error}</p>}
+      {error && <p className="text-[#FFBAC8] text-sm bg-[#6B3E4C] rounded-xl p-3">{error}</p>}
 
       <div className="flex gap-3 pt-1">
         <button type="button" onClick={onCancelar}
-          className="flex-1 py-2.5 border border-[var(--linea)] rounded-xl text-sm text-[var(--tinta-3)] font-medium">
+          className="flex-1 py-2.5 border border-[var(--linea)] rounded-xl text-sm text-[#F0DCE1] font-medium">
           Cancelar
         </button>
         <button type="button" onClick={guardar} disabled={guardando}
@@ -342,13 +342,13 @@ function FormRecurrente({ inicial, onGuardado, onCancelar }) {
       {esEdicion && (
         !confirmando ? (
           <button type="button" onClick={() => setConfirmando(true)}
-            className="w-full py-2.5 bg-[#6B3E4C] border border-[#7A4657] text-[var(--gasto)] rounded-xl text-sm font-semibold">
+            className="w-full py-2.5 bg-[#6B3E4C] border border-[#7A4657] text-[#FFBAC8] rounded-xl text-sm font-semibold">
             🗑️ Eliminar recurrente
           </button>
         ) : (
           <div className="flex gap-3">
             <button type="button" onClick={() => setConfirmando(false)}
-              className="flex-1 py-2.5 border border-[var(--linea)] rounded-xl text-sm text-[var(--tinta-3)] font-medium">
+              className="flex-1 py-2.5 border border-[var(--linea)] rounded-xl text-sm text-[#F0DCE1] font-medium">
               No, cancelar
             </button>
             <button type="button" onClick={eliminar}

@@ -583,7 +583,7 @@ export default function Home() {
                 className="w-[44%] shrink-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3.5 py-3 text-left active:opacity-80 flex flex-col justify-between">
                 <div className="flex items-center justify-between gap-1">
                   <p className="text-[9px] text-[var(--tinta-2)] uppercase tracking-wider font-bold">La cuenta de los dos</p>
-                  <span className="text-[var(--tinta-5)] text-xs shrink-0">›</span>
+                  <span className="text-[var(--tinta-3)] text-xs shrink-0">›</span>
                 </div>
                 {deuda.aRepartir <= 0 || deuda.importe < 0.01 ? (
                   <p className="text-base font-bold text-[var(--ingreso)] mt-2 leading-tight">Estáis en paz</p>
@@ -696,7 +696,7 @@ export default function Home() {
 
                   {filtrosActivos > 0 && (
                     <button onClick={() => setFiltros({ categoria: '', quien: '', medio_pago: '' })}
-                      className="w-full py-2 text-sm text-[var(--gasto)] font-semibold border border-[#7A4657] rounded-xl bg-[#6B3E4C]">
+                      className="w-full py-2 text-sm text-[#FFBAC8] font-semibold border border-[#7A4657] rounded-xl bg-[#6B3E4C]">
                       Limpiar filtros
                     </button>
                   )}
@@ -704,7 +704,7 @@ export default function Home() {
               )}
 
               {(busqueda || filtrosActivos > 0) && !cargando && (
-                <p className="text-xs text-[var(--tinta-4)] px-1">
+                <p className="text-xs text-[#F0DCE1] px-1">
                   {transaccionesFiltradas.length} resultado{transaccionesFiltradas.length !== 1 ? 's' : ''}
                 </p>
               )}
@@ -851,7 +851,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-black/40" onClick={cerrarResumenMes} />
           <div className="relative w-full max-w-lg bg-[var(--superficie)] rounded-t-3xl px-6 pt-6 pb-10 shadow-2xl animate-fade-in">
             <div className="w-10 h-1 bg-[var(--superficie-4)] rounded-full mx-auto mb-5" />
-            <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-widest text-center">Se ha cerrado el mes</p>
+            <p className="text-xs font-bold text-[var(--tinta-2)] uppercase tracking-widest text-center">Se ha cerrado el mes</p>
             <h2 className="text-lg font-bold text-[var(--tinta)] text-center capitalize mb-3">{resumenMes.nombre}</h2>
 
             <div className="flex justify-center mb-3">
@@ -862,8 +862,8 @@ export default function Home() {
             </div>
 
             <div className="bg-[#6B3E4C] rounded-2xl px-4 py-3 text-center mb-3">
-              <p className="text-[10px] font-bold text-[var(--gasto)] uppercase tracking-widest">Gastasteis entre los dos</p>
-              <p className="text-2xl font-bold text-[var(--gasto)] mt-0.5">
+              <p className="text-[10px] font-bold text-[#FFBAC8] uppercase tracking-widest">Gastasteis entre los dos</p>
+              <p className="text-2xl font-bold text-[#FFBAC8] mt-0.5">
                 {ocultar(verCifrasResumen, `${euros(resumenMes.total)} €`)}
               </p>
             </div>
@@ -935,7 +935,7 @@ export default function Home() {
                 personales del otro), así que esto es lo único que hay entre
                 vosotros y perder la contabilidad. */}
             <div className="text-4xl text-center mb-3">{mesesSinCopia >= 2 ? '⚠️' : '💾'}</div>
-            <h2 className={`text-lg font-bold text-center mb-1 ${mesesSinCopia >= 2 ? 'text-[var(--gasto)]' : 'text-[var(--tinta)]'}`}>
+            <h2 className={`text-lg font-bold text-center mb-1 ${mesesSinCopia >= 2 ? 'text-[#FFA1A1]' : 'text-[var(--tinta)]'}`}>
               {mesesSinCopia >= 2 ? 'Lleváis sin copia de seguridad' : 'Copia de seguridad'}
             </h2>
             <p className={`text-sm text-center mb-6 ${mesesSinCopia >= 2 ? 'text-[var(--tinta-2)]' : 'text-[var(--tinta-3)]'}`}>

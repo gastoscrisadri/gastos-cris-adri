@@ -217,7 +217,7 @@ export default function GestionCuentas({ transacciones, mostrarCifras, usuario }
       </div>
 
       {error && (
-        <p className="text-xs text-[var(--gasto)] bg-[#6B3E4C] border border-[#7A4657] rounded-xl px-3 py-2">{error}</p>
+        <p className="text-xs text-[#FFBAC8] bg-[#6B3E4C] border border-[#7A4657] rounded-xl px-3 py-2">{error}</p>
       )}
 
       {/* Añadir cuenta */}
@@ -280,7 +280,7 @@ function SaldoEditor({ valor, onGuardar, mostrarCifras }) {
     return (
       <button onClick={() => setEditando(true)}
         className="flex items-center gap-1.5 text-xs text-[var(--acento)] font-semibold border border-[var(--info-linea)] rounded-lg px-2.5 py-1 bg-[var(--info-fondo)]">
-        {ocultar(mostrarCifras, `${euros(valor)} €`)} <span className="text-[var(--adri)]">✏️</span>
+        {ocultar(mostrarCifras, `${euros(valor)} €`)} <span className="text-[#BFE3FA]">✏️</span>
       </button>
     )
   }

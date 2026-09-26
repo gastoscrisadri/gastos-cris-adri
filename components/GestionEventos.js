@@ -161,7 +161,7 @@ function EventoFila({ ev, idx, onEditar, onToggleActivo, onArchivar, onVerDetall
             )}
             <p className="font-semibold text-[var(--tinta)] text-sm truncate">{ev.nombre}</p>
           </div>
-          <p className="text-xs text-[var(--tinta-4)] mt-0.5">
+          <p className="text-xs text-[#CFEBE0] mt-0.5">
             {ev.fecha_inicio ? new Date(ev.fecha_inicio + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : ''}
             {ev.fecha_inicio && ev.fecha_fin ? ' → ' : ''}
             {ev.fecha_fin ? new Date(ev.fecha_fin + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
@@ -275,11 +275,11 @@ function FormEvento({ inicial, onGuardado, onCancelar }) {
         </div>
       </div>
 
-      {error && <p className="text-[var(--gasto)] text-sm bg-[#6B3E4C] rounded-xl p-3">{error}</p>}
+      {error && <p className="text-[#FFBAC8] text-sm bg-[#6B3E4C] rounded-xl p-3">{error}</p>}
 
       <div className="flex gap-3 pt-1">
         <button type="button" onClick={onCancelar}
-          className="flex-1 py-2.5 border border-[var(--linea)] rounded-xl text-sm text-[var(--tinta-3)] font-medium">
+          className="flex-1 py-2.5 border border-[var(--linea)] rounded-xl text-sm text-[#F0DCE1] font-medium">
           Cancelar
         </button>
         <button type="button" onClick={guardar} disabled={guardando}

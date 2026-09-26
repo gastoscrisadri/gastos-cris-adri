@@ -81,7 +81,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p className="text-[var(--gasto)] text-sm text-center bg-[#6B3E4C] py-2 rounded-xl">{error}</p>
+            <p className="text-[#FFBAC8] text-sm text-center bg-[#6B3E4C] py-2 rounded-xl">{error}</p>
           )}
 
           <button
@@ -100,7 +100,7 @@ export default function LoginPage() {
         ) : enviado ? (
           <div className="space-y-4 text-center">
             <div className="text-4xl">📧</div>
-            <p className="text-sm text-[var(--tinta-3)] bg-[var(--comun-fondo)] border border-[var(--comun)] rounded-2xl p-4 leading-snug">
+            <p className="text-sm text-[#CFEBE0] bg-[var(--comun-fondo)] border border-[var(--comun)] rounded-2xl p-4 leading-snug">
               Si hay una cuenta con ese correo, te llega un mensaje con un enlace para poner
               una contraseña nueva. <b>Mira también en la carpeta de spam.</b>
             </p>
@@ -122,7 +122,7 @@ export default function LoginPage() {
                 placeholder="tu@email.com" />
             </div>
 
-            {error && <p className="text-[var(--gasto)] text-sm text-center bg-[#6B3E4C] py-2 rounded-xl">{error}</p>}
+            {error && <p className="text-[#FFBAC8] text-sm text-center bg-[#6B3E4C] py-2 rounded-xl">{error}</p>}
 
             <button type="submit" disabled={cargando}
               className="w-full py-4 bg-[var(--acento)] text-[var(--acento-tinta)] rounded-2xl text-base font-bold disabled:opacity-50 shadow-md mt-2">
