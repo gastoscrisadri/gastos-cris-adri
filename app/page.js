@@ -297,6 +297,11 @@ export default function Home() {
     setMesesSinCopia(0)
   }
 
+  // Cómo se reconoce que dos apuntes automáticos son el mismo: el mes, la
+  // categoría y el importe. No la fecha exacta, porque el día del mes se
+  // puede haber cambiado en el gasto fijo entre una vez y otra.
+  const huella = t => `${t.fecha.slice(0, 7)}|${t.categoria}|${t.subcategoria || ''}|${Number(t.importe)}`
+
   // Auto-generación de apuntes recurrentes al cargar
   useEffect(() => {
     async function generarRecurrentes() {
@@ -375,11 +380,37 @@ export default function Home() {
         }
       }
 
-      await supabase.from('transacciones').insert(inserts)
+      // ÚLTIMA RED: no crear un apunte que ya existe.
+      //
+      // El turno de la base de datos protege de que dos móviles generen a la
+      // vez, pero no de esto: si se BORRA un gasto fijo y se vuelve a crear a
+      // mitad de mes, el nuevo no sabe lo que generó el viejo y repite el mes.
+      // Pasó de verdad: el 14 y el 16/09/2026 se crearon dos alquileres de
+      // 1.400 € con la misma fecha, y la cuenta de los dos quedó descuadrada
+      // en 700 € sin que nada lo avisara.
+      //
+      // Así que antes de insertar se mira qué apuntes automáticos hay ya en
+      // esos meses y se descartan los que estarían repetidos. Si por lo que
+      // sea no se puede comprobar, se inserta igual: el fallo conocido es
+      // mejor que dejar de generar el alquiler.
+      const mesesTocados = [...new Set(inserts.map(i => i.fecha.slice(0, 7)))].sort()
+      let yaEstan = new Set()
+      if (mesesTocados.length) {
+        const { data: previos } = await supabase
+          .from('transacciones')
+          .select('fecha, importe, categoria, subcategoria')
+          .eq('quien', 'Auto')
+          .gte('fecha', `${mesesTocados[0]}-01`)
+        yaEstan = new Set((previos || []).map(huella))
+      }
+      const aCrear = inserts.filter(i => !yaEstan.has(huella(i)))
+      if (!aCrear.length) return
+
+      await supabase.from('transacciones').insert(aCrear)
       await cargarTransacciones()
       // Se dice cuántos, porque al volver de un viaje pueden salir varios de
       // golpe y la deuda dar un salto: si no se avisa, parece un error.
-      mostrarToast(`🔄 ${inserts.length} apunte${inserts.length > 1 ? 's' : ''} fijo${inserts.length > 1 ? 's' : ''} generado${inserts.length > 1 ? 's' : ''}`)
+      mostrarToast(`🔄 ${aCrear.length} apunte${aCrear.length > 1 ? 's' : ''} fijo${aCrear.length > 1 ? 's' : ''} generado${aCrear.length > 1 ? 's' : ''}`)
     }
     generarRecurrentes()
   }, [])
