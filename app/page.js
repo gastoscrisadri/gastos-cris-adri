@@ -602,6 +602,7 @@ export default function Home() {
               onSeleccionar={t => setTransaccionDetalle(t)}
               mostrarCifras={mostrarCifras}
               usuario={usuario}
+              cuentas={cuentas}
             />
           </>
         )}
