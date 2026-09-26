@@ -161,6 +161,14 @@ export async function POST(request) {
     let intento = await llamarAGemini(MODELO_PRINCIPAL, cuerpo, Math.min(TOPE_PRINCIPAL_MS, queda()))
     let modeloUsado = MODELO_PRINCIPAL
 
+    // Un 404 no es que esté saturado: es que ese modelo YA NO EXISTE. Google
+    // retira modelos cada año o año y medio, y no retira los dos el mismo día.
+    // Ese hueco entre que muere el principal y muere la reserva es la única
+    // oportunidad de avisar con tiempo, y hasta ahora se desperdiciaba: la app
+    // cambiaba a la reserva en silencio y nadie se enteraba hasta que dejaba
+    // de funcionar del todo, meses después.
+    let principalCaducado = intento.status === 404
+
     // Un solo reintento al principal, y solo si después sigue quedando tiempo
     // para la reserva: insistir aquí vale menos que probar el otro modelo, que
     // tiene su propio cupo.
@@ -168,6 +176,7 @@ export async function POST(request) {
         queda() > ESPERA_ENTRE_INTENTOS_MS + TOPE_PRINCIPAL_MS + MINIMO_RESERVA_MS) {
       await esperar(ESPERA_ENTRE_INTENTOS_MS)
       intento = await llamarAGemini(MODELO_PRINCIPAL, cuerpo, Math.min(TOPE_PRINCIPAL_MS, queda()))
+      if (intento.status === 404) principalCaducado = true
     }
 
     // Si el principal sigue sin poder, una vez con el de reserva. Es otro
@@ -184,8 +193,18 @@ export async function POST(request) {
     // son visibles para los colaboradores del proyecto. Solo el hecho del fallo.
     if (!intento.ok) {
       console.error('Error de Gemini — status:', intento.status, '· modelo:', modeloUsado)
+      // Los dos modelos retirados: no es un fallo pasajero y no sirve de nada
+      // reintentar. Se dice con palabras, porque "gemini-404" no le dice nada
+      // a quien está delante del móvil con un ticket en la mano.
+      const losDosMuertos = principalCaducado && intento.status === 404
       return NextResponse.json(
-        { error: 'Error procesando imagen', diagnostico: `gemini-${intento.status}` },
+        {
+          error: losDosMuertos
+            ? 'El escáner de tickets ya no funciona: los modelos que usa han dejado de responder. Hay que actualizarlos. Mientras tanto, apunta el gasto a mano.'
+            : 'Error procesando imagen',
+          diagnostico: `gemini-${intento.status}`,
+          escanerCaducado: losDosMuertos,
+        },
         { status: 422 }
       )
     }
@@ -225,7 +244,10 @@ export async function POST(request) {
       }
     }
 
-    return NextResponse.json(resultado)
+    // El ticket se ha leído bien, pero si el principal ya no existe conviene
+    // decirlo: la app sigue funcionando con la reserva, y eso da margen para
+    // actualizar los modelos ANTES de quedarse sin ninguno.
+    return NextResponse.json({ ...resultado, principalCaducado, modelo: modeloUsado })
 
   } catch (e) {
     console.error('Error OCR:', e.message)
