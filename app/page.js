@@ -565,21 +565,40 @@ export default function Home() {
               El balance lleva ahora su propia tarjeta, a juego con la de "La
               cuenta de los dos": antes era texto suelto sobre la cabecera y
               se veía deslavazado al lado de una tarjeta con cuerpo propio. */}
-          <div className="flex gap-3 items-stretch">
+          {/* items-start, no items-stretch: cada tarjeta mide lo que pide su
+              propio contenido. Antes, con items-stretch, la tarjeta de la
+              cuenta se estiraba a la fuerza hasta igualar la de Balance
+              (que es más alta, por los dos chips de abajo) y su
+              "justify-between" repartía ese hueco de más entre sus líneas,
+              así que la cifra de la deuda no caía nunca en el mismo sitio
+              que la del balance. Ahora las dos empiezan con la MISMA altura
+              de rótulo (h-3.5) y el MISMO margen antes de la cifra
+              (mt-1.5): con eso las dos cifras grandes quedan a la misma
+              altura sin tener que forzar nada. */}
+          <div className="flex gap-2 items-start">
 
             <div className="flex-1 min-w-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3.5 py-3">
-              <p className="text-[9px] text-[var(--tinta-2)] uppercase tracking-wider font-bold">Balance {mesNombre}</p>
+              <div className="h-3.5 flex items-center">
+                <p className="text-[9px] text-[var(--tinta-2)] uppercase tracking-wider font-bold">Balance {mesNombre}</p>
+              </div>
               <p className={`text-2xl font-black tracking-tight mt-1.5 ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#FFBAC8]'}`}>
                 {ocultar(mostrarCifras, `${balanceMes.balance >= 0 ? '+' : ''}${euros(balanceMes.balance)} €`)}
               </p>
-              <div className="flex gap-2 mt-2">
-                <div className="flex items-center gap-1.5 bg-black/25 rounded-xl px-2.5 py-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-                  <span className="text-xs text-[var(--ingreso)] font-semibold">↑ {ocultar(mostrarCifras, `${euros(balanceMes.ingresos)} €`)}</span>
+              {/* Los dos chips: antes rompían el importe por la mitad y el €
+                  caía a una segunda línea dentro del propio chip. Ahora el
+                  texto no se puede partir (whitespace-nowrap) y, si de
+                  verdad no cupieran los dos en la misma fila, el segundo
+                  chip entero baja debajo del primero (flex-wrap) en vez de
+                  partirse una palabra por dentro. Y más estrechos: letra y
+                  relleno más pequeños. */}
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                <div className="flex items-center gap-1 bg-black/25 rounded-lg px-2 py-0.5 min-w-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block shrink-0" />
+                  <span className="text-[11px] text-[var(--ingreso)] font-semibold whitespace-nowrap">↑ {ocultar(mostrarCifras, `${euros(balanceMes.ingresos)} €`)}</span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-black/25 rounded-xl px-2.5 py-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
-                  <span className="text-xs text-[#FFBAC8] font-semibold">↓ {ocultar(mostrarCifras, `${euros(balanceMes.gastos)} €`)}</span>
+                <div className="flex items-center gap-1 bg-black/25 rounded-lg px-2 py-0.5 min-w-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block shrink-0" />
+                  <span className="text-[11px] text-[#FFBAC8] font-semibold whitespace-nowrap">↓ {ocultar(mostrarCifras, `${euros(balanceMes.gastos)} €`)}</span>
                 </div>
               </div>
             </div>
@@ -587,16 +606,16 @@ export default function Home() {
             {vista !== 'balance' && (
               <button type="button"
                 onClick={() => { setAbrirInformesEn({ saldar: true }); setVista('balance') }}
-                className="w-[44%] shrink-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3.5 py-3 text-left active:opacity-80 flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-1">
-                  <p className="text-[9px] text-[var(--tinta-2)] uppercase tracking-wider font-bold">La cuenta de los dos</p>
+                className="w-[38%] shrink-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3 pt-3 pb-2.5 text-left active:opacity-80">
+                <div className="h-3.5 flex items-center justify-between gap-1">
+                  <p className="text-[9px] text-[var(--tinta-2)] uppercase tracking-wider font-bold">Cuenta de los dos</p>
                   <span className="text-[var(--tinta-3)] text-xs shrink-0">›</span>
                 </div>
                 {deuda.aRepartir <= 0 || deuda.importe < 0.01 ? (
-                  <p className="text-base font-bold text-[var(--ingreso)] mt-2 leading-tight">Estáis en paz</p>
+                  <p className="text-base font-bold text-[var(--ingreso)] mt-1.5 leading-tight">Estáis en paz</p>
                 ) : (
                   <>
-                    <p className="text-2xl font-black text-[var(--acento)] leading-none mt-2 tracking-tight">
+                    <p className="text-2xl font-black text-[var(--acento)] leading-none mt-1.5 tracking-tight">
                       {ocultar(mostrarCifras, `${euros(deuda.importe)} €`)}
                     </p>
                     <p className="text-[11px] text-[var(--tinta-3)] leading-tight mt-1.5">
