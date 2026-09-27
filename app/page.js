@@ -24,6 +24,23 @@ export default function Home() {
   // La app abre directamente en "nuevo apunte", que es lo que más se hace.
   // La foto del ticket se saca con el botón verde, a un toque.
   const [vista, setVista] = useState('nuevo')
+  // Centrado de la tarjeta de Balance en la cabecera, con retraso al entrar.
+  // Centrar el texto significa "a mitad de la caja", y esa caja tarda 0,3s en
+  // crecer hasta ocupar todo el ancho (la de "Cuenta de los dos" se encoge al
+  // lado). Si el texto se centrara en el mismo instante en que se pulsa, el
+  // punto medio se movería durante esos 0,3s y la cifra se vería deslizar en
+  // vez de quedarse quieta. Por eso el centrado se retrasa hasta que la caja
+  // ya ha terminado de crecer; al salir de Balance, en cambio, se quita al
+  // instante, para que el texto ya esté fijo a la izquierda mientras la caja
+  // se encoge de vuelta.
+  const [balanceCentrado, setBalanceCentrado] = useState(vista === 'balance')
+  useEffect(() => {
+    if (vista === 'balance') {
+      const t = setTimeout(() => setBalanceCentrado(true), 300)
+      return () => clearTimeout(t)
+    }
+    setBalanceCentrado(false)
+  }, [vista])
   // Las cifras empiezan siempre tapadas, y el botón las destapa TODAS a la vez.
   // Antes cada pantalla recordaba lo suyo por separado: destapar la lista no
   // destapaba informes, así que para ver lo mismo había que pulsar el botón
@@ -597,8 +614,8 @@ export default function Home() {
               que aquí, y solo aquí, se centra todo. */}
           <div className="flex gap-2 items-stretch">
 
-            <div className={`flex-1 min-w-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3.5 py-3 transition-[flex-grow] duration-300 ${vista === 'balance' ? 'text-center' : ''}`}>
-              <div className={`h-3.5 flex items-center ${vista === 'balance' ? 'justify-center' : ''}`}>
+            <div className={`flex-1 min-w-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3.5 py-3 transition-[flex-grow] duration-300 ${balanceCentrado ? 'text-center' : ''}`}>
+              <div className={`h-3.5 flex items-center ${balanceCentrado ? 'justify-center' : ''}`}>
                 <p className="text-[9px] text-[var(--tinta-2)] uppercase font-bold truncate">Balance {mesNombre}</p>
               </div>
               <p className={`text-xl font-black leading-none tracking-tight mt-1.5 whitespace-nowrap ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#FFBAC8]'}`}>
@@ -611,7 +628,7 @@ export default function Home() {
                   chip entero baja debajo del primero (flex-wrap) en vez de
                   partirse una palabra por dentro. Y más estrechos: letra y
                   relleno más pequeños. */}
-              <div className={`flex flex-wrap gap-1.5 mt-2.5 ${vista === 'balance' ? 'justify-center' : ''}`}>
+              <div className={`flex flex-wrap gap-1.5 mt-2.5 ${balanceCentrado ? 'justify-center' : ''}`}>
                 <div className="flex items-center gap-1 bg-black/25 rounded-lg px-2 py-0.5 min-w-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block shrink-0" />
                   <span className="text-[11px] text-[var(--ingreso)] font-semibold whitespace-nowrap">↑ {ocultar(mostrarCifras, `${euros(balanceMes.ingresos)} €`)}</span>
