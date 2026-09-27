@@ -36,6 +36,11 @@ const DEFAULT_ICONO = { emoji: '📝', bg: '#272C48' }
 // Vive aquí arriba y no suelto dentro de la fila para que no acabe habiendo
 // dos versiones distintas del mismo color en la misma pantalla.
 const COLOR_PUNTO = { Cris: 'bg-[var(--cris)]', Adri: 'bg-[var(--adri)]' }
+// Mismos colores que el punto, pero en texto: para el nombre de quien PAGÓ,
+// en la columna de la derecha. Ahí sí hay contraste de sobra (7,2 y 7,0
+// sobre el fondo de la tarjeta, el mínimo para leer es 4,5) porque el fondo
+// es oscuro; en la piel clara de antes no lo tenía por eso.
+const COLOR_TEXTO_PAGADOR = { Cris: 'text-[var(--cris)]', Adri: 'text-[var(--adri)]' }
 // El punto de los apuntes que genera la app sola (el alquiler, por ejemplo:
 // quien = 'Auto'). Era verde (emerald-500), a solo 43° de matiz del azul de
 // Adri -medido igual que el fallo de "de los dos" con ese mismo azul, que
@@ -104,11 +109,11 @@ export default function ListaTransacciones({ transacciones, cargando, onSeleccio
               const signo = esGastoNormal ? '−' : '+'
               // El texto del ajuste, contado desde quien mira. Sin saber quién
               // es, se deja el que trae guardado el apunte.
-              // El día a secas: la lista ya va agrupada por meses con su
-              // título encima, así que repetir el mes y el año en cada apunte
-              // sobra. Antes salía la fecha en crudo ("2026-09-26"), que
-              // además no es el formato de toda la app.
-              const dia = parseInt(t.fecha.slice(8), 10)
+              // Día y mes, como en el resto de la app ("03/10"): el día a
+              // secas ("3") se leía como una cantidad suelta, no como una
+              // fecha. El año no hace falta, la lista ya va agrupada por
+              // meses con su título encima.
+              const dia = `${t.fecha.slice(8, 10)}/${t.fecha.slice(5, 7)}`
               // Quién puso el dinero. Puede ser una cuenta común, y puede no
               // saberse si el medio de pago no tiene dueño asignado: en ese
               // caso no se enseña nada, mejor que inventarse un nombre.
@@ -200,7 +205,10 @@ export default function ListaTransacciones({ transacciones, cargando, onSeleccio
                       {ocultar(mostrarCifras, `${signo}${euros(Math.abs(importe))} €`)}
                     </p>
                     <p className="text-[11px] text-[var(--tinta-4)] truncate">
-                      {dia}{pagador ? ` · ${pagador}` : ''}
+                      {dia}
+                      {pagador && (
+                        <> · <span className={`font-semibold ${COLOR_TEXTO_PAGADOR[pagador] || ''}`}>{pagador}</span></>
+                      )}
                     </p>
                   </div>
 
