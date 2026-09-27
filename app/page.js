@@ -532,7 +532,7 @@ export default function Home() {
 
       {/* Cabecera oscura */}
       {!mostrarFormulario && (
-        <header className="bg-[var(--superficie)] px-5 pt-8 pb-4">
+        <header className="bg-[var(--superficie)] px-4 pt-8 pb-4">
           {/* El botón de mostrar/ocultar lleva el mismo ancho que "La cuenta
               de los dos", justo debajo: así la columna de la derecha queda
               alineada de arriba abajo en vez de un botón suelto flotando. */}
@@ -575,10 +575,16 @@ export default function Home() {
               de rótulo (h-3.5) y el MISMO margen antes de la cifra
               (mt-1.5): con eso las dos cifras grandes quedan a la misma
               altura sin tener que forzar nada. */}
+          {/* Cuando se está EN Balance, la tarjeta de la cuenta no se enseña
+              (ya está desarrollada entera más abajo) y la de Balance se
+              queda sola en la fila: al ser flex-1 sin nadie al lado, ocupa
+              todo el ancho de la cabecera. Un rótulo y una cifra pegados a
+              la izquierda con medio móvil vacío a la derecha se ve raro, así
+              que aquí, y solo aquí, se centra todo. */}
           <div className="flex gap-2 items-start">
 
-            <div className="flex-1 min-w-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3.5 py-3">
-              <div className="h-3.5 flex items-center">
+            <div className={`flex-1 min-w-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3.5 py-3 ${vista === 'balance' ? 'text-center' : ''}`}>
+              <div className={`h-3.5 flex items-center ${vista === 'balance' ? 'justify-center' : ''}`}>
                 <p className="text-[9px] text-[var(--tinta-2)] uppercase tracking-wider font-bold">Balance {mesNombre}</p>
               </div>
               <p className={`text-2xl font-black tracking-tight mt-1.5 ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#FFBAC8]'}`}>
@@ -591,7 +597,7 @@ export default function Home() {
                   chip entero baja debajo del primero (flex-wrap) en vez de
                   partirse una palabra por dentro. Y más estrechos: letra y
                   relleno más pequeños. */}
-              <div className="flex flex-wrap gap-1.5 mt-2">
+              <div className={`flex flex-wrap gap-1.5 mt-2 ${vista === 'balance' ? 'justify-center' : ''}`}>
                 <div className="flex items-center gap-1 bg-black/25 rounded-lg px-2 py-0.5 min-w-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block shrink-0" />
                   <span className="text-[11px] text-[var(--ingreso)] font-semibold whitespace-nowrap">↑ {ocultar(mostrarCifras, `${euros(balanceMes.ingresos)} €`)}</span>
