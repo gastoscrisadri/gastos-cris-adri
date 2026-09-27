@@ -36,7 +36,14 @@ const DEFAULT_ICONO = { emoji: '📝', bg: '#272C48' }
 // Vive aquí arriba y no suelto dentro de la fila para que no acabe habiendo
 // dos versiones distintas del mismo color en la misma pantalla.
 const COLOR_PUNTO = { Cris: 'bg-[var(--cris)]', Adri: 'bg-[var(--adri)]' }
-const COLOR_AUTO = 'bg-emerald-500'
+// El punto de los apuntes que genera la app sola (el alquiler, por ejemplo:
+// quien = 'Auto'). Era verde (emerald-500), a solo 43° de matiz del azul de
+// Adri -medido igual que el fallo de "de los dos" con ese mismo azul, que
+// tenia el mismo problema y ya se corrigio-. En vez de buscar otro color
+// saturado que tarde o temprano vuelva a acercarse a alguno de los que ya
+// usa la app, este punto pasa a gris: no es de nadie, y un gris no compite
+// en matiz con nada, así que no hay color con el que pueda confundirse.
+const COLOR_AUTO = 'bg-[var(--tinta-4)]'
 
 export default function ListaTransacciones({ transacciones, cargando, onSeleccionar, mostrarCifras, usuario, cuentas }) {
   // Un ajuste de cuentas se lee al revés según quién mire: el que paga ve que
