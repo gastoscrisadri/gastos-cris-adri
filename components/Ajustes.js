@@ -71,104 +71,6 @@ export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mo
 
   return (
     <div className="pb-24">
-      {/* Quién eres.
-          Se elige al principio y se cierra en cuanto apuntas tu primer gasto.
-          No es por capricho:
-          de este nombre cuelga qué significa "solo mío" al apuntar un gasto, y
-          por tanto a nombre de quién se guarda un gasto privado. Poder
-          cambiarlo en dos toques era poder dejar la contabilidad diciendo
-          cosas falsas — es el mismo motivo por el que se quitó el "cambiar"
-          de la pantalla de nuevo apunte.
-          Pero no se bloquea desde el primer segundo: mientras no hayas apuntado
-          nada, se puede corregir. Así, quien le dé al botón equivocado el día
-          que instala la app lo arregla él mismo, sin tener que pedir que le
-          toquen la base de datos. */}
-      <div className="bg-[var(--superficie)] border border-[var(--linea)] rounded-2xl p-4 mb-4">
-        <p className="text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Yo soy</p>
-
-        {nombreCerrado ? (
-          <>
-            <p className="text-lg font-bold text-[var(--acento)]">{duenoMovil}</p>
-            <p className="text-xs text-[var(--tinta-4)] mt-1 leading-snug">
-              Va unido a tu cuenta, no a este móvil: entres desde donde entres, eres tú.
-              Ya no se puede cambiar, porque tus apuntes cuelgan de este nombre.
-            </p>
-          </>
-        ) : (
-          <>
-            <p className="text-xs text-[var(--tinta-4)] mb-2.5">
-              Queda unido a tu cuenta: entres desde donde entres, eres tú.
-              {nombreEsDeLaCuenta(usuario)
-                ? ' Todavía puedes corregirlo, pero en cuanto apuntes tu primer gasto se quedará fijo.'
-                : ' Elígelo antes de empezar: en cuanto apuntes tu primer gasto se quedará fijo.'}
-            </p>
-            <div className="flex gap-2">
-              {NOMBRES.map(nombre => (
-                <button key={nombre} type="button" onClick={() => elegirDueno(nombre)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${duenoMovil === nombre ? 'bg-[var(--acento)] text-[var(--acento-tinta)] border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
-                  {nombre}
-                </button>
-              ))}
-            </div>
-            {!duenoMovil && (
-              <p className="text-xs text-[var(--aviso)] mt-2">Sin elegir: al crear un apunte se preguntará cada vez.</p>
-            )}
-            {duenoMovil && !nombreEsDeLaCuenta(usuario) && (
-              <p className="text-xs text-[var(--tinta-4)] mt-2">Toca tu nombre para dejarlo guardado en tu cuenta.</p>
-            )}
-          </>
-        )}
-        {avisoNombre && <p className="text-xs text-[var(--aviso)] mt-2">{avisoNombre}</p>}
-      </div>
-
-      {/* Mi contraseña */}
-      <div className="bg-[var(--superficie)] border border-[var(--linea)] rounded-2xl p-4 mb-4">
-        <p className="text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Mi contraseña</p>
-        <p className="text-xs text-[var(--tinta-4)] mb-2.5">
-          Ponte una que solo sepas tú. Es lo que hace que tus gastos personales sean tuyos.
-        </p>
-
-        {!mostrarClave ? (
-          <button type="button" onClick={() => { setMostrarClave(true); setEstadoClave(null) }}
-            className="w-full py-2.5 rounded-xl text-sm font-semibold border border-[var(--linea)] text-[var(--tinta-3)]">
-            Cambiar mi contraseña
-          </button>
-        ) : (
-          <div className="space-y-2">
-            <input type="password" value={clave} autoComplete="new-password"
-              onChange={e => { setClave(e.target.value); setEstadoClave(null) }}
-              placeholder="Contraseña nueva"
-              className="w-full px-3 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
-            <input type="password" value={claveRepetida} autoComplete="new-password"
-              onChange={e => { setClaveRepetida(e.target.value); setEstadoClave(null) }}
-              placeholder="Repítela"
-              className="w-full px-3 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
-
-            {estadoClave && estadoClave !== 'ok' && estadoClave !== 'guardando' && (
-              <p className="text-xs text-[var(--gasto)]">{estadoClave}</p>
-            )}
-
-            <div className="flex gap-2">
-              <button type="button" onClick={cambiarContrasena} disabled={estadoClave === 'guardando'}
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[var(--superficie)] text-white disabled:opacity-50">
-                {estadoClave === 'guardando' ? 'Guardando…' : 'Guardar'}
-              </button>
-              <button type="button"
-                onClick={() => { setMostrarClave(false); setClave(''); setClaveRepetida(''); setEstadoClave(null) }}
-                className="px-4 py-2.5 rounded-xl text-sm font-medium border border-[var(--linea)] text-[var(--tinta-3)]">
-                Cancelar
-              </button>
-            </div>
-          </div>
-        )}
-
-        {estadoClave === 'ok' && (
-          <p className="text-xs text-[var(--ingreso)] font-semibold mt-2">
-            ✓ Contraseña cambiada. A partir de ahora entras con la nueva.
-          </p>
-        )}
-      </div>
-
       {/* Sub-navegación */}
       <div className="grid grid-cols-4 gap-1 bg-[var(--superficie-3)] rounded-2xl p-1 mb-5">
         {SECCIONES.map(s => (
@@ -185,12 +87,117 @@ export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mo
       {seccion === 'categorias' && <GestionCategorias />}
       {seccion === 'eventos' && <GestionEventos onVerDetalle={onVerDetalleEvento} mostrarCifras={mostrarCifras} />}
 
+      {/* Tu cuenta: quién eres, tu contraseña y salir. Va después de las
+          cuatro secciones de gestión a propósito — es lo que se toca menos,
+          así que no hace falta pasar por delante cada vez que se entra en
+          Ajustes a dar de alta un gasto fijo o a tocar una categoría. */}
+      <div className="mt-8 pt-5 border-t border-[var(--linea-2)]">
+        {/* Quién eres.
+            Se elige al principio y se cierra en cuanto apuntas tu primer gasto.
+            No es por capricho:
+            de este nombre cuelga qué significa "solo mío" al apuntar un gasto, y
+            por tanto a nombre de quién se guarda un gasto privado. Poder
+            cambiarlo en dos toques era poder dejar la contabilidad diciendo
+            cosas falsas — es el mismo motivo por el que se quitó el "cambiar"
+            de la pantalla de nuevo apunte.
+            Pero no se bloquea desde el primer segundo: mientras no hayas apuntado
+            nada, se puede corregir. Así, quien le dé al botón equivocado el día
+            que instala la app lo arregla él mismo, sin tener que pedir que le
+            toquen la base de datos. */}
+        <div className="bg-[var(--superficie)] border border-[var(--linea)] rounded-2xl p-4 mb-4">
+          <p className="text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Yo soy</p>
+
+          {nombreCerrado ? (
+            <>
+              <p className="text-lg font-bold text-[var(--acento)]">{duenoMovil}</p>
+              <p className="text-xs text-[var(--tinta-4)] mt-1 leading-snug">
+                Va unido a tu cuenta, no a este móvil: entres desde donde entres, eres tú.
+                Ya no se puede cambiar, porque tus apuntes cuelgan de este nombre.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-xs text-[var(--tinta-4)] mb-2.5">
+                Queda unido a tu cuenta: entres desde donde entres, eres tú.
+                {nombreEsDeLaCuenta(usuario)
+                  ? ' Todavía puedes corregirlo, pero en cuanto apuntes tu primer gasto se quedará fijo.'
+                  : ' Elígelo antes de empezar: en cuanto apuntes tu primer gasto se quedará fijo.'}
+              </p>
+              <div className="flex gap-2">
+                {NOMBRES.map(nombre => (
+                  <button key={nombre} type="button" onClick={() => elegirDueno(nombre)}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${duenoMovil === nombre ? 'bg-[var(--acento)] text-[var(--acento-tinta)] border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
+                    {nombre}
+                  </button>
+                ))}
+              </div>
+              {!duenoMovil && (
+                <p className="text-xs text-[var(--aviso)] mt-2">Sin elegir: al crear un apunte se preguntará cada vez.</p>
+              )}
+              {duenoMovil && !nombreEsDeLaCuenta(usuario) && (
+                <p className="text-xs text-[var(--tinta-4)] mt-2">Toca tu nombre para dejarlo guardado en tu cuenta.</p>
+              )}
+            </>
+          )}
+          {avisoNombre && <p className="text-xs text-[var(--aviso)] mt-2">{avisoNombre}</p>}
+        </div>
+
+        {/* Mi contraseña */}
+        <div className="bg-[var(--superficie)] border border-[var(--linea)] rounded-2xl p-4 mb-4">
+          <p className="text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Mi contraseña</p>
+          <p className="text-xs text-[var(--tinta-4)] mb-2.5">
+            Ponte una que solo sepas tú. Es lo que hace que tus gastos personales sean tuyos.
+          </p>
+
+          {!mostrarClave ? (
+            <button type="button" onClick={() => { setMostrarClave(true); setEstadoClave(null) }}
+              className="w-full py-2.5 rounded-xl text-sm font-semibold border border-[var(--linea)] text-[var(--tinta-3)]">
+              Cambiar mi contraseña
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <input type="password" value={clave} autoComplete="new-password"
+                onChange={e => { setClave(e.target.value); setEstadoClave(null) }}
+                placeholder="Contraseña nueva"
+                className="w-full px-3 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
+              <input type="password" value={claveRepetida} autoComplete="new-password"
+                onChange={e => { setClaveRepetida(e.target.value); setEstadoClave(null) }}
+                placeholder="Repítela"
+                className="w-full px-3 py-2.5 border border-[var(--linea)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--acento)]" />
+
+              {estadoClave && estadoClave !== 'ok' && estadoClave !== 'guardando' && (
+                <p className="text-xs text-[var(--gasto)]">{estadoClave}</p>
+              )}
+
+              <div className="flex gap-2">
+                <button type="button" onClick={cambiarContrasena} disabled={estadoClave === 'guardando'}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-bold bg-[var(--superficie)] text-white disabled:opacity-50">
+                  {estadoClave === 'guardando' ? 'Guardando…' : 'Guardar'}
+                </button>
+                <button type="button"
+                  onClick={() => { setMostrarClave(false); setClave(''); setClaveRepetida(''); setEstadoClave(null) }}
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium border border-[var(--linea)] text-[var(--tinta-3)]">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {estadoClave === 'ok' && (
+            <p className="text-xs text-[var(--ingreso)] font-semibold mt-2">
+              ✓ Contraseña cambiada. A partir de ahora entras con la nueva.
+            </p>
+          )}
+        </div>
+
+      </div>
+
       {/* Salir de la cuenta, lo último de todo.
           Antes estaba en la esquina de la portada, al lado del botón de
           ocultar las cifras. Aquí abajo hay que venir a propósito, que es lo
           que toca para algo que te obliga a volver a escribir la contraseña. */}
       {onCerrarSesion && (
-        <div className="mt-8 pt-5 border-t border-[var(--linea-2)]">
+        <div className="mt-2">
           <button type="button" onClick={onCerrarSesion}
             className="w-full py-2.5 rounded-xl text-sm font-semibold border border-[var(--linea)] text-[var(--tinta-4)]">
             Salir de la cuenta
