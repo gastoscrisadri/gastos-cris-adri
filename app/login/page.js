@@ -100,7 +100,7 @@ export default function LoginPage() {
         ) : enviado ? (
           <div className="space-y-4 text-center">
             <div className="text-4xl">📧</div>
-            <p className="text-sm text-[#CFEBE0] bg-[var(--comun-fondo)] border border-[var(--comun)] rounded-2xl p-4 leading-snug">
+            <p className="text-sm text-[#D7E5C2] bg-[var(--comun-fondo)] border border-[var(--comun)] rounded-2xl p-4 leading-snug">
               Si hay una cuenta con ese correo, te llega un mensaje con un enlace para poner
               una contraseña nueva. <b>Mira también en la carpeta de spam.</b>
             </p>

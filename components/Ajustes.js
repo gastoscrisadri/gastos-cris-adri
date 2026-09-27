@@ -105,7 +105,7 @@ export default function Ajustes({ usuario, transacciones, onVerDetalleEvento, mo
             <div className="flex gap-2">
               {NOMBRES.map(nombre => (
                 <button key={nombre} type="button" onClick={() => elegirDueno(nombre)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${duenoMovil === nombre ? 'bg-[var(--superficie)] text-white border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${duenoMovil === nombre ? 'bg-[var(--acento)] text-[var(--acento-tinta)] border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
                   {nombre}
                 </button>
               ))}

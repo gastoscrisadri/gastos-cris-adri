@@ -533,8 +533,11 @@ export default function Home() {
       {/* Cabecera oscura */}
       {!mostrarFormulario && (
         <header className="bg-[var(--superficie)] px-5 pt-8 pb-4">
-          <div className="flex items-center justify-between mb-3">
-            <div>
+          {/* El botón de mostrar/ocultar lleva el mismo ancho que "La cuenta
+              de los dos", justo debajo: así la columna de la derecha queda
+              alineada de arriba abajo en vez de un botón suelto flotando. */}
+          <div className="flex items-center justify-between mb-3 gap-3">
+            <div className="min-w-0">
               <p className="text-[10px] text-white/40 uppercase tracking-widest font-medium">Control de gastos</p>
               <h1 className="text-base font-bold text-white leading-tight">Cris y Adri</h1>
             </div>
@@ -542,35 +545,39 @@ export default function Home() {
                 ido a Ajustes: ocultar se pulsa todos los días y salir de la
                 cuenta, nunca, y un dedazo entre los dos te dejaba fuera de la
                 app teniendo que escribir el correo y la contraseña otra vez. */}
-            <div className="flex flex-col items-end gap-1.5">
-              <button onClick={alternarCifras}
-                className="text-xs font-semibold text-white bg-emerald-500 rounded-xl px-3 py-1.5 whitespace-nowrap">
-                {mostrarCifras ? '🙈 Ocultar' : '👁️ Mostrar'}
-              </button>
-            </div>
+            <button onClick={alternarCifras}
+              className="w-[44%] shrink-0 text-xs font-semibold text-white bg-emerald-500 rounded-xl px-3 py-1.5 text-center whitespace-nowrap">
+              {mostrarCifras ? '🙈 Ocultar' : '👁️ Mostrar'}
+            </button>
           </div>
 
           {/* Balance a la izquierda, la cuenta de los dos a la derecha.
               La deuda estaba escondida en Informes, que es una pantalla a la
               que se entra a mirar cosas. Pero "quién le debe a quién" es la
               pregunta por la que existe esta app, así que va arriba del todo,
-              donde se ve sin buscarla.
+              donde se ve sin buscarla, en CUALQUIER pantalla: la cabecera es
+              compartida, así que esto sale igual en Lista, Informes y
+              Ajustes, no solo aquí.
               No se duplica: se ha quitado de Informes al traerla aquí. En
               Balance sigue estando la versión completa —saldar, cerrar,
-              historial— y por eso ahí esta no se enseña. */}
+              historial— y por eso ahí esta no se enseña.
+
+              El balance lleva ahora su propia tarjeta, a juego con la de "La
+              cuenta de los dos": antes era texto suelto sobre la cabecera y
+              se veía deslavazado al lado de una tarjeta con cuerpo propio. */}
           <div className="flex gap-3 items-stretch">
 
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Balance {mesNombre}</p>
-              <p className={`text-3xl font-black tracking-tight ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#FFBAC8]'}`}>
+            <div className="flex-1 min-w-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3.5 py-3">
+              <p className="text-[9px] text-[var(--tinta-2)] uppercase tracking-wider font-bold">Balance {mesNombre}</p>
+              <p className={`text-2xl font-black tracking-tight mt-1.5 ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#FFBAC8]'}`}>
                 {ocultar(mostrarCifras, `${balanceMes.balance >= 0 ? '+' : ''}${euros(balanceMes.balance)} €`)}
               </p>
               <div className="flex gap-2 mt-2">
-                <div className="flex items-center gap-1.5 bg-white/8 rounded-xl px-2.5 py-1">
+                <div className="flex items-center gap-1.5 bg-black/25 rounded-xl px-2.5 py-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
                   <span className="text-xs text-[var(--ingreso)] font-semibold">↑ {ocultar(mostrarCifras, `${euros(balanceMes.ingresos)} €`)}</span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-white/8 rounded-xl px-2.5 py-1">
+                <div className="flex items-center gap-1.5 bg-black/25 rounded-xl px-2.5 py-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
                   <span className="text-xs text-[#FFBAC8] font-semibold">↓ {ocultar(mostrarCifras, `${euros(balanceMes.gastos)} €`)}</span>
                 </div>
@@ -649,7 +656,7 @@ export default function Home() {
                   )}
                 </div>
                 <button onClick={() => setMostrarFiltros(f => !f)}
-                  className={`relative px-3.5 py-2.5 rounded-xl border text-sm font-semibold transition-colors ${filtrosActivos > 0 || mostrarFiltros ? 'bg-[var(--superficie)] text-white border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-3)] border-[var(--linea)]'}`}>
+                  className={`relative px-3.5 py-2.5 rounded-xl border text-sm font-semibold transition-colors ${filtrosActivos > 0 || mostrarFiltros ? 'bg-[var(--acento)] text-[var(--acento-tinta)] border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-3)] border-[var(--linea)]'}`}>
                   ⚙️
                   {filtrosActivos > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -667,7 +674,7 @@ export default function Home() {
                     <div className="flex gap-1.5">
                       {['', 'Cris', 'Adri', 'Auto'].map(q => (
                         <button key={q} onClick={() => setFiltros(f => ({ ...f, quien: q }))}
-                          className={`flex-1 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${filtros.quien === q ? 'bg-[var(--superficie)] text-white border-[var(--acento)]' : 'bg-[var(--superficie-2)] text-[var(--tinta-3)] border-[var(--linea)]'}`}>
+                          className={`flex-1 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${filtros.quien === q ? 'bg-[var(--acento)] text-[var(--acento-tinta)] border-[var(--acento)]' : 'bg-[var(--superficie-2)] text-[var(--tinta-3)] border-[var(--linea)]'}`}>
                           {q || 'Todos'}
                         </button>
                       ))}

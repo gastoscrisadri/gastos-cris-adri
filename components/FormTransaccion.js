@@ -703,7 +703,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
             {NOMBRES.map(nombre => (
               <button key={nombre} type="button"
                 onClick={() => { set('quien', nombre); guardarNombre(nombre) }}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.quien === nombre ? 'bg-[var(--superficie)] text-white border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.quien === nombre ? 'bg-[var(--acento)] text-[var(--acento-tinta)] border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
                 {nombre}
               </button>
             ))}
@@ -759,11 +759,11 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
           <div className="flex gap-2 mt-2">
             <button type="button" onClick={() => set('deQuien', 'mio')}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.deQuien === 'mio' ? 'bg-[var(--superficie)] text-white border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${form.deQuien === 'mio' ? 'bg-[var(--acento)] text-[var(--acento-tinta)] border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
               Solo mío
             </button>
             <button type="button" onClick={() => set('deQuien', 'otro')} disabled={!elOtro}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors disabled:opacity-40 ${form.deQuien === 'otro' ? 'bg-[var(--superficie)] text-white border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors disabled:opacity-40 ${form.deQuien === 'otro' ? 'bg-[var(--acento)] text-[var(--acento-tinta)] border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'}`}>
               Gasto de {elOtro || '…'}
             </button>
           </div>

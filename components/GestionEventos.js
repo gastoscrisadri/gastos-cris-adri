@@ -161,7 +161,7 @@ function EventoFila({ ev, idx, onEditar, onToggleActivo, onArchivar, onVerDetall
             )}
             <p className="font-semibold text-[var(--tinta)] text-sm truncate">{ev.nombre}</p>
           </div>
-          <p className="text-xs text-[#CFEBE0] mt-0.5">
+          <p className="text-xs text-[#D7E5C2] mt-0.5">
             {ev.fecha_inicio ? new Date(ev.fecha_inicio + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : ''}
             {ev.fecha_inicio && ev.fecha_fin ? ' → ' : ''}
             {ev.fecha_fin ? new Date(ev.fecha_fin + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}

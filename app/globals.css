@@ -63,8 +63,10 @@
   --aviso-linea:  #4A3A18;
   --personal:     #C4B0F5;
   --personal-fondo:#484281;
-  --comun:        #7FE3C4;
-  --comun-fondo:  #235346;
+  --comun:       #BEDF90;   /* lima, no menta: el menta se confundia con el
+                             azul de Adri a simple vista (43 grados de
+                             diferencia de matiz). Ahora hay 119. */
+  --comun-fondo: #384F17;
   /* Los fondos de recuadro están SUBIDOS a propósito. Los primeros valores
      daban 1,05-1,42 de separación contra la tarjeta que tienen detrás, y por
      debajo de 1,25 el ojo lee las dos superficies como una sola: los avisos

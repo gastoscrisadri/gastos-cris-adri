@@ -216,7 +216,7 @@ export default function GestionCategorias() {
                       className="underline underline-offset-2 decoration-[var(--tinta-5)] text-xs text-[var(--tinta-5)] hover:text-[var(--gasto)] px-1.5 py-1">🗑️</button>
                     <button onClick={() => setRepartoAbierto(repartoAbierto === cat.id ? null : cat.id)}
                       title="Cómo se reparte entre los dos"
-                      className={`text-[10px] px-1.5 py-1 rounded-lg font-semibold ${cat.porcentaje_primero != null ? 'text-[var(--comun)] bg-[var(--comun-fondo)]' : 'text-[#CFEBE0] hover:text-[var(--comun)]'}`}>
+                      className={`text-[10px] px-1.5 py-1 rounded-lg font-semibold ${cat.porcentaje_primero != null ? 'text-[var(--comun)] bg-[var(--comun-fondo)]' : 'text-[#D7E5C2] hover:text-[var(--comun)]'}`}>
                       {cat.porcentaje_primero != null ? `${corto(cat.porcentaje_primero)}/${corto(100 - cat.porcentaje_primero)}` : '50/50'}
                     </button>
                     {/* Siempre visible, aunque no haya subcategorías: si no,
@@ -231,7 +231,7 @@ export default function GestionCategorias() {
 
               {repartoAbierto === cat.id && (
                 <div className="px-4 py-3 bg-[var(--comun-fondo)]/60 border-t border-[var(--comun)] space-y-2">
-                  <p className="text-xs text-[#CFEBE0]">
+                  <p className="text-xs text-[#D7E5C2]">
                     Cómo se reparte <b>{cat.nombre}</b> entre los dos. Afecta a «La cuenta de los dos» de Informes.
                   </p>
                   <EditorReparto item={cat}
@@ -263,7 +263,7 @@ export default function GestionCategorias() {
                             className="underline underline-offset-2 decoration-[var(--tinta-5)] text-xs text-[var(--tinta-5)] hover:text-[var(--gasto)] px-1">🗑️</button>
                           <button onClick={() => setRepartoAbierto(repartoAbierto === sub.id ? null : sub.id)}
                             title="Cómo se reparte entre los dos"
-                            className={`text-[10px] px-1.5 py-0.5 rounded-lg font-semibold ${sub.porcentaje_primero != null ? 'text-[var(--comun)] bg-[var(--comun-fondo)]' : 'text-[#CFEBE0] hover:text-[var(--comun)]'}`}>
+                            className={`text-[10px] px-1.5 py-0.5 rounded-lg font-semibold ${sub.porcentaje_primero != null ? 'text-[var(--comun)] bg-[var(--comun-fondo)]' : 'text-[#D7E5C2] hover:text-[var(--comun)]'}`}>
                             {sub.porcentaje_primero != null ? `${corto(sub.porcentaje_primero)}/${corto(100 - sub.porcentaje_primero)}` : '—'}
                           </button>
                         </>
