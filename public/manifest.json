@@ -4,8 +4,8 @@
   "description": "Control de gastos e ingresos",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f9fafb",
-  "theme_color": "#2563eb",
+  "background_color": "#171A2E",
+  "theme_color": "#171A2E",
   "icons": [
     {
       "src": "logo192.png",
