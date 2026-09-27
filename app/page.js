@@ -539,18 +539,20 @@ export default function Home() {
         <header className="bg-[var(--superficie)] px-4 pt-8 pb-4">
           {/* El botón de mostrar/ocultar lleva el mismo ancho que "La cuenta
               de los dos", justo debajo: así la columna de la derecha queda
-              alineada de arriba abajo en vez de un botón suelto flotando. */}
+              alineada de arriba abajo en vez de un botón suelto flotando.
+              El título se centra en el hueco que le queda a la izquierda
+              -no pegado al borde-, y un pelín más grande. */}
           <div className="flex items-center justify-between mb-3 gap-3">
-            <div className="min-w-0">
-              <p className="text-[10px] text-white/40 uppercase tracking-widest font-medium">Control de gastos</p>
-              <h1 className="text-base font-bold text-white leading-tight">Cris y Adri</h1>
+            <div className="flex-1 min-w-0 text-center">
+              <p className="text-[11px] text-white/40 uppercase tracking-widest font-medium">Control de gastos</p>
+              <h1 className="text-lg font-bold text-white leading-tight">Cris y Adri</h1>
             </div>
             {/* Aquí estaba "Salir", pegado al botón de ocultar cifras. Se ha
                 ido a Ajustes: ocultar se pulsa todos los días y salir de la
                 cuenta, nunca, y un dedazo entre los dos te dejaba fuera de la
                 app teniendo que escribir el correo y la contraseña otra vez. */}
             <button onClick={alternarCifras}
-              className="w-[44%] shrink-0 text-xs font-semibold text-white bg-emerald-500 rounded-xl px-3 py-1.5 text-center whitespace-nowrap">
+              className="w-[40%] shrink-0 text-xs font-semibold text-white bg-emerald-500 rounded-xl px-3 py-1.5 text-center whitespace-nowrap">
               {mostrarCifras ? '🙈 Ocultar' : '👁️ Mostrar'}
             </button>
           </div>
@@ -595,11 +597,11 @@ export default function Home() {
               que aquí, y solo aquí, se centra todo. */}
           <div className="flex gap-2 items-stretch">
 
-            <div className={`flex-1 min-w-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3.5 py-3 ${vista === 'balance' ? 'text-center' : ''}`}>
+            <div className={`flex-1 min-w-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3.5 py-3 transition-[flex-grow] duration-300 ${vista === 'balance' ? 'text-center' : ''}`}>
               <div className={`h-3.5 flex items-center ${vista === 'balance' ? 'justify-center' : ''}`}>
                 <p className="text-[9px] text-[var(--tinta-2)] uppercase font-bold truncate">Balance {mesNombre}</p>
               </div>
-              <p className={`text-2xl font-black leading-none tracking-tight mt-1.5 ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#FFBAC8]'}`}>
+              <p className={`text-xl font-black leading-none tracking-tight mt-1.5 whitespace-nowrap ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#FFBAC8]'}`}>
                 {ocultar(mostrarCifras, `${balanceMes.balance >= 0 ? '+' : ''}${euros(balanceMes.balance)} €`)}
               </p>
               {/* Los dos chips: antes rompían el importe por la mitad y el €
@@ -621,42 +623,44 @@ export default function Home() {
               </div>
             </div>
 
-            {vista !== 'balance' && (
-              // Es un <div role="button">, no un <button> de verdad: medido
-              // de verdad -no a ojo-, un <button> lleva de fábrica un
-              // relleno interno propio del control nativo del sistema, que
-              // no aparece en ningún padding ni margin de CSS y que ni
-              // "appearance: none" por JavaScript conseguía quitar del
-              // todo. Con esa tarjeta como <button>, su rótulo caía 10,75px
-              // más abajo que el de Balance aunque los dos llevaran
-              // EXACTAMENTE el mismo padding-top declarado. Cambiando solo
-              // esa etiqueta a <div>, con el resto del código idéntico, la
-              // diferencia desaparece por completo -de 10,75px a 0-.
-              // El teclado y el lector de pantalla lo siguen tratando como
-              // un botón: role="button", se puede llegar con Tab
-              // (tabIndex) y se activa con Intro o espacio.
-              <div role="button" tabIndex={0}
-                onClick={() => { setAbrirInformesEn({ saldar: true }); setVista('balance') }}
-                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAbrirInformesEn({ saldar: true }); setVista('balance') } }}
-                className="w-[40%] shrink-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3 pt-3 pb-2.5 text-left cursor-pointer active:opacity-80">
-                <div className="h-3.5 flex items-center justify-between gap-1">
-                  <p className="text-[9px] text-[var(--tinta-2)] uppercase font-bold truncate">Cuenta de los dos</p>
-                  <span className="text-[var(--tinta-3)] text-xs shrink-0">›</span>
+            {/* Antes esta tarjeta se desmontaba del todo al entrar en
+                Balance ({vista !== 'balance' && (...)}), y Balance ocupaba
+                de golpe todo el ancho y recentraba su texto en el mismo
+                instante: un salto brusco, sin transición posible, porque un
+                elemento que desaparece de la página no se puede animar.
+                Ahora esta tarjeta se queda siempre en el sitio, y lo que
+                cambia es su ANCHO (de 40% a 0) con una transición suave; al
+                encogerse, Balance crece detrás para ocupar el hueco, con la
+                misma transición. overflow-hidden evita que su contenido se
+                vea mientras se encoge. Cuando está oculta, tabIndex pasa a
+                -1 y el clic no hace nada: no tiene sentido pulsar algo que
+                no se ve, ni que el teclado se pare en ella. */}
+            <div role="button" tabIndex={vista === 'balance' ? -1 : 0}
+              onClick={() => { if (vista !== 'balance') { setAbrirInformesEn({ saldar: true }); setVista('balance') } }}
+              onKeyDown={e => { if (vista !== 'balance' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setAbrirInformesEn({ saldar: true }); setVista('balance') } }}
+              className={`shrink-0 overflow-hidden bg-[#3A4170] border border-[#5A6296] rounded-2xl pt-3 pb-2.5 text-left transition-all duration-300 active:opacity-80 ${vista === 'balance' ? 'w-0 px-0 border-0 opacity-0 pointer-events-none' : 'w-[40%] px-3 cursor-pointer'}`}>
+                {/* Ancho fijo propio, aparte del recorte de fuera: así el
+                    texto no se reordena mientras el contenedor se encoge,
+                    solo se va tapando lo que sobresale. */}
+                <div className="w-[132px]">
+                  <div className="h-3.5 flex items-center justify-between gap-1">
+                    <p className="text-[9px] text-[var(--tinta-2)] uppercase font-bold truncate">Cuenta de los dos</p>
+                    <span className="text-[var(--tinta-3)] text-xs shrink-0">›</span>
+                  </div>
+                  {deuda.aRepartir <= 0 || deuda.importe < 0.01 ? (
+                    <p className="text-base font-bold text-[var(--ingreso)] mt-1.5 leading-tight">Estáis en paz</p>
+                  ) : (
+                    <>
+                      <p className="text-xl font-black text-[var(--acento)] leading-none mt-1.5 tracking-tight whitespace-nowrap">
+                        {ocultar(mostrarCifras, `${euros(deuda.importe)} €`)}
+                      </p>
+                      <p className="text-[11px] text-[var(--tinta-3)] leading-tight mt-2.5">
+                        <b className="font-semibold text-[var(--tinta-2)]">{deuda.deudor}</b> le debe a {deuda.acreedor}
+                      </p>
+                    </>
+                  )}
                 </div>
-                {deuda.aRepartir <= 0 || deuda.importe < 0.01 ? (
-                  <p className="text-base font-bold text-[var(--ingreso)] mt-1.5 leading-tight">Estáis en paz</p>
-                ) : (
-                  <>
-                    <p className="text-2xl font-black text-[var(--acento)] leading-none mt-1.5 tracking-tight">
-                      {ocultar(mostrarCifras, `${euros(deuda.importe)} €`)}
-                    </p>
-                    <p className="text-[11px] text-[var(--tinta-3)] leading-tight mt-2.5">
-                      <b className="font-semibold text-[var(--tinta-2)]">{deuda.deudor}</b> le debe a {deuda.acreedor}
-                    </p>
-                  </>
-                )}
               </div>
-            )}
           </div>
         </header>
       )}
