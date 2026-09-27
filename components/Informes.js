@@ -1301,7 +1301,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
           className="w-full py-2.5 bg-[var(--comun-fondo)] border border-[var(--comun)] text-[var(--comun)] font-semibold rounded-xl active:bg-[var(--comun-fondo)] disabled:opacity-40 flex items-center justify-center gap-2 text-sm">
           <span>📥</span> Copia de los gastos de los dos (Excel)
         </button>
-        <p className="text-[11px] text-[#CFEBE0] -mt-0.5">
+        <p className="text-[11px] text-[#D7E5C2] -mt-0.5">
           Sin gastos particulares de nadie. Es la que vale como copia de seguridad y se puede pasar al otro.
         </p>
         <button onClick={() => exportarExcel(soloMios(transacciones), `mis_gastos_${hoy()}.xlsx`)}

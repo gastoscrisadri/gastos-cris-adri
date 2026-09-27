@@ -203,7 +203,7 @@ export default function GestionCuentas({ transacciones, mostrarCifras, usuario }
                     <button key={p} type="button" onClick={() => cambiarPersona(cuenta, p)}
                       className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors ${
                         (cuenta.persona || 'Común') === p
-                          ? 'bg-[var(--superficie)] text-white border-[var(--acento)]'
+                          ? 'bg-[var(--acento)] text-[var(--acento-tinta)] border-[var(--acento)]'
                           : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'
                       }`}>
                       {p}
@@ -242,7 +242,7 @@ export default function GestionCuentas({ transacciones, mostrarCifras, usuario }
               <button key={p} type="button" onClick={() => setNuevaCuenta(c => ({ ...c, persona: p }))}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors ${
                   nuevaCuenta.persona === p
-                    ? 'bg-[var(--superficie)] text-white border-[var(--acento)]'
+                    ? 'bg-[var(--acento)] text-[var(--acento-tinta)] border-[var(--acento)]'
                     : 'bg-[var(--superficie)] text-[var(--tinta-4)] border-[var(--linea)]'
                 }`}>
                 {p}
