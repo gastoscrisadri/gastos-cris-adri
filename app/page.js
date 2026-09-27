@@ -565,29 +565,37 @@ export default function Home() {
               El balance lleva ahora su propia tarjeta, a juego con la de "La
               cuenta de los dos": antes era texto suelto sobre la cabecera y
               se veía deslavazado al lado de una tarjeta con cuerpo propio. */}
-          {/* items-start, no items-stretch: cada tarjeta mide lo que pide su
-              propio contenido. Antes, con items-stretch, la tarjeta de la
-              cuenta se estiraba a la fuerza hasta igualar la de Balance
-              (que es más alta, por los dos chips de abajo) y su
-              "justify-between" repartía ese hueco de más entre sus líneas,
-              así que la cifra de la deuda no caía nunca en el mismo sitio
-              que la del balance. Ahora las dos empiezan con la MISMA altura
-              de rótulo (h-3.5) y el MISMO margen antes de la cifra
-              (mt-1.5): con eso las dos cifras grandes quedan a la misma
-              altura sin tener que forzar nada. */}
+          {/* items-stretch: las dos tarjetas acaban con la MISMA altura —la
+              mínima que hace falta para que quepa la más alta de las dos,
+              que es Balance por sus dos chips de debajo—.
+              Esto ya es seguro porque ninguna de las dos tarjetas reparte
+              el hueco sobrante por dentro: antes "la cuenta" era un
+              flex-col con justify-between, así que estirarla movía sus
+              líneas de sitio y la cifra de la deuda dejaba de caer donde
+              la del balance. Ahora las dos son bloques normales de arriba
+              abajo, así que si se estiran, el hueco de más se queda
+              invisible DEBAJO de la última línea, sin tocar nada de lo de
+              encima.
+              Y lo de encima coincide punto por punto: la MISMA altura de
+              rótulo (h-3.5), el MISMO margen antes de la cifra (mt-1.5),
+              la MISMA cifra (leading-none en las dos) y el MISMO margen
+              antes de lo que va después (mt-2.5) —los chips en una,
+              "fulano le debe a mengano" en la otra—. Con eso, la cifra
+              grande y la fila de después caen en el mismo sitio en las
+              dos tarjetas, sin necesidad de forzar nada a mano. */}
           {/* Cuando se está EN Balance, la tarjeta de la cuenta no se enseña
               (ya está desarrollada entera más abajo) y la de Balance se
               queda sola en la fila: al ser flex-1 sin nadie al lado, ocupa
               todo el ancho de la cabecera. Un rótulo y una cifra pegados a
               la izquierda con medio móvil vacío a la derecha se ve raro, así
               que aquí, y solo aquí, se centra todo. */}
-          <div className="flex gap-2 items-start">
+          <div className="flex gap-2 items-stretch">
 
             <div className={`flex-1 min-w-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3.5 py-3 ${vista === 'balance' ? 'text-center' : ''}`}>
               <div className={`h-3.5 flex items-center ${vista === 'balance' ? 'justify-center' : ''}`}>
                 <p className="text-[9px] text-[var(--tinta-2)] uppercase tracking-wider font-bold">Balance {mesNombre}</p>
               </div>
-              <p className={`text-2xl font-black tracking-tight mt-1.5 ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#FFBAC8]'}`}>
+              <p className={`text-2xl font-black leading-none tracking-tight mt-1.5 ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#FFBAC8]'}`}>
                 {ocultar(mostrarCifras, `${balanceMes.balance >= 0 ? '+' : ''}${euros(balanceMes.balance)} €`)}
               </p>
               {/* Los dos chips: antes rompían el importe por la mitad y el €
@@ -597,7 +605,7 @@ export default function Home() {
                   chip entero baja debajo del primero (flex-wrap) en vez de
                   partirse una palabra por dentro. Y más estrechos: letra y
                   relleno más pequeños. */}
-              <div className={`flex flex-wrap gap-1.5 mt-2 ${vista === 'balance' ? 'justify-center' : ''}`}>
+              <div className={`flex flex-wrap gap-1.5 mt-2.5 ${vista === 'balance' ? 'justify-center' : ''}`}>
                 <div className="flex items-center gap-1 bg-black/25 rounded-lg px-2 py-0.5 min-w-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block shrink-0" />
                   <span className="text-[11px] text-[var(--ingreso)] font-semibold whitespace-nowrap">↑ {ocultar(mostrarCifras, `${euros(balanceMes.ingresos)} €`)}</span>
@@ -612,9 +620,9 @@ export default function Home() {
             {vista !== 'balance' && (
               <button type="button"
                 onClick={() => { setAbrirInformesEn({ saldar: true }); setVista('balance') }}
-                className="w-[38%] shrink-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3 pt-3 pb-2.5 text-left active:opacity-80">
+                className="w-[40%] shrink-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3 pt-3 pb-2.5 text-left active:opacity-80">
                 <div className="h-3.5 flex items-center justify-between gap-1">
-                  <p className="text-[9px] text-[var(--tinta-2)] uppercase tracking-wider font-bold">Cuenta de los dos</p>
+                  <p className="text-[9px] text-[var(--tinta-2)] uppercase font-bold whitespace-nowrap">Cuenta de los dos</p>
                   <span className="text-[var(--tinta-3)] text-xs shrink-0">›</span>
                 </div>
                 {deuda.aRepartir <= 0 || deuda.importe < 0.01 ? (
@@ -624,7 +632,7 @@ export default function Home() {
                     <p className="text-2xl font-black text-[var(--acento)] leading-none mt-1.5 tracking-tight">
                       {ocultar(mostrarCifras, `${euros(deuda.importe)} €`)}
                     </p>
-                    <p className="text-[11px] text-[var(--tinta-3)] leading-tight mt-1.5">
+                    <p className="text-[11px] text-[var(--tinta-3)] leading-tight mt-2.5">
                       <b className="font-semibold text-[var(--tinta-2)]">{deuda.deudor}</b> le debe a {deuda.acreedor}
                     </p>
                   </>
