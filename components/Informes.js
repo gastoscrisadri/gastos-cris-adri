@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { createClient } from '@/lib/supabase/client'
 import { ocultar, euros, euros0 } from '@/lib/cifras'
-import { cargarCuentas, personaDeMedioPago, soloActivas, CUENTAS_RESPALDO } from '@/lib/cuentas'
+import { cargarCuentas, personaDeMedioPago, ordenarPara, ORDEN_MEDIOS_AL_SALDAR, CUENTAS_RESPALDO } from '@/lib/cuentas'
 import { NOMBRES, nombreDe } from '@/lib/identidad'
 import { cargarCategorias } from '@/lib/categorias'
 import { hoy } from '@/lib/fechas'
@@ -921,8 +921,15 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-[var(--tinta-4)] uppercase tracking-wide mb-1">Con qué</label>
+                  {/* Antes soloActivas(cuentas) a secas: las cuentas de los
+                      dos mezcladas en el orden que fuera, sin más criterio
+                      que como estuvieran en la base de datos. Quien paga
+                      aquí es SIEMPRE el deudor (es él quien está saldando),
+                      así que van primero sus propias cuentas, con Bizum por
+                      delante de la tarjeta —para pagarle a alguien lo
+                      normal es un Bizum al momento, no una tarjeta—. */}
                   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                    {soloActivas(cuentas).map(c => (
+                    {ordenarPara(deuda.deudor, cuentas, ORDEN_MEDIOS_AL_SALDAR).map(c => (
                       <button key={c.nombre} type="button"
                         onClick={() => { setMedioSaldo(c.nombre); setErrorSaldo('') }}
                         className={`shrink-0 px-3 py-2 rounded-xl text-xs font-semibold border ${medioSaldo === c.nombre ? 'bg-[var(--acento)] text-[var(--acento-tinta)] border-[var(--acento)]' : 'bg-[var(--superficie)] text-[var(--tinta-3)] border-[var(--linea)]'}`}>
