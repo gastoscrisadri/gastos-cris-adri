@@ -467,7 +467,11 @@ export default function Home() {
     return { ingresos, gastos, balance: ingresos - gastos }
   }, [transacciones, usuario, miParte])
 
-  const mesNombre = new Date().toLocaleString('es', { month: 'long', year: 'numeric' })
+  // Solo el mes, sin el año: "Balance septiembre de 2026" se partía en dos
+  // líneas dentro de la tarjeta —medido de verdad, no a ojo—, y todo lo que
+  // iba debajo (la cifra, los chips) se desplazaba por ese motivo. El año
+  // además sobra: la tarjeta habla siempre del mes en curso.
+  const mesNombre = new Date().toLocaleString('es', { month: 'long' })
 
   const filtrosActivos = Object.values(filtros).filter(Boolean).length
 
@@ -593,7 +597,7 @@ export default function Home() {
 
             <div className={`flex-1 min-w-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3.5 py-3 ${vista === 'balance' ? 'text-center' : ''}`}>
               <div className={`h-3.5 flex items-center ${vista === 'balance' ? 'justify-center' : ''}`}>
-                <p className="text-[9px] text-[var(--tinta-2)] uppercase tracking-wider font-bold">Balance {mesNombre}</p>
+                <p className="text-[9px] text-[var(--tinta-2)] uppercase font-bold truncate">Balance {mesNombre}</p>
               </div>
               <p className={`text-2xl font-black leading-none tracking-tight mt-1.5 ${balanceMes.balance >= 0 ? 'text-white' : 'text-[#FFBAC8]'}`}>
                 {ocultar(mostrarCifras, `${balanceMes.balance >= 0 ? '+' : ''}${euros(balanceMes.balance)} €`)}
@@ -618,11 +622,25 @@ export default function Home() {
             </div>
 
             {vista !== 'balance' && (
-              <button type="button"
+              // Es un <div role="button">, no un <button> de verdad: medido
+              // de verdad -no a ojo-, un <button> lleva de fábrica un
+              // relleno interno propio del control nativo del sistema, que
+              // no aparece en ningún padding ni margin de CSS y que ni
+              // "appearance: none" por JavaScript conseguía quitar del
+              // todo. Con esa tarjeta como <button>, su rótulo caía 10,75px
+              // más abajo que el de Balance aunque los dos llevaran
+              // EXACTAMENTE el mismo padding-top declarado. Cambiando solo
+              // esa etiqueta a <div>, con el resto del código idéntico, la
+              // diferencia desaparece por completo -de 10,75px a 0-.
+              // El teclado y el lector de pantalla lo siguen tratando como
+              // un botón: role="button", se puede llegar con Tab
+              // (tabIndex) y se activa con Intro o espacio.
+              <div role="button" tabIndex={0}
                 onClick={() => { setAbrirInformesEn({ saldar: true }); setVista('balance') }}
-                className="w-[40%] shrink-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3 pt-3 pb-2.5 text-left active:opacity-80">
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAbrirInformesEn({ saldar: true }); setVista('balance') } }}
+                className="w-[40%] shrink-0 bg-[#3A4170] border border-[#5A6296] rounded-2xl px-3 pt-3 pb-2.5 text-left cursor-pointer active:opacity-80">
                 <div className="h-3.5 flex items-center justify-between gap-1">
-                  <p className="text-[9px] text-[var(--tinta-2)] uppercase font-bold whitespace-nowrap">Cuenta de los dos</p>
+                  <p className="text-[9px] text-[var(--tinta-2)] uppercase font-bold truncate">Cuenta de los dos</p>
                   <span className="text-[var(--tinta-3)] text-xs shrink-0">›</span>
                 </div>
                 {deuda.aRepartir <= 0 || deuda.importe < 0.01 ? (
@@ -637,7 +655,7 @@ export default function Home() {
                     </p>
                   </>
                 )}
-              </button>
+              </div>
             )}
           </div>
         </header>
