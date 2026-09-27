@@ -101,6 +101,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   const [confirmando, setConfirmando] = useState(false)
   // Si el móvil ya tiene dueño, "quién" se muestra como texto en vez de botones
   const [movilConfigurado, setMovilConfigurado] = useState(() => !!nombreDe(usuario))
+
   const [usoCategorias, setUsoCategorias] = useState({})
   const [usoSubcategorias, setUsoSubcategorias] = useState({})
   const [porEstablecimiento, setPorEstablecimiento] = useState({})
@@ -109,6 +110,40 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
   // visible para los dos, nunca al revés.
   const [personas, setPersonas] = useState([])
   useEffect(() => { cargarPersonas().then(setPersonas) }, [])
+
+  // LA APP ABRE DIRECTAMENTE AQUÍ, en "Nuevo apunte" (es la pantalla de
+  // salida, a propósito). Eso significa que este componente se monta en el
+  // MISMO instante en que arranca la app entera — y en ese instante
+  // "usuario" todavía es null: la cuenta se pide a Supabase en un efecto de
+  // la pantalla de arriba, que tarda su ratito en resolver.
+  //
+  // Los dos useState de más arriba leen nombreDe(usuario) UNA SOLA VEZ, al
+  // montar. Si en ese momento usuario es null, se quedan con lo que hubiera
+  // en el móvil (localStorage) o, si no hay nada ahí, en blanco — y ya no se
+  // vuelven a calcular nunca, aunque "usuario" llegue bien un segundo
+  // después. Por eso el fallo no se veía siempre igual: si el móvil tenía
+  // guardado el nombre de antes, colaba; si no —una cuenta que entra por
+  // primera vez, o después de borrar los datos del navegador— el orden de
+  // las tarjetas y quién registra salían vacíos, y solo se arreglaba
+  // cancelando y volviendo a entrar, que es cuando el formulario se vuelve a
+  // montar con "usuario" ya resuelto.
+  //
+  // Este efecto es el que faltaba: en cuanto "usuario" llega, si todavía no
+  // se había elegido nada, se rellena. Con una condición importante: NO se
+  // toca si se está editando un apunte ya existente (ahí "quién" sale de lo
+  // guardado, no de quién ha entrado) ni si el usuario ya ha tocado algo
+  // (para no deshacer una elección manual hecha en ese primer instante).
+  const yaResueltoRef = useRef(false)
+  useEffect(() => {
+    if (transaccionEditar) return
+    if (!usuario) return
+    if (yaResueltoRef.current) return
+    yaResueltoRef.current = true
+    const nombre = nombreDe(usuario)
+    if (!nombre) return
+    setMovilConfigurado(true)
+    setForm(f => (f.quien ? f : { ...f, quien: nombre }))
+  }, [usuario, transaccionEditar])
 
   const inputFotoRef = useRef()
   const inputGaleriaRef = useRef()
@@ -125,19 +160,7 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
   useEffect(() => {
     cargarCategorias().then(setCategorias)
-    cargarCuentas().then(lista => {
-      setCuentas(lista)
-      // Premarcamos la primera cuenta de quien registra: con el orden por
-      // defecto es su tarjeta. Se hace por posición y no por nombre, así
-      // sigue funcionando aunque renombren las cuentas.
-      if (transaccionEditar) return
-      setForm(f => {
-        if (!f.quien) return f
-        if (f.medio_pago && lista.some(c => c.nombre === f.medio_pago)) return f
-        const suyas = ordenarPara(f.quien, lista).filter(c => c.persona === f.quien)
-        return { ...f, medio_pago: suyas[0]?.nombre || '' }
-      })
-    })
+    cargarCuentas().then(setCuentas)
     supabase.from('transacciones').select('establecimiento, descripcion, categoria, subcategoria').then(({ data }) => {
       if (!data) return
       setHistorialEstablecimientos([...new Set(data.map(t => t.establecimiento).filter(Boolean))].sort())
@@ -174,6 +197,28 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
       setPorEstablecimiento(masUsada)
     })
   }, [])
+
+  // Premarcamos la primera cuenta de quien registra: con el orden por
+  // defecto es su tarjeta. Se hace por posición y no por nombre, así sigue
+  // funcionando aunque renombren las cuentas.
+  //
+  // Vive en SU PROPIO efecto, reactivo a form.quien y a cuentas por
+  // separado, y no metido dentro de la carga de cuentas de más arriba. Si
+  // fuera parte de aquella —que solo se ejecuta una vez, al montar—, se
+  // apostaba a que "quién" ya estuviera resuelto justo en ese instante; si
+  // las cuentas llegaban antes que la identidad (podía pasar perfectamente,
+  // son dos peticiones independientes), la premarca se quedaba sin hacer
+  // para siempre, porque esa carga no se repite. Así, sea cual sea el orden
+  // en que lleguen las dos cosas, en cuanto están las dos se aplica.
+  useEffect(() => {
+    if (transaccionEditar) return
+    if (!form.quien) return
+    setForm(f => {
+      if (f.medio_pago && cuentas.some(c => c.nombre === f.medio_pago)) return f
+      const suyas = ordenarPara(f.quien, cuentas).filter(c => c.persona === f.quien)
+      return suyas[0] ? { ...f, medio_pago: suyas[0].nombre } : f
+    })
+  }, [form.quien, cuentas, transaccionEditar])
 
   function set(campo, valor) {
     setForm(f => ({ ...f, [campo]: valor }))
