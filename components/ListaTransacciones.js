@@ -184,7 +184,13 @@ export default function ListaTransacciones({ transacciones, cargando, onSeleccio
                           personal
                         </span>
                       ) : (
-                        <span className="text-[10px] font-semibold text-[var(--comun)] bg-[var(--comun-fondo)] px-1.5 py-0.5 rounded shrink-0">
+                        // "De los dos" es el caso normal, no la excepción —la
+                        // mayoría de los apuntes son así—, así que no lleva
+                        // insignia de color: solo seguiría ahí para que no
+                        // falte el dato, pero gritando en cada fila. El verde
+                        // fuerte se queda para "personal" y "ajuste de
+                        // cuentas", que sí conviene que se noten.
+                        <span className="text-[10px] font-semibold text-[var(--tinta-4)] shrink-0">
                           de los dos
                         </span>
                       )}
