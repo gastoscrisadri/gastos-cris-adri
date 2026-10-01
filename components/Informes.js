@@ -19,12 +19,15 @@ import { esLiquidacion, sinAjustes, esDeLaCasa, soloComunes, soloMios, soloConju
 // distinto y muy saturado: era lo que más cargaba la pantalla de Informes.
 // Ahora son variaciones de los mismos tonos oscuros que ya usa el resto de
 // la piel Noche para fondos de recuadro (--comun-fondo, --info-fondo,
-// --aviso-fondo, --personal-fondo y los nuevos de Gasto/Ingreso), con la
-// misma luz y saturación para las dos que no tenían ya una pareja. Sirven
-// de fondo a un texto blanco (el "%" de cada categoría): contraste medido
-// entre 6,1 y 9,1, de sobra sobre el mínimo de 4,5.
+// --personal-fondo y los nuevos de Gasto/Ingreso), con la misma luz y
+// saturación para las dos que no tenían ya una pareja. Sirven de fondo a un
+// texto blanco (el "%" de cada categoría): contraste medido entre 6,1 y
+// 9,1, de sobra sobre el mínimo de 4,5.
+// Sin ningún tono cálido oscuro (ámbar, naranja, marrón): a esa luz tan
+// baja, cualquier tono cálido se ve como marrón sucio en vez de dorado —
+// por eso --aviso-fondo, que es justo eso, se quitó de aquí al pedirse que
+// no se viera "marrón feo".
 const COLORES = [
-  '#594822', // ámbar  (aviso-fondo)
   '#384F17', // lima   (comun-fondo)
   '#3E6B5B', // verde  (a juego con el de Ingreso)
   '#3E636B', // cián
@@ -775,11 +778,18 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
 
               El pie estaba en 3,5 de contraste sobre estos fondos, por debajo
               del mínimo de 4,5. Al subir los fondos de los recuadros no se
-              volvió a medir lo que iba encima; ahora está en 5,7. */}
+              volvió a medir lo que iba encima; ahora está en 5,7.
+
+              En negativo iba en --aviso-fondo (ámbar oscuro), que a esa luz
+              se ve marrón, no dorado: pedido que se quitara. Negativo es
+              "te has quedado sin dinero", que ya es el mismo rojo apagado
+              que usa el resto de la app para lo que falta —el mismo fondo
+              que "Gastasteis entre los dos" en el resumen de mes cerrado—,
+              así que aquí combina mejor que el ámbar de aviso. */}
           {miBalanceMes ? (
-            <div className={`rounded-xl p-3 text-center ${miBalanceMes.queda >= 0 ? 'bg-[var(--info-fondo)]' : 'bg-[var(--aviso-fondo)]'}`}>
+            <div className={`rounded-xl p-3 text-center ${miBalanceMes.queda >= 0 ? 'bg-[var(--info-fondo)]' : 'bg-[#6B3E4C]'}`}>
               <p className="text-xs font-medium text-[#C9CDE6]">Lo que te queda a ti este mes</p>
-              <p className={`text-2xl font-black tracking-tight mt-0.5 ${miBalanceMes.queda >= 0 ? 'text-[var(--info)]' : 'text-[var(--aviso)]'}`}>
+              <p className={`text-2xl font-black tracking-tight mt-0.5 ${miBalanceMes.queda >= 0 ? 'text-[var(--info)]' : 'text-[#FFBAC8]'}`}>
                 {ocultar(mostrarCifras, `${miBalanceMes.queda >= 0 ? '+' : ''}${euros(miBalanceMes.queda)} €`)}
               </p>
               <p className="text-[10px] text-[#C9CDE6] mt-1 opacity-80">
