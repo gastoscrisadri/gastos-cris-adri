@@ -568,19 +568,21 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
         style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
       />
 
-      {/* Botón foto OCR — es el campo más usado. Mismo verde que ya usa la app
-          para lo positivo (Ingreso, saldos a favor, "Documento reconocido").
-          Cancelar va aquí arriba, junto a la foto: cuando la app abre
-          directamente en este formulario (ver page.js) es lo primero que se
-          ve, así que la salida rápida tiene que estar a la vista. */}
+      {/* Tres opciones del mismo nivel —foto, galería, cancelar—, así que van
+          con el mismo gris neutro: lo que las distingue es el emoji, no un
+          color distinto cada una. Antes Cámara era amarilla y Mis fotos
+          azul, dos colores fuertes antes de haber escrito nada, pedido que
+          se quitara. Cancelar va aquí arriba, junto a la foto: cuando la app
+          abre directamente en este formulario (ver page.js) es lo primero
+          que se ve, así que la salida rápida tiene que estar a la vista. */}
       <div className="flex gap-1.5">
         <button type="button" onClick={() => inputFotoRef.current?.click()}
-          className="basis-[38%] py-3.5 rounded-xl bg-[var(--acento)] text-[var(--acento-tinta)] text-xs font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm">
+          className="basis-[38%] py-3.5 rounded-xl bg-[var(--superficie-3)] text-[var(--tinta-2)] text-xs font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm">
           <span className="text-lg leading-none">📷</span>
           {foto ? 'Cambiar' : 'Cámara'}
         </button>
         <button type="button" onClick={() => inputGaleriaRef.current?.click()}
-          className="basis-[34%] py-3.5 rounded-xl bg-[var(--info)] text-[#07203A] text-xs font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm">
+          className="basis-[34%] py-3.5 rounded-xl bg-[var(--superficie-3)] text-[var(--tinta-2)] text-xs font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm">
           <span className="text-lg leading-none">🖼️</span>
           Mis fotos
         </button>
@@ -600,14 +602,17 @@ export default function FormTransaccion({ usuario, onGuardado, onCancelar, trans
 
       {/* Tipo */}
       <div className="flex rounded-xl overflow-hidden border border-[var(--linea)]">
-        {/* Sin elegir, cada uno lleva ya su color apagado: así se ve de qué
-            va cada botón antes de pulsarlo, y no solo después. */}
+        {/* Antes el elegido se rellenaba del todo de rojo o verde saturado,
+            muy fuerte justo debajo de la fila de Cámara/Mis fotos/Cancelar.
+            Ahora el color va solo en el texto, sobre un fondo oscuro a
+            juego (el mismo truco que ya usaba el NO elegido): sigue
+            leyéndose a la primera cuál está activo, sin el bloque sólido. */}
         <button type="button" onClick={() => { set('tipo', 'gasto'); set('categoria', '') }}
-          className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${form.tipo === 'gasto' ? 'bg-[var(--gasto)] text-[#2A0E12]' : 'bg-[#6B3E4C] text-[#FFBAC8]'}`}>
+          className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${form.tipo === 'gasto' ? 'bg-[#6B3E4C] text-[#FFBAC8]' : 'bg-[var(--superficie-2)] text-[var(--tinta-4)]'}`}>
           💸 Gasto
         </button>
         <button type="button" onClick={() => { set('tipo', 'ingreso'); set('categoria', '') }}
-          className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${form.tipo === 'ingreso' ? 'bg-[var(--ingreso)] text-[#04241A]' : 'bg-[var(--comun-fondo)] text-[var(--comun)]'}`}>
+          className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${form.tipo === 'ingreso' ? 'bg-[#3E6B5B] text-[#BAFFE6]' : 'bg-[var(--superficie-2)] text-[var(--tinta-4)]'}`}>
           💰 Ingreso
         </button>
       </div>
