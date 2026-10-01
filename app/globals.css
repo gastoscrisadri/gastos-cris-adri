@@ -47,7 +47,12 @@
      medirlos — a ojo no se ve venir. */
 
   /* --- El acento: lo que hay que pulsar --- */
-  --acento:       #FFC24B;
+  /* Menos saturado que el amarillo de partida (100% sat / 65% luz → 70%/62%):
+     pedido porque se veía demasiado fuerte, sobre todo en "Nuevo apunte"
+     donde ya había varios colores sólidos juntos. Sigue por encima de 7 de
+     contraste tanto como texto como con --acento-tinta encima, de sobra
+     sobre el mínimo de 4,5. */
+  --acento:       #E2B45A;
   --acento-tinta: #221A05;   /* el texto que va ENCIMA del acento */
   --acento-flojo: #5E4614;   /* el acento como fondo discreto */
 
