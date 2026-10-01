@@ -1276,7 +1276,11 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                   itemStyle={{ color: 'var(--tinta)' }}
                   labelStyle={{ color: 'var(--tinta-4)' }}
                 />
-                <Bar dataKey="gastosAnt" fill="#8A4A4A" radius={[3, 3, 0, 0]} name="gastosAnt" />
+                {/* El año anterior era un rojo tan desaturado (H0 S30 L42)
+                    que se veía marrón, no "rojo apagado". En vez de buscar
+                    otro tono de rojo, va en gris neutro: el año que importa
+                    de verdad —el actual— se queda como el único en color. */}
+                <Bar dataKey="gastosAnt" fill="#383F68" radius={[3, 3, 0, 0]} name="gastosAnt" />
                 <Bar dataKey="gastos" fill="#FF6B6B" radius={[3, 3, 0, 0]} name="gastos" />
               </BarChart>
             </ResponsiveContainer>
@@ -1288,7 +1292,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                 <span className="w-3 h-2 rounded bg-[var(--gasto)] inline-block" /> {anioActual}
               </span>
               <span className="flex items-center gap-1 text-xs text-[var(--tinta-4)]">
-                <span className="w-3 h-2 rounded bg-[#7A4657] inline-block" /> {anioAnterior}
+                <span className="w-3 h-2 rounded bg-[#383F68] inline-block" /> {anioAnterior}
               </span>
             </div>
           </div>
