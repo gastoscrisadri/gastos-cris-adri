@@ -15,11 +15,22 @@ import { calcularDeuda, gastosComunesDesde } from '@/lib/deuda'
 // arreglo entrara en una pantalla y no en su gemela.
 import { esLiquidacion, sinAjustes, esDeLaCasa, soloComunes, soloMios, soloConjunto } from '@/lib/apuntes'
 
+// Antes eran 17 colores arcoíris de Tailwind, cada categoría en un tono muy
+// distinto y muy saturado: era lo que más cargaba la pantalla de Informes.
+// Ahora son variaciones de los mismos tonos oscuros que ya usa el resto de
+// la piel Noche para fondos de recuadro (--comun-fondo, --info-fondo,
+// --aviso-fondo, --personal-fondo y los nuevos de Gasto/Ingreso), con la
+// misma luz y saturación para las dos que no tenían ya una pareja. Sirven
+// de fondo a un texto blanco (el "%" de cada categoría): contraste medido
+// entre 6,1 y 9,1, de sobra sobre el mínimo de 4,5.
 const COLORES = [
-  '#FF6B6B','#f97316','#eab308','#84cc16','#22c55e',
-  '#14b8a6','#3b82f6','#8b5cf6','#ec4899','#f43f5e',
-  '#0ea5e9','#a855f7','#10b981','#f59e0b','#6366f1',
-  '#d946ef','#64748b',
+  '#594822', // ámbar  (aviso-fondo)
+  '#384F17', // lima   (comun-fondo)
+  '#3E6B5B', // verde  (a juego con el de Ingreso)
+  '#3E636B', // cián
+  '#314979', // azul   (info-fondo)
+  '#484281', // violeta (personal-fondo)
+  '#6B3E54', // rosa
 ]
 
 // "17 de septiembre" a partir de la fecha y hora que guarda la base de datos.
@@ -616,9 +627,16 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
       <div>
         <p className="text-xs font-bold text-[var(--tinta-4)] uppercase tracking-widest mb-1.5">Qué gastos estás viendo</p>
         <div className="flex gap-1.5">
-          {[['comunes', 'De los dos', 'bg-[var(--dinero)] border-[var(--dinero)]'], ['mios', 'Lo mío', 'bg-violet-600 border-violet-600']].map(([id, label, activo]) => (
+          {/* "Lo mío" iba en violeta puro (violet-600), un color que no
+              existe en ningún otro sitio de la app: ahora usa --personal,
+              el mismo lila que ya marca "gasto personal" en la Lista, mismo
+              significado. De paso, "De los dos" tenía un fallo de contraste
+              real —texto blanco sobre --dinero daba 2,3, por debajo del
+              mínimo de 4,5— al llevar cada uno el texto oscuro pensado
+              para su propio fondo en vez de blanco genérico. */}
+          {[['comunes', 'De los dos', 'bg-[var(--dinero)] border-[var(--dinero)] text-[var(--dinero-tinta)]'], ['mios', 'Lo mío', 'bg-[var(--personal)] border-[var(--personal)] text-[var(--personal-fondo)]']].map(([id, label, activo]) => (
             <button key={id} type="button" onClick={() => setDeQuien(id)}
-              className={`flex-1 py-2 rounded-xl text-xs font-bold border-2 transition-colors ${deQuien === id ? activo + ' text-white' : 'bg-[var(--superficie)] text-[var(--tinta-3)] border-[var(--linea)]'}`}>
+              className={`flex-1 py-2 rounded-xl text-xs font-bold border-2 transition-colors ${deQuien === id ? activo : 'bg-[var(--superficie)] text-[var(--tinta-3)] border-[var(--linea)]'}`}>
               {label}
             </button>
           ))}
@@ -796,7 +814,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-[var(--tinta)]">{m.nombre}</p>
                       <div className="mt-1 h-1.5 bg-[var(--superficie-3)] rounded-full overflow-hidden">
-                        <div className="h-full bg-red-400 rounded-full" style={{ width: `${totalMedio}%` }} />
+                        <div className="h-full bg-[var(--gasto)] rounded-full" style={{ width: `${totalMedio}%` }} />
                       </div>
                     </div>
                     <div className="text-right shrink-0 mr-1">
@@ -1053,7 +1071,7 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-[var(--tinta)]">{p.nombre}</p>
                       <div className="mt-1 h-1.5 bg-[var(--superficie-3)] rounded-full overflow-hidden">
-                        <div className="h-full bg-red-400 rounded-full" style={{ width: `${pctPersona}%` }} />
+                        <div className="h-full bg-[var(--gasto)] rounded-full" style={{ width: `${pctPersona}%` }} />
                       </div>
                     </div>
                     <div className="text-right shrink-0 mr-1">
@@ -1254,7 +1272,10 @@ export default function Informes({ transacciones, mostrarCifras, onCambio, onCop
             </ResponsiveContainer>
             <div className="flex gap-4 justify-center mt-1">
               <span className="flex items-center gap-1 text-xs text-[var(--tinta-4)]">
-                <span className="w-3 h-2 rounded bg-red-500 inline-block" /> {anioActual}
+                {/* A juego con el color real de la barra (#FF6B6B, el mismo
+                    que --gasto): antes era bg-red-500, un rojo distinto al
+                    de la propia barra que representa. */}
+                <span className="w-3 h-2 rounded bg-[var(--gasto)] inline-block" /> {anioActual}
               </span>
               <span className="flex items-center gap-1 text-xs text-[var(--tinta-4)]">
                 <span className="w-3 h-2 rounded bg-[#7A4657] inline-block" /> {anioAnterior}
